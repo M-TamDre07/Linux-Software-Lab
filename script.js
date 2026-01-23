@@ -1,122 +1,150 @@
-/* ==========================================================================
-   INTERAKSI PORTFOLIO TAMA ANDREA STUDIO
-   ========================================================================== */
+/**
+ * TAMA ANDREA STUDIO - Portfolio Core Interaction
+ * Version: 2.0.0
+ */
 
-document.addEventListener('DOMContentLoaded', () => {
+"use strict";
 
-    // 1. NAVBAR SCROLL EFFECT
-    const navbar = document.querySelector('#navbar');
-    
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-            navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
-            navbar.style.height = '64px';
-        } else {
-            navbar.style.background = 'rgba(255, 255, 255, 0.8)';
-            navbar.style.boxShadow = 'none';
-            navbar.style.height = '72px';
-        }
-    });
-
-    // 2. MOBILE MENU (HAMBURGER)
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navLinksContainer = document.querySelector('.nav-links');
-
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            navLinksContainer.classList.toggle('active');
-            // Opsional: ganti icon saat diklik jika menggunakan lucide
-            const icon = menuToggle.querySelector('i');
-            if(navLinksContainer.classList.contains('active')) {
-                icon.setAttribute('data-lucide', 'x');
-            } else {
-                icon.setAttribute('data-lucide', 'menu');
-            }
-            lucide.createIcons(); // Re-render icon
-        });
-    }
-
-    // Tutup menu saat link diklik (untuk mobile)
-    const links = document.querySelectorAll('.nav-links a');
-    links.forEach(link => {
-        link.addEventListener('click', () => {
-            navLinksContainer?.classList.remove('active');
-        });
-    });
-
-    // 3. REVEAL-ON-SCROLL ANIMATION (Intersection Observer)
-    const revealElements = document.querySelectorAll('.reveal');
-    
-    const observerOptions = {
-        threshold: 0.15,
-        rootMargin: "0px 0px -50px 0px"
+const PortfolioApp = (() => {
+    // --- Configuration ---
+    const CONFIG = {
+        navbarScrollThreshold: 50,
+        revealThreshold: 0.15,
+        revealMargin: "0px 0px -50px 0px"
     };
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('is-visible');
-                // Tambahkan style inline untuk trigger animasi jika CSS belum ada
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-                observer.unobserve(entry.target);
+    // --- Selectors ---
+    const UI = {
+        navbar: document.querySelector('#navbar'),
+        menuToggle: document.querySelector('.menu-toggle'),
+        navLinksContainer: document.querySelector('.nav-links'),
+        navLinks: document.querySelectorAll('.nav-links a'),
+        revealElements: document.querySelectorAll('.reveal'),
+        modal: document.getElementById("imageModal"),
+        modalImg: document.getElementById("imgFull"),
+        modalCaption: document.getElementById("modal-caption"),
+        closeModal: document.querySelector(".close-modal"),
+        portfolioImages: document.querySelectorAll('.card-image img')
+    };
+
+    // --- Helpers ---
+    // Mencegah fungsi dijalankan terlalu sering (Optimasi Performa)
+    const throttle = (callback, limit) => {
+        let wait = false;
+        return () => {
+            if (!wait) {
+                callback.call();
+                wait = true;
+                setTimeout(() => wait = false, limit);
             }
-        });
-    }, observerOptions);
+        };
+    };
 
-    revealElements.forEach(el => {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(30px)';
-        el.style.transition = 'all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)';
-        observer.observe(el);
-    });
+    // --- Modules ---
 
-    // 4. IMAGE MODAL (FITUR BARU: ZOOM GAMBAR)
-    const modal = document.getElementById("imageModal");
-    const modalImg = document.getElementById("imgFull");
-    const captionText = document.getElementById("modal-caption");
-    const closeBtn = document.querySelector(".close-modal");
+    const initNavbar = () => {
+        if (!UI.navbar) return;
 
-    // Ambil semua gambar di dalam card portfolio
-    const portfolioImages = document.querySelectorAll('.card-image img');
+        const handleScroll = () => {
+            const isScrolled = window.scrollY > CONFIG.navbarScrollThreshold;
+            // Gunakan class CSS daripada inline style agar lebih ringan
+            UI.navbar.classList.toggle('navbar--scrolled', isScrolled);
+        };
 
-    portfolioImages.forEach(img => {
-        img.style.cursor = 'zoom-in';
-        img.onclick = function() {
-            modal.style.display = "flex";
-            modalImg.src = this.src;
-            captionText.innerHTML = this.alt;
-            document.body.style.overflow = 'hidden'; // Matikan scroll saat zoom
-        }
-    });
+        window.addEventListener('scroll', throttle(handleScroll, 100));
+    };
 
-    // Tutup Modal
-    if (closeBtn) {
-        closeBtn.onclick = function() {
-            modal.style.display = "none";
-            document.body.style.overflow = 'auto';
-        }
-    }
+    const initMobileMenu = () => {
+        if (!UI.menuToggle) return;
 
-    // Tutup modal jika klik di luar gambar
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-            document.body.style.overflow = 'auto';
-        }
-    }
+        const toggleMenu = (forceClose = false) => {
+            const isOpen = forceClose ? false : UI.navLinksContainer.classList.toggle('active');
+            if (forceClose) UI.navLinksContainer.classList.remove('active');
 
-    // 5. SMOOTH SCROLL FOR LINKS
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
+            // Update Icon (Lucide support)
+            const icon = UI.menuToggle.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
+                if (window.lucide) lucide.createIcons();
             }
+            
+            // Lock body scroll saat menu buka
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        };
+
+        UI.menuToggle.addEventListener('click', () => toggleMenu());
+        
+        // Tutup menu saat link diklik
+        UI.navLinks.forEach(link => {
+            link.addEventListener('click', () => toggleMenu(true));
         });
-    });
-});
+    };
+
+    const initRevealAnimation = () => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: CONFIG.revealThreshold, rootMargin: CONFIG.revealMargin });
+
+        UI.revealElements.forEach(el => observer.observe(el));
+    };
+
+    const initImageModal = () => {
+        if (!UI.modal) return;
+
+        const openModal = (img) => {
+            UI.modal.style.display = "flex";
+            UI.modalImg.src = img.src;
+            UI.modalCaption.textContent = img.alt;
+            document.body.classList.add('modal-open');
+        };
+
+        const closeModal = () => {
+            UI.modal.style.display = "none";
+            document.body.classList.remove('modal-open');
+        };
+
+        UI.portfolioImages.forEach(img => {
+            img.addEventListener('click', () => openModal(img));
+        });
+
+        UI.closeModal?.addEventListener('click', closeModal);
+        
+        // Tutup saat klik background atau tekan Esc
+        window.addEventListener('click', (e) => { if (e.target === UI.modal) closeModal(); });
+        window.addEventListener('keydown', (e) => { if (e.key === "Escape") closeModal(); });
+    };
+
+    const initSmoothScroll = () => {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    };
+
+    // --- Entry Point ---
+    const init = () => {
+        initNavbar();
+        initMobileMenu();
+        initRevealAnimation();
+        initImageModal();
+        initSmoothScroll();
+    };
+
+    return { init };
+})();
+
+// Jalankan aplikasi saat DOM siap
+document.addEventListener('DOMContentLoaded', PortfolioApp.init);
