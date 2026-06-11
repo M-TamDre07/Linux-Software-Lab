@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-theme="light">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Muhammad Andreatama | Graphic Designer - Tama Andrea Studio</title>
+    <title>Muhammad Andreatama | Graphic Designer — Tama Andrea Studio</title>
     
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="apple-touch-icon" href="favicon.png" />
-    <meta name="description" content="Portofolio Muhammad Andreatama (Tama Andrea Studio). Spesialis Branding Modern dan Visual Identity." />
+    <meta name="description" content="Portofolio Muhammad Andreatama — Tama Andrea Studio. Spesialis Branding Modern & Visual Identity. Siswa Kelas 12 TJKT SMK Negeri 2 Kalianda." />
     <meta name="author" content="Muhammad Andreatama" />
+    <meta property="og:title" content="Muhammad Andreatama — Tama Andrea Studio" />
+    <meta property="og:description" content="Graphic Designer spesialis branding modern & visual identity." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://tamaandrea.vercel.app/" />
 
     <link rel="stylesheet" href="style.css" />
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -23,37 +26,51 @@
 
 <body>
 
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+
+    <!-- Navigation -->
     <nav id="navbar">
         <div class="container">
             <a href="#hero" class="logo">
                 <span class="logo-dot"></span> TAMA ANDREA STUDIO
             </a>
-            
-            <button class="menu-toggle" aria-label="Buka Menu">
-                <i data-lucide="menu"></i>
-            </button>
 
             <ul class="nav-links">
                 <li><a href="#about">Tentang</a></li>
                 <li><a href="#skills">Keahlian</a></li>
                 <li><a href="#portfolio">Karya</a></li>
+                <li><a href="#prestasi">Prestasi</a></li>
                 <li><a href="#contact" class="nav-cta">Kontak</a></li>
             </ul>
+
+            <div class="nav-right">
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle tema">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+                <button class="menu-toggle" aria-label="Buka Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
     <main>
+
+        <!-- ===================== HERO ===================== -->
         <section id="hero">
             <div class="container">
                 <div class="hero-wrapper">
                     <div class="hero-text reveal">
-                        <div class="status-badge"></div>
+                        <div class="status-badge">
+                            <span class="status-dot"></span> Tersedia untuk Proyek
+                        </div>
                         <h1>
                             <span>Halo, Saya</span>
                             Muhammad <br> Andreatama
                         </h1>
                         <p>
-                            Graphic Designer yang fokus pada <strong>branding modern</strong> dan konten kreatif digital di bawah bendera <strong>Tama Andrea Studio</strong>.
+                            Graphic Designer spesialis <strong class="typewriter-wrap"><span id="typewriter"></span><span class="tw-cursor">|</span></strong> di bawah bendera <a href="https://tamaandrea.vercel.app/" target="_blank" class="studio-link"><strong>Tama Andrea Studio</strong></a>.
                         </p>
 
                         <ul class="hero-meta">
@@ -64,6 +81,10 @@
                             <li>
                                 <div class="icon-box"><i data-lucide="briefcase"></i></div>
                                 <span>Tama Andrea Studio</span>
+                            </li>
+                            <li>
+                                <div class="icon-box"><i data-lucide="graduation-cap"></i></div>
+                                <span>Kelas 12 TJKT · SMKN 2 Kalianda</span>
                             </li>
                         </ul>
 
@@ -84,6 +105,7 @@
             </div>
         </section>
 
+        <!-- ===================== ABOUT ===================== -->
         <section id="about">
             <div class="container">
                 <div class="section-header reveal">
@@ -98,6 +120,16 @@
                         <p>
                             Saya menikmati proses eksplorasi visual, mulai dari konsep sederhana hingga menjadi identitas brand yang matang dan relevan bagi audiens modern.
                         </p>
+                        <div class="studio-info-box">
+                            <div class="studio-info-icon"><i data-lucide="store"></i></div>
+                            <div>
+                                <strong>Tama Andrea Studio</strong>
+                                <p>Jasa desain grafis profesional untuk personal brand &amp; UMKM — logo, poster, hingga konten media sosial.</p>
+                                <a href="https://tamaandrea.vercel.app/" target="_blank" class="studio-link-btn">
+                                    Kunjungi Studio <i data-lucide="external-link"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="journey-box reveal">
@@ -106,16 +138,25 @@
                         <p>
                             Membantu personal brand dan UMKM membangun identitas visual yang konsisten, modern, dan profesional sejak awal karier saya.
                         </p>
+                        <div class="edu-badge">
+                            <i data-lucide="school"></i>
+                            <div>
+                                <strong>SMK Negeri 2 Kalianda</strong>
+                                <span>Kelas 12 · Teknik Jaringan Komputer &amp; Telekomunikasi</span>
+                                <span class="edu-year">Tahun Ajaran 2026/2027</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- ===================== SKILLS ===================== -->
         <section id="skills">
             <div class="container">
                 <div class="section-header reveal">
                     <span class="pre-title">Expertise</span>
-                    <h2>Tools & Keahlian</h2>
+                    <h2>Tools &amp; Keahlian</h2>
                 </div>
 
                 <div class="skills-wrapper reveal">
@@ -142,6 +183,7 @@
             </div>
         </section>
 
+        <!-- ===================== PORTFOLIO ===================== -->
         <section id="portfolio">
             <div class="container">
                 <div class="section-header reveal">
@@ -198,38 +240,169 @@
             </div>
         </section>
 
+        <!-- ===================== PRESTASI ===================== -->
+        <section id="prestasi">
+            <div class="container">
+                <div class="section-header reveal">
+                    <span class="pre-title">Achievement</span>
+                    <h2>Prestasi &amp; Sertifikasi</h2>
+                </div>
+
+                <div class="prestasi-grid">
+
+                    <!-- Kompetisi -->
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="trophy"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>Lomba Desain Grafis</h3>
+                            <p>Kompetisi desain tingkat kota/kabupaten</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type kompetisi">Kompetisi</span>
+                                <span class="prestasi-year">2026</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="medal"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>LKS Multimedia</h3>
+                            <p>Lomba Kompetensi Siswa bidang desain grafis</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type kompetisi">Kompetisi</span>
+                                <span class="prestasi-year">2026</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="star"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>Lomba Poster Kreatif</h3>
+                            <p>Kompetisi desain poster tingkat regional</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type kompetisi">Kompetisi</span>
+                                <span class="prestasi-year">2026</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Sertifikat -->
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="file-badge"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>Sertifikat Desain Canva</h3>
+                            <p>Pelatihan &amp; sertifikasi desain menggunakan Canva</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type sertifikat">Sertifikat</span>
+                                <span class="prestasi-year">2025</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="award"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>Sertifikat Desain Grafis</h3>
+                            <p>Workshop &amp; pelatihan desain grafis profesional</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type sertifikat">Sertifikat</span>
+                                <span class="prestasi-year">2025</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="prestasi-card reveal">
+                        <div class="prestasi-image">
+                            <div class="coming-soon-overlay">
+                                <div class="cs-icon"><i data-lucide="badge-check"></i></div>
+                                <span class="cs-badge">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="prestasi-content">
+                            <h3>Sertifikat Digital Marketing</h3>
+                            <p>Pelatihan strategi pemasaran digital &amp; konten</p>
+                            <div class="prestasi-meta">
+                                <span class="prestasi-type sertifikat">Sertifikat</span>
+                                <span class="prestasi-year">2025</span>
+                            </div>
+                        </div>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== CONTACT ===================== -->
         <section id="contact">
             <div class="container">
                 <div class="contact-card reveal">
                     <span class="pre-title" style="color: rgba(255,255,255,0.6)">Get in Touch</span>
                     <h2 style="color: white; margin-bottom: 2rem;">Mari Berkolaborasi</h2>
                     <div class="contact-links">
-                        <a href="mailto:email@kamu.com" class="contact-item"><i data-lucide="mail"></i> Email Saya</a>
-                        <a href="https://instagram.com/tamaandrea" target="_blank" class="contact-item"><i data-lucide="instagram"></i> Instagram</a>
-                        <a href="#" class="contact-item"><i data-lucide="external-link"></i> Behance</a>
+                        <a href="mailto:tamaandrea92@gmail.com" class="contact-item">
+                            <i data-lucide="mail"></i> tamaandrea92@gmail.com
+                        </a>
+                        <a href="https://www.instagram.com/m.andreatama/" target="_blank" rel="noopener noreferrer" class="contact-item">
+                            <i data-lucide="instagram"></i> @m.andreatama
+                        </a>
+                        <a href="https://www.tiktok.com/@tamaandrea.id" target="_blank" rel="noopener noreferrer" class="contact-item">
+                            <i data-lucide="music-2"></i> @tamaandrea.id
+                        </a>
+                        <a href="https://tamaandrea.vercel.app/" target="_blank" rel="noopener noreferrer" class="contact-item">
+                            <i data-lucide="globe"></i> tamaandrea.vercel.app
+                        </a>
                     </div>
                 </div>
             </div>
         </section>
+
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2024 Tama Andrea Studio. Dibuat dengan presisi.</p>
+            <p>&copy; 2026 Tama Andrea Studio. Dibuat dengan presisi.</p>
         </div>
     </footer>
 
+    <!-- Image Modal (Lightbox) -->
     <div id="imageModal" class="modal">
         <span class="close-modal">&times;</span>
-        <img class="modal-content" id="imgFull">
+        <img class="modal-content" id="imgFull" alt="">
         <div id="modal-caption"></div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Inisialisasi ikon Lucide agar muncul
-        lucide.createIcons();
-    </script>
-</body>
+    <!-- Back to Top -->
+    <button id="back-to-top" aria-label="Kembali ke atas">
+        <i data-lucide="arrow-up"></i>
+    </button>
 
+    <script src="script.js"></script>
+    <script>lucide.createIcons();</script>
+</body>
 </html>
