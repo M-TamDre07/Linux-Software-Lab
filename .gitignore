@@ -1,0 +1,33 @@
+# Environment secrets and local credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Vercel local project metadata
+.vercel/
+
+# Python virtual environments, caches and bytecode
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node tooling dependencies/caches (if a build tool is added later)
+node_modules/
+.npm/
+.parcel-cache/
+dist/
+build/
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
