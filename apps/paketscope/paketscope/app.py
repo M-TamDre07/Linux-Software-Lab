@@ -145,6 +145,7 @@ class MainWindow(QMainWindow):
 
         self.pool = QThreadPool.globalInstance()
         self.worker: Worker | None = None
+        self.pending_handler: Callable[[object], None] | None = None
         self.snapshot = InventorySnapshot.create(())
         self.inventory_model = InventoryModel()
         self.proxy = InventoryProxy(self)
@@ -283,21 +284,28 @@ class MainWindow(QMainWindow):
         self._set_busy(True, message)
         worker = Worker(function)
         self.worker = worker
-
-        def done(value: object) -> None:
-            self.worker = None
-            self._set_busy(False)
-            on_result(value)
-
-        def failed(error: str) -> None:
-            self.worker = None
-            self._set_busy(False)
-            self.status_label.setText("Operasi tidak selesai.")
-            QMessageBox.warning(self, "PaketScope", error)
-
-        worker.signals.result.connect(done)
-        worker.signals.error.connect(failed)
+        self.pending_handler = on_result
+        # Explicit queued delivery keeps all widget updates on the GUI thread.
+        worker.signals.result.connect(self._worker_result, Qt.ConnectionType.QueuedConnection)
+        worker.signals.error.connect(self._worker_failed, Qt.ConnectionType.QueuedConnection)
         self.pool.start(worker)
+
+    @Slot(object)
+    def _worker_result(self, value: object) -> None:
+        self.worker = None
+        handler = self.pending_handler
+        self.pending_handler = None
+        self._set_busy(False)
+        if handler is not None:
+            handler(value)
+
+    @Slot(str)
+    def _worker_failed(self, error: str) -> None:
+        self.worker = None
+        self.pending_handler = None
+        self._set_busy(False)
+        self.status_label.setText("Operasi tidak selesai.")
+        QMessageBox.warning(self, "PaketScope", error)
 
     @Slot()
     def refresh_inventory(self) -> None:
