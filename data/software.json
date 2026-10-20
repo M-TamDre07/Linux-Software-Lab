@@ -4,7 +4,7 @@
     {
       "id": "paketscope",
       "name": "PaketScope",
-      "summary": "Pusat inventaris aplikasi Linux untuk memahami sumber instalasi, memeriksa pembaruan, dan meninjau informasi berkas dari satu antarmuka.",
+      "summary": "Inventaris lokal APT/dpkg dan Flatpak dengan pencarian, pemeriksaan pembaruan sesuai permintaan, ekspor CSV, serta cadangan terenkripsi.",
       "category": "Pengelolaan aplikasi",
       "icon": "package",
       "status": "testing",
@@ -15,15 +15,17 @@
       "tags": [
         "Python",
         "PySide6",
-        "APT",
-        "Flatpak"
+        "APT / dpkg",
+        "Flatpak",
+        "AES-GCM",
+        "Local-first"
       ],
       "detailUrl": "/software/paketscope.html",
-      "sourceUrl": "",
+      "sourceUrl": "https://github.com/M-TamDre07/Portofolio/tree/main/apps/paketscope",
       "releaseUrl": "",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
-      "previewAlt": "Konsep antarmuka PaketScope untuk meninjau aplikasi terpasang, sumber paket, dan status inventaris."
+      "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis."
     },
     {
       "id": "prompter-overlay",
