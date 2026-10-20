@@ -57,7 +57,7 @@ const sortSelect = $('#sortFilter');
 const loadMoreButton = $('#loadMore');
 const paginationSummary = $('#paginationSummary');
 const clearButton = $('#clearFilters');
-const PAGE_SIZE = 12;
+let pageSize = 12;
 const STATUS_LABELS = { released: 'Sudah dirilis', testing: 'Dalam pengujian', planned: 'Direncanakan', archived: 'Arsip' };
 const STATUS_ORDER = { released: 0, testing: 1, planned: 2, archived: 3 };
 const ICONS = {
@@ -72,7 +72,7 @@ let activeCategory = 'all';
 let activePlatform = 'all';
 let query = '';
 let sortMode = 'relevance';
-let visibleLimit = PAGE_SIZE;
+let visibleLimit = pageSize;
 let catalogLoaded = false;
 
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -162,7 +162,7 @@ const applyURLState = () => {
     button.classList.toggle('is-active', selected);
     button.setAttribute('aria-pressed', String(selected));
   });
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
 };
 
 const updateURL = () => {
@@ -257,11 +257,11 @@ const render = () => {
       : 'Menampilkan ' + shown.length + ' dari ' + rows.length + ' hasil · ' + software.length + ' proyek di katalog';
   }
   if (paginationSummary) {
-    paginationSummary.textContent = rows.length > PAGE_SIZE ? 'Halaman katalog dimuat bertahap agar tetap ringan.' : 'Seluruh hasil yang cocok sudah ditampilkan.';
+    paginationSummary.textContent = rows.length > pageSize ? 'Halaman katalog dimuat bertahap agar tetap ringan.' : 'Seluruh hasil yang cocok sudah ditampilkan.';
   }
   if (loadMoreButton) {
     loadMoreButton.hidden = shown.length >= rows.length;
-    loadMoreButton.textContent = 'Muat ' + Math.min(PAGE_SIZE, rows.length - shown.length) + ' berikutnya';
+    loadMoreButton.textContent = 'Muat ' + Math.min(pageSize, rows.length - shown.length) + ' berikutnya';
   }
   $$('.software-preview img', grid).forEach(image => {
     image.addEventListener('error', () => {
@@ -283,7 +283,7 @@ const resetFilters = () => {
   activeCategory = 'all';
   activePlatform = 'all';
   sortMode = 'relevance';
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   if (searchInput) searchInput.value = '';
   if (categorySelect) categorySelect.value = 'all';
   if (platformSelect) platformSelect.value = 'all';
@@ -298,7 +298,7 @@ const resetFilters = () => {
 
 statusButtons.forEach(button => button.addEventListener('click', () => {
   activeStatus = button.dataset.filter || 'all';
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   statusButtons.forEach(item => {
     const selected = item === button;
     item.classList.toggle('is-active', selected);
@@ -308,22 +308,22 @@ statusButtons.forEach(button => button.addEventListener('click', () => {
 }));
 searchInput?.addEventListener('input', () => {
   query = searchInput.value;
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   refresh();
 });
 categorySelect?.addEventListener('change', () => {
   activeCategory = categorySelect.value;
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   refresh();
 });
 platformSelect?.addEventListener('change', () => {
   activePlatform = platformSelect.value;
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   refresh();
 });
 sortSelect?.addEventListener('change', () => {
   sortMode = sortSelect.value;
-  visibleLimit = PAGE_SIZE;
+  visibleLimit = pageSize;
   refresh();
 });
 clearButton?.addEventListener('click', () => {
@@ -331,7 +331,7 @@ clearButton?.addEventListener('click', () => {
   searchInput?.focus();
 });
 loadMoreButton?.addEventListener('click', () => {
-  visibleLimit += PAGE_SIZE;
+  visibleLimit += pageSize;
   refresh(false);
 });
 
@@ -348,7 +348,7 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && target === searchInput && searchInput.value) {
     searchInput.value = '';
     query = '';
-    visibleLimit = PAGE_SIZE;
+    visibleLimit = pageSize;
     refresh();
   }
 });
@@ -379,6 +379,7 @@ if (grid) {
       if (!data || data.schemaVersion !== 2 || !Array.isArray(data.software)) {
         throw new Error('Struktur katalog tidak sesuai dengan versi skema yang didukung.');
       }
+      pageSize = Number.isInteger(data.catalog?.pageSize) && data.catalog.pageSize > 0 ? Math.min(100, data.catalog.pageSize) : 12;
       software = data.software
         .filter(app => app && typeof app.id === 'string' && typeof app.name === 'string')
         .map(app => makeSearchIndex({ ...app }));
