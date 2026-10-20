@@ -206,15 +206,88 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
     return errors
 
 
+def validate_schema_contract(root: Path = ROOT) -> list[str]:
+    """Detect drift between the documented JSON Schema and the runtime validator."""
+    path = root / "data" / "software.schema.json"
+    try:
+        schema = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError) as exc:
+        return [f"Could not read catalogue schema {path}: {exc}"]
+    except json.JSONDecodeError as exc:
+        return [f"Invalid JSON in catalogue schema {path}: {exc}"]
+
+    if not isinstance(schema, dict):
+        return ["Catalogue schema root must be a JSON object."]
+    errors: list[str] = []
+    root_properties = schema.get("properties")
+    if not isinstance(root_properties, dict):
+        return ["Catalogue schema must define root properties."]
+    if set(root_properties) != ROOT_FIELDS:
+        errors.append("Catalogue schema root properties must match the runtime validator fields.")
+    if set(schema.get("required", [])) != ROOT_FIELDS:
+        errors.append("Catalogue schema root required fields must match the runtime validator.")
+
+    version_rule = root_properties.get("schemaVersion", {})
+    if not isinstance(version_rule, dict) or version_rule.get("const") != 2:
+        errors.append("Catalogue schema must pin schemaVersion to 2.")
+
+    catalog_rule = root_properties.get("catalog", {})
+    catalog_properties = catalog_rule.get("properties", {}) if isinstance(catalog_rule, dict) else {}
+    if not isinstance(catalog_properties, dict) or set(catalog_properties) != CATALOG_FIELDS:
+        errors.append("Catalogue schema catalog properties must match the runtime validator fields.")
+    if not isinstance(catalog_rule, dict) or set(catalog_rule.get("required", [])) != CATALOG_FIELDS:
+        errors.append("Catalogue schema catalog required fields must match the runtime validator.")
+
+    software_rule = root_properties.get("software", {})
+    items = software_rule.get("items", {}) if isinstance(software_rule, dict) else {}
+    if not isinstance(items, dict):
+        return errors + ["Catalogue schema must define software items."]
+    app_properties = items.get("properties", {})
+    if not isinstance(app_properties, dict) or set(app_properties) != APP_FIELDS:
+        errors.append("Catalogue schema software properties must match the runtime validator fields.")
+    if set(items.get("required", [])) != APP_FIELDS:
+        errors.append("Catalogue schema software required fields must match the runtime validator.")
+
+    status_rule = app_properties.get("status", {}) if isinstance(app_properties, dict) else {}
+    type_rule = app_properties.get("type", {}) if isinstance(app_properties, dict) else {}
+    if not isinstance(status_rule, dict) or set(status_rule.get("enum", [])) != ALLOWED_STATUS:
+        errors.append("Catalogue schema status enum must match the runtime validator.")
+    if not isinstance(type_rule, dict) or set(type_rule.get("enum", [])) != ALLOWED_TYPES:
+        errors.append("Catalogue schema type enum must match the runtime validator.")
+
+    release_rule_exists = False
+    for rule in items.get("allOf", []) if isinstance(items.get("allOf", []), list) else []:
+        if not isinstance(rule, dict):
+            continue
+        condition = rule.get("if", {})
+        consequence = rule.get("then", {})
+        condition_status = condition.get("properties", {}).get("status", {}) if isinstance(condition, dict) else {}
+        release_property = consequence.get("properties", {}).get("releaseUrl", {}) if isinstance(consequence, dict) else {}
+        if (
+            isinstance(condition_status, dict)
+            and condition_status.get("const") == "released"
+            and isinstance(release_property, dict)
+            and release_property.get("minLength", 0) >= 1
+        ):
+            release_rule_exists = True
+            break
+    if not release_rule_exists:
+        errors.append("Catalogue schema must require a non-empty releaseUrl for released software.")
+
+    return errors
+
+
 def validate_catalog(root: Path = ROOT, catalog_path: Path | None = None) -> list[str]:
     path = catalog_path or (root / "data" / "software.json")
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except OSError as exc:
+    except (OSError, UnicodeError) as exc:
         return [f"Could not read catalog {path}: {exc}"]
     except json.JSONDecodeError as exc:
         return [f"Invalid JSON in {path}: {exc}"]
-    return validate_data(data, root)
+    errors = validate_data(data, root)
+    errors.extend(validate_schema_contract(root))
+    return errors
 
 
 def main() -> int:
