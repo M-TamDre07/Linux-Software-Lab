@@ -381,7 +381,7 @@ class MainWindow(QMainWindow):
             path += ".csv"
         try:
             count = self.services.export_csv(applications, path)
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Ekspor gagal", str(exc))
             return
         self.status_label.setText(f"Ekspor CSV selesai · {count} baris")
@@ -459,7 +459,7 @@ class MainWindow(QMainWindow):
             return
         try:
             self.services.export_restored_json(target, records)
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Simpan gagal", str(exc))
             return
         self.status_label.setText("Cadangan dibuka; JSON tanpa enkripsi disimpan secara eksplisit.")
