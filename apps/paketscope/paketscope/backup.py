@@ -58,6 +58,8 @@ def decrypt_backup(blob: bytes, passphrase: str) -> list[dict[str, Any]]:
         payload = json.loads(plaintext.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("Isi cadangan tidak valid.") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("Struktur cadangan tidak valid.")
     if payload.get("format") != 1 or payload.get("application") != "PaketScope":
         raise ValueError("Versi format cadangan tidak didukung.")
     records = payload.get("records")
