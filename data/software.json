@@ -8,11 +8,22 @@
       "category": "Pengelolaan aplikasi",
       "icon": "package",
       "status": "testing",
-      "platforms": ["Debian 13", "Linux"],
-      "tags": ["Python", "PySide6", "APT", "Flatpak"],
+      "platforms": [
+        "Debian 13",
+        "Linux"
+      ],
+      "tags": [
+        "Python",
+        "PySide6",
+        "APT",
+        "Flatpak"
+      ],
       "detailUrl": "/software/paketscope.html",
       "sourceUrl": "",
-      "releaseUrl": ""
+      "releaseUrl": "",
+      "iconImage": "/assets/images/paketscope-icon.svg",
+      "previewImage": "/assets/images/paketscope-preview.svg",
+      "previewAlt": "Konsep antarmuka PaketScope untuk meninjau aplikasi terpasang, sumber paket, dan status inventaris."
     },
     {
       "id": "prompter-overlay",
@@ -21,11 +32,22 @@
       "category": "Produktivitas",
       "icon": "type",
       "status": "testing",
-      "platforms": ["Debian 13", "Linux"],
-      "tags": ["Python", "PySide6", "Overlay", "Naskah"],
+      "platforms": [
+        "Debian 13",
+        "Linux"
+      ],
+      "tags": [
+        "Python",
+        "PySide6",
+        "Overlay",
+        "Naskah"
+      ],
       "detailUrl": "/software/prompter-overlay.html",
       "sourceUrl": "",
-      "releaseUrl": ""
+      "releaseUrl": "",
+      "iconImage": "/assets/images/prompter-overlay-icon.svg",
+      "previewImage": "/assets/images/prompter-overlay-preview.svg",
+      "previewAlt": "Konsep teleprompter mengambang dengan naskah dan kontrol teks di atas workspace presentasi."
     }
   ]
 }
