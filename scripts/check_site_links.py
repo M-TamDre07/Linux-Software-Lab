@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Validate local HTML targets, canonical URLs, robots.txt, and sitemap coverage."""
+"""Validate static HTML targets, markup policy, canonical URLs, robots.txt, and sitemap coverage."""
 from __future__ import annotations
 
 import json
 import sys
 import xml.etree.ElementTree as ET
+from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
@@ -19,13 +20,31 @@ class LinkParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
         self.links: list[tuple[str, int, str]] = []
+        self.ids: list[tuple[str, int]] = []
+        self.policy_violations: list[tuple[int, str]] = []
+        self._inline_script = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = {key.lower(): value for key, value in attrs}
+        line = self.getpos()[0]
         for key, value in attrs:
-            if key.lower() in ("href", "src") and value:
+            lowered = key.lower()
+            if lowered == "id" and value:
+                self.ids.append((value, line))
+            if lowered.startswith("on"):
+                self.policy_violations.append((line, f"inline event handler '{key}' violates the website script policy"))
+            if lowered in ("href", "src") and value:
                 value = value.strip()
                 if value and not value.startswith("#"):
-                    self.links.append((key.lower(), self.getpos()[0], value))
+                    self.links.append((lowered, line, value))
+        if tag.lower() == "script":
+            self._inline_script = not bool(attributes.get("src"))
+            if self._inline_script:
+                self.policy_violations.append((line, "inline script violates script-src 'self' policy"))
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "script":
+            self._inline_script = False
 
 
 class CanonicalParser(HTMLParser):
@@ -82,7 +101,17 @@ def find_broken_links(root: Path = ROOT) -> list[str]:
             continue
         parser = LinkParser()
         parser.feed(html)
+        parser.close()
         page_relative = page.relative_to(root).as_posix()
+
+        counts = Counter(identifier for identifier, _line in parser.ids)
+        for identifier, count in counts.items():
+            if count > 1:
+                lines = [str(line) for value, line in parser.ids if value == identifier]
+                errors.append(f"{page_relative}: duplicate id '{identifier}' on lines {', '.join(lines)}.")
+        for line, message in parser.policy_violations:
+            errors.append(f"{page_relative}:{line}: {message}.")
+
         base = urljoin(BASE_URL, page_relative)
         for _kind, line, value in parser.links:
             parsed = urlparse(value)
@@ -131,11 +160,15 @@ def validate_sitemap(root: Path = ROOT) -> list[str]:
             expected_pages[detail_path] = _local_target(root, detail_path)
     except (OSError, UnicodeError, json.JSONDecodeError, ValueError, AttributeError) as exc:
         errors.append(f"Cannot read catalogue for sitemap validation: {exc}")
-        software_items = []
 
     for route, page in expected_pages.items():
+        try:
+            page.resolve().relative_to(root)
+        except ValueError:
+            errors.append(f"Sitemap route {route} escapes the website root.")
+            continue
         if not page.is_file():
-            errors.append(f"Sitemap route {route} points to a missing page: {page.relative_to(root) if page.is_relative_to(root) else page}.")
+            errors.append(f"Sitemap route {route} points to a missing page: {page.relative_to(root)}.")
             continue
         expected_url = origin + (route if route != "/" else "/")
         page_canonicals = _canonical_urls(page)
@@ -145,10 +178,7 @@ def validate_sitemap(root: Path = ROOT) -> list[str]:
     sitemap_path = root / "sitemap.xml"
     try:
         tree = ET.parse(sitemap_path)
-        urls = [
-            (node.text or "").strip()
-            for node in tree.findall("sm:url/sm:loc", SITEMAP_NS)
-        ]
+        urls = [(node.text or "").strip() for node in tree.findall("sm:url/sm:loc", SITEMAP_NS)]
         if not urls:
             errors.append("sitemap.xml must contain at least one <loc> URL.")
     except (OSError, ET.ParseError) as exc:
@@ -162,11 +192,14 @@ def validate_sitemap(root: Path = ROOT) -> list[str]:
         if parsed.scheme != "https" or parsed.netloc != canonical.netloc or parsed.query or parsed.fragment:
             errors.append(f"sitemap URL must be absolute HTTPS on the canonical host: {url}")
             continue
+        route = parsed.path or "/"
+        if route in actual_paths:
+            errors.append(f"sitemap.xml contains a duplicate route: {route}")
         if url in seen_urls:
             errors.append(f"sitemap.xml contains a duplicate URL: {url}")
         seen_urls.add(url)
-        actual_paths.add(parsed.path or "/")
-        page = _local_target(root, parsed.path or "/")
+        actual_paths.add(route)
+        page = _local_target(root, route)
         try:
             page.resolve().relative_to(root)
         except ValueError:
@@ -204,7 +237,7 @@ def main() -> int:
         for error in errors:
             print(" - " + error)
         return 1
-    print("Static-site validation passed: local HTML links, canonical URLs, robots.txt, and sitemap are consistent.")
+    print("Static-site validation passed: markup policy, unique HTML IDs, local links, canonical URLs, robots.txt, and sitemap are consistent.")
     return 0
 
 
