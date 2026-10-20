@@ -245,6 +245,11 @@ class MainWindow(QMainWindow):
         self.backup_button = QPushButton("Cadangan terenkripsi")
         self.backup_button.clicked.connect(self.export_encrypted_backup)
         action_row.addWidget(self.backup_button)
+        self.decrypt_button = QPushButton("Buka cadangan")
+        self.decrypt_button.setObjectName("secondary")
+        self.decrypt_button.setToolTip("Dekripsi cadangan ke JSON teks biasa dengan persetujuan eksplisit.")
+        self.decrypt_button.clicked.connect(self.decrypt_backup_to_json)
+        action_row.addWidget(self.decrypt_button)
         layout.addLayout(action_row)
 
         privacy = QLabel("LOCAL-FIRST  ·  TANPA TELEMETRI  ·  TIDAK MEMERLUKAN ROOT  ·  TIDAK ADA AKSI INSTALL/REMOVE")
@@ -267,7 +272,7 @@ class MainWindow(QMainWindow):
         return value
 
     def _set_busy(self, busy: bool, message: str = "") -> None:
-        for button in (self.refresh_button, self.updates_button, self.csv_button, self.backup_button):
+        for button in (self.refresh_button, self.updates_button, self.csv_button, self.backup_button, self.decrypt_button):
             button.setEnabled(not busy)
         if message:
             self.status_label.setText(message)
