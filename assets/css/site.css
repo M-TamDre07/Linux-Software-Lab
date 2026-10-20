@@ -166,3 +166,20 @@ h1 span{color:var(--accent)}
  .search-shortcut,.select-field,.catalog-selects{border:1px solid ButtonText}
  .card-secondary-link{text-decoration:underline}
 }
+
+
+/* Dedicated software directory landing section. */
+.catalog-page-hero{overflow:hidden;border-bottom:1px solid var(--line);background:var(--bg)}
+.catalog-page-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,.44fr);gap:clamp(30px,7vw,100px);align-items:end;padding-block:clamp(56px,8vw,105px)}
+.catalog-page-heading h1{max-width:780px;margin:20px 0;font-size:clamp(3.2rem,7vw,6.8rem)}
+.catalog-page-heading h1 span{color:var(--accent)}
+.catalog-page-heading .hero-lead{margin-bottom:0;max-width:690px}
+.catalog-page-note{padding:19px;border:1px solid var(--line);background:var(--surface-2)}
+.catalog-page-note strong{display:block;margin:16px 0 8px;font-size:22px;line-height:1.12;letter-spacing:-.05em}
+.catalog-page-note p{margin:0 0 15px;color:var(--muted);font-size:12px;line-height:1.7}
+.catalog-trust-note{max-width:800px;color:var(--muted);font-size:14px;line-height:1.85}
+@media(max-width:760px){
+ .catalog-page-heading{grid-template-columns:1fr;gap:26px;padding-block:54px}
+ .catalog-page-heading h1{font-size:clamp(3rem,12vw,5rem)}
+ .catalog-page-note{max-width:560px}
+}
