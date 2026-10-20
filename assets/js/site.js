@@ -58,8 +58,8 @@ const loadMoreButton = $('#loadMore');
 const paginationSummary = $('#paginationSummary');
 const clearButton = $('#clearFilters');
 const PAGE_SIZE = 12;
-const STATUS_LABELS = { released: 'Sudah dirilis', testing: 'Dalam pengujian', planned: 'Direncanakan' };
-const STATUS_ORDER = { released: 0, testing: 1, planned: 2 };
+const STATUS_LABELS = { released: 'Sudah dirilis', testing: 'Dalam pengujian', planned: 'Direncanakan', archived: 'Arsip' };
+const STATUS_ORDER = { released: 0, testing: 1, planned: 2, archived: 3 };
 const ICONS = {
   package: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.3 7.5 7.7 4.4 7.7-4.4M12 12v9M8 5.3l8 4.5"/></svg>',
   type: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7V4h16v3M12 4v16M8 20h8"/></svg>',
@@ -150,7 +150,7 @@ const applyURLState = () => {
   const state = currentURLState();
   query = state.q;
   if (searchInput) searchInput.value = query;
-  activeStatus = ['all', 'released', 'testing', 'planned'].includes(state.status) ? state.status : 'all';
+  activeStatus = ['all', 'released', 'testing', 'planned', 'archived'].includes(state.status) ? state.status : 'all';
   activeCategory = [...categorySelect?.options || []].some(option => option.value === state.category) ? state.category : 'all';
   activePlatform = [...platformSelect?.options || []].some(option => option.value === state.platform) ? state.platform : 'all';
   sortMode = ['relevance', 'name', 'name-desc', 'updated', 'status'].includes(state.sort) ? state.sort : 'relevance';
