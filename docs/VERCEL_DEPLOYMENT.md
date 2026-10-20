@@ -36,3 +36,18 @@ Official guidance:
 The import list is part of the project-creation flow, not a permanent list of local source folders. Return to the dashboard and check the existing Projects list. Do not create duplicate projects for a desktop app. If this project's existing deployment is still serving the site, use that project and inspect its deployment/build logs instead of importing it again.
 
 If the project was never created and the repository is not offered, inspect GitHub App repository permissions and the currently selected Vercel team/account.
+
+
+## When the project list contains “PaketScope”
+
+GitHub reports two Vercel check contexts for this repository: `paketscope` and `linux-software-lab`. Those status names alone do not reveal the exact root-directory/domain settings, so inspect the existing Vercel projects rather than importing duplicates.
+
+- If `linux-software-lab` is the website, its Root Directory should be the repository root and it should own the public website domain.
+- If a `paketscope` project already exists, open it and inspect **Settings → Git** and **Settings → Build and Deployment**. PaketScope is a Python/Qt desktop application, so the source under `apps/paketscope/` is not a normal Vercel static website.
+- Do not delete or disconnect either project until you have checked which project owns the public domain and production deployments.
+
+## If Import reports a build-rate limit
+
+An error link that includes `build-rate-limit` points to Vercel account/team build usage, not to a missing catalog JSON file. Vercel documents a Hobby limit of 32 deployments per 60 minutes. Inspect Vercel Dashboard → **Usage** and the deployment status before retrying Import repeatedly or changing plans.
+
+Official limit reference: https://vercel.com/docs/limits
