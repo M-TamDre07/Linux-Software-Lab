@@ -123,3 +123,50 @@ h1 span{color:var(--accent)}
 .hero-app-tile small{font:9px ui-monospace,SFMono-Regular,monospace;color:var(--muted)}
 @media(max-width:900px){.detail-layout{grid-template-columns:1fr}.detail-art{max-width:800px}.detail-body-grid{grid-template-columns:minmax(0,1fr) 280px}}
 @media(max-width:700px){.detail-layout{gap:30px}.detail-copy h1{font-size:clamp(2.8rem,12vw,4.2rem)}.detail-body-grid{grid-template-columns:1fr}.detail-spec{max-width:520px}.detail-title-row{margin-top:20px}.hero-app-roster{grid-template-columns:1fr 1fr}.hero-app-tile{padding:10px;gap:8px}.hero-app-tile img{width:38px;height:38px}}
+
+
+/* Scalable catalogue controls */
+.catalog-toolbar-main{display:grid;grid-template-columns:minmax(260px,1.05fr) minmax(0,1.25fr);gap:14px;align-items:stretch}
+.catalog-toolbar-main .search-box{width:100%;min-width:0;min-height:48px}
+.catalog-selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.catalog-select-label{display:grid;gap:5px;min-width:0;padding:7px 9px;background:var(--surface-2);font:9px/1.2 ui-monospace,SFMono-Regular,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.catalog-select-label select{width:100%;min-width:0;min-height:25px;padding:4px 18px 4px 0;border:0;border-radius:0;background:transparent;color:var(--text);font:11px/1.4 Inter,system-ui,sans-serif;text-transform:none;letter-spacing:normal;outline-offset:2px}
+.status-filters{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:12px}
+.status-filters .filter-btn{flex:0 0 auto;border:0;min-height:38px}
+.status-filters .reset-filter{margin-left:auto;background:var(--surface);color:var(--muted)}
+.status-filters .reset-filter:hover{background:var(--text);color:var(--bg)}
+.catalog-meta{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:17px 0 12px}
+.catalog-meta #resultCount{color:var(--text);font-weight:700}
+#catalogHint{color:var(--muted);text-align:right}
+.software-card-category{margin-top:11px;color:var(--accent);font:9px/1.4 ui-monospace,SFMono-Regular,monospace;text-transform:uppercase;letter-spacing:.08em}
+.software-card h3 a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;color:var(--accent)}
+.software-card-platforms{margin:0 0 15px;color:var(--muted);font:9px/1.6 ui-monospace,SFMono-Regular,monospace;letter-spacing:.02em}
+.card-bottom{flex-wrap:wrap}
+.card-source-link{color:var(--muted)}
+.catalog-pagination{display:flex;justify-content:center;align-items:center;gap:18px;margin-top:28px}
+.catalog-pagination[hidden]{display:none}
+.catalog-pagination .pagination-button{min-height:38px;padding-inline:13px}
+.catalog-pagination .pagination-info{font:10px/1.5 ui-monospace,SFMono-Regular,monospace;color:var(--muted);text-align:center}
+.catalog-pagination .pagination-info strong{color:var(--text)}
+.empty-state{grid-column:1/-1;padding:clamp(30px,5vw,54px) 20px;border:1px dashed var(--line-strong);background:var(--surface-2);text-align:center;color:var(--muted)}
+.empty-state strong{display:block;color:var(--text);font-size:17px;margin-bottom:8px}
+.empty-state p{margin:6px 0}
+.web-search-note{max-width:500px;margin:14px auto!important;font-size:12px}
+.web-search-link{margin-top:8px}
+@media(max-width:900px){
+ .catalog-toolbar-main{grid-template-columns:1fr}
+ .catalog-selects{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px){
+ .catalog-toolbar-main{gap:10px}
+ .catalog-selects{grid-template-columns:1fr}
+ .catalog-select-label{grid-template-columns:82px minmax(0,1fr);align-items:center}
+ .catalog-select-label select{min-height:32px}
+ .catalog-meta{align-items:flex-start;flex-direction:column;gap:6px}
+ #catalogHint{text-align:left}
+ .status-filters{overflow-x:auto;flex-wrap:nowrap}
+ .status-filters .filter-btn{white-space:nowrap}
+ .status-filters .reset-filter{margin-left:0}
+ .catalog-pagination{gap:9px;flex-wrap:wrap}
+ .catalog-pagination .pagination-info{width:100%;order:-1}
+}
