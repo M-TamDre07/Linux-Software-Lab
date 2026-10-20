@@ -20,6 +20,7 @@ from . import __version__
 from .backup import decrypt_backup, encrypt_backup
 from .collectors import collect_inventory
 from .domain import InstalledApplication, InventorySnapshot
+from .exporting import csv_safe_record
 from .updates import check_updates
 
 
@@ -246,7 +247,7 @@ class MainWindow(QMainWindow):
         self.backup_button = QPushButton("Cadangan terenkripsi")
         self.backup_button.clicked.connect(self.export_encrypted_backup)
         action_row.addWidget(self.backup_button)
-        self.decrypt_button = QPushButton("Buka cadangan")
+        self.decrypt_button = QPushButton("Dekripsi ke JSON")
         self.decrypt_button.setObjectName("secondary")
         self.decrypt_button.setToolTip("Dekripsi cadangan ke JSON teks biasa dengan persetujuan eksplisit.")
         self.decrypt_button.clicked.connect(self.decrypt_backup_to_json)
@@ -385,7 +386,7 @@ class MainWindow(QMainWindow):
             with open(path, "w", encoding="utf-8-sig", newline="") as handle:
                 writer = csv.DictWriter(handle, fieldnames=list(applications[0].to_record().keys()))
                 writer.writeheader()
-                writer.writerows(app.to_record() for app in applications)
+                writer.writerows(csv_safe_record(app.to_record()) for app in applications)
         except OSError as exc:
             QMessageBox.warning(self, "Ekspor gagal", str(exc))
             return
