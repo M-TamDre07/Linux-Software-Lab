@@ -183,3 +183,5 @@ h1 span{color:var(--accent)}
  .catalog-page-heading h1{font-size:clamp(3rem,12vw,5rem)}
  .catalog-page-note{max-width:560px}
 }
+
+.status-badge.archived:before{background:var(--muted)}
