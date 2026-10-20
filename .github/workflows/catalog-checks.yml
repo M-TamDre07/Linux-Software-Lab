@@ -1,0 +1,37 @@
+name: Website catalogue checks
+
+on:
+  push:
+    paths:
+      - "public/**"
+      - "scripts/validate_catalog.py"
+      - "vercel.json"
+      - ".github/workflows/catalog-checks.yml"
+  pull_request:
+    paths:
+      - "public/**"
+      - "scripts/validate_catalog.py"
+      - "vercel.json"
+      - ".github/workflows/catalog-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate catalogue data and local asset links
+        run: python scripts/validate_catalog.py
+      - name: Check website JavaScript syntax
+        run: node --check public/assets/js/site.js
+      - name: Validate Vercel configuration JSON
+        run: python -m json.tool vercel.json > /dev/null
