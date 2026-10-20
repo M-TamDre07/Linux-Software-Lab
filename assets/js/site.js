@@ -95,7 +95,7 @@ const safeInternalPath = value => {
 
 const safeAssetPath = value => {
   const path = String(value || '');
-  if (!path.startsWith('/assets/images/') || path.startsWith('//') || path.includes('..') || /[<>"'\\s]/.test(path)) return '';
+  if (!path.startsWith('/assets/images/') || path.startsWith('//') || path.includes('..') || /[<>"'\s]/.test(path)) return '';
   return path;
 };
 
