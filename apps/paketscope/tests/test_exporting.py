@@ -1,4 +1,4 @@
-from paketscope.exporting import csv_safe_record, csv_safe_value
+from paketscope.exporting import csv_safe_record, csv_safe_value, write_private_file
 
 
 def test_formula_like_cells_are_neutralized():
@@ -13,3 +13,21 @@ def test_normal_values_are_not_modified():
         "name": "Firefox",
         "version": "1.2",
     }
+
+
+import os
+import stat
+import pytest
+
+
+@pytest.mark.skipif(os.name != "posix", reason="Owner-only file mode is POSIX-specific.")
+def test_private_file_is_written_with_owner_only_permissions(tmp_path):
+    destination = tmp_path / "inventory.csv"
+    destination.write_text("previous public content", encoding="utf-8")
+    destination.chmod(0o644)
+
+    write_private_file(destination, b"private inventory")
+
+    assert destination.read_bytes() == b"private inventory"
+    assert stat.S_IMODE(destination.stat().st_mode) == 0o600
+    assert list(tmp_path.glob(".inventory.csv.*.tmp")) == []
