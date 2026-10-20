@@ -1,8 +1,15 @@
-# PaketScope 2
+# PaketScope 3 — Native desktop (development preview)
 
 PaketScope is a local-first desktop inventory for Debian-family Linux systems. Version 2 starts with a safety-oriented scope: discover installed APT/dpkg and Flatpak applications, search and filter the inventory, check updates only when requested, and export the inventory.
 
-> Development preview: this source is not yet a signed or packaged release. Run it from source and review the code before use.
+> Development preview: this branch is not yet a signed or packaged release. Run it from source and review the code before use.
+
+## Native architecture
+
+PaketScope 3 is a **native Linux desktop application**, not a website or browser wrapper. Its frontend is built with PySide6/Qt Widgets. The Python application-service layer coordinates use cases, domain models hold normalized inventory data, and OS adapters communicate with APT/dpkg and Flatpak through bounded, argument-list subprocess calls. User-selected exports and encrypted backups remain local.
+
+The version 3 branch introduces a service boundary so the GUI does not own package-discovery, update-check, or file-serialization logic. It remains a development preview: package installation/removal, a remote API, accounts, telemetry, and automatic background updates are deliberately out of scope.
+
 
 ## Current scope
 
@@ -56,4 +63,10 @@ The test suite covers inventory parsing, command-error handling, encrypted-backu
 
 ## Roadmap (not yet implemented)
 
-Signed release builds, desktop sandboxing, broader package-source support, integration tests on clean Debian 13/Flatpak systems, reproducible builds, and a documented security review.
+- Modern native UI polish, including clear navigation and responsive layouts within desktop windows.
+- Optional, privacy-reviewed local scan history and preference storage.
+- Supported Debian/Ubuntu compatibility matrix and integration tests on clean systems.
+- Signed/reproducible release builds, desktop sandboxing, and a documented security review.
+- Packaging and release validation for the formats selected for distribution (for example, .deb and Flatpak).
+
+Do not announce a stable release until the CI suite, real-system compatibility checks, package installation/uninstallation tests, and security review have been completed.

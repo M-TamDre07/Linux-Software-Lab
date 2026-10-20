@@ -1,9 +1,6 @@
 """PaketScope Qt desktop UI."""
 from __future__ import annotations
 
-import csv
-import io
-import json
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -18,33 +15,33 @@ from PySide6.QtWidgets import (
 )
 
 from . import __version__
-from .backup import decrypt_backup, encrypt_backup
-from .collectors import collect_inventory
 from .domain import InstalledApplication, InventorySnapshot
-from .exporting import csv_safe_record, write_private_file
-from .updates import check_updates
+from .services import PaketScopeService
+from .updates import UpdateCheckResult
 
 
 COLUMNS = ("Nama aplikasi / paket", "Versi", "Sumber", "ID paket", "Asal / cabang")
 APP_QSS = """
-QMainWindow, QWidget#root { background: #f2f1ee; color: #252523; }
-QWidget { font-family: Inter, 'Noto Sans', sans-serif; font-size: 12px; }
-QFrame#topbar, QFrame#stat, QFrame#panel { background: #f8f7f4; border: 1px solid #d2d0c9; }
-QLabel#eyebrow, QLabel#mono { color: #6d6d66; font-family: monospace; font-size: 10px; letter-spacing: 1px; }
-QLabel#title { font-size: 28px; font-weight: 650; letter-spacing: -1px; }
-QLabel#stat-value { font-size: 23px; font-weight: 650; }
-QLabel#body-muted { color: #6d6d66; }
-QLineEdit, QComboBox { background: #f8f7f4; border: 1px solid #aaa9a1; border-radius: 0; padding: 9px 10px; min-height: 18px; selection-background-color: #bd5a32; }
-QLineEdit:focus, QComboBox:focus, QTableView:focus { border: 1px solid #bd5a32; }
-QPushButton { background: #252523; color: #f2f1ee; border: 1px solid #252523; border-radius: 0; padding: 10px 13px; font-size: 10px; font-weight: 700; letter-spacing: .7px; }
-QPushButton:hover { background: #bd5a32; border-color: #bd5a32; color: white; }
-QPushButton:disabled { background: #aaa9a1; border-color: #aaa9a1; color: #e9e7e2; }
-QPushButton#secondary { background: transparent; color: #252523; border-color: #aaa9a1; }
-QPushButton#secondary:hover { background: #e9e7e2; border-color: #252523; }
-QTableView { background: #f8f7f4; alternate-background-color: #efeee9; border: 1px solid #d2d0c9; gridline-color: #d2d0c9; selection-background-color: #f1ded4; selection-color: #252523; outline: none; }
-QHeaderView::section { background: #e9e7e2; color: #6d6d66; border: none; border-bottom: 1px solid #d2d0c9; padding: 10px 8px; font-family: monospace; font-size: 10px; font-weight: 600; }
-QScrollBar:vertical { background: #e9e7e2; width: 10px; margin: 0; }
-QScrollBar::handle:vertical { background: #aaa9a1; min-height: 25px; }
+QMainWindow, QWidget#root { background: #f4f6fa; color: #192230; }
+QWidget { font-family: "Inter", "Segoe UI", "SF Pro Text", "Noto Sans", sans-serif; font-size: 13px; }
+QFrame#topbar, QFrame#stat, QFrame#panel { background: #ffffff; border: 1px solid #e1e7f0; border-radius: 14px; }
+QLabel#eyebrow, QLabel#mono { color: #667085; font-family: "Noto Sans Mono", monospace; font-size: 10px; letter-spacing: .6px; }
+QLabel#title { color: #172033; font-size: 28px; font-weight: 700; letter-spacing: -.7px; }
+QLabel#stat-value { color: #172033; font-size: 24px; font-weight: 700; }
+QLabel#body-muted { color: #667085; }
+QLineEdit, QComboBox { background: #ffffff; color: #192230; border: 1px solid #cfd7e5; border-radius: 9px; padding: 9px 11px; min-height: 20px; }
+QLineEdit:focus, QComboBox:focus, QTableView:focus { border: 1px solid #315df5; }
+QPushButton { background: #315df5; color: #ffffff; border: 1px solid #315df5; border-radius: 9px; padding: 10px 13px; font-size: 12px; font-weight: 650; }
+QPushButton:hover { background: #2448cf; border-color: #2448cf; }
+QPushButton:pressed { background: #1d3cae; }
+QPushButton:disabled { background: #d8deea; border-color: #d8deea; color: #7a8496; }
+QPushButton#secondary { background: #ffffff; color: #273247; border-color: #d4dce8; }
+QPushButton#secondary:hover { background: #f1f5fb; border-color: #b8c4d8; }
+QTableView { background: #ffffff; alternate-background-color: #f7f9fc; color: #192230; border: 1px solid #e1e7f0; border-radius: 10px; gridline-color: #e8edf4; selection-background-color: #dce7ff; selection-color: #172033; outline: none; }
+QHeaderView::section { background: #f3f6fb; color: #667085; border: none; border-bottom: 1px solid #e1e7f0; padding: 11px 9px; font-family: "Noto Sans Mono", monospace; font-size: 10px; font-weight: 650; }
+QScrollBar:vertical { background: #f3f6fb; width: 10px; margin: 2px; border-radius: 5px; }
+QScrollBar::handle:vertical { background: #c0cadb; min-height: 25px; border-radius: 5px; }
+QScrollBar::handle:vertical:hover { background: #9eacc3; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
 """
 
@@ -138,7 +135,7 @@ class Worker(QRunnable):
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("PaketScope 2")
+        self.setWindowTitle("PaketScope 3")
         self.setMinimumSize(780, 580)
         self.resize(1140, 760)
         icon_path = Path(__file__).parent / "assets" / "paketscope.svg"
@@ -146,6 +143,7 @@ class MainWindow(QMainWindow):
             self.setWindowIcon(QIcon(str(icon_path)))
 
         self.pool = QThreadPool.globalInstance()
+        self.services = PaketScopeService()
         self.worker: Worker | None = None
         self.pending_handler: Callable[[object], None] | None = None
         self.snapshot = InventorySnapshot.create(())
@@ -176,7 +174,7 @@ class MainWindow(QMainWindow):
         title_group.addWidget(subtitle)
         header_layout.addLayout(title_group)
         header_layout.addStretch(1)
-        self.version_label = QLabel("VERSION 2.0.0-DEV")
+        self.version_label = QLabel("VERSION 3.0.0-DEV")
         self.version_label.setObjectName("mono")
         header_layout.addWidget(self.version_label, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addWidget(header)
@@ -311,7 +309,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def refresh_inventory(self) -> None:
-        self._start_task("Membaca inventaris lokal…", collect_inventory, self._inventory_ready)
+        self._start_task("Membaca inventaris lokal…", self.services.scan_inventory, self._inventory_ready)
 
     def _inventory_ready(self, value: object) -> None:
         if not isinstance(value, InventorySnapshot):
@@ -333,8 +331,6 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def check_for_updates(self) -> None:
-        from .updates import check_updates as run_update_check
-
         def show(value: object) -> None:
             from .updates import UpdateCheckResult
             if not isinstance(value, UpdateCheckResult):
@@ -356,7 +352,7 @@ class MainWindow(QMainWindow):
                 f"Pembaruan ditemukan — APT {len(value.apt_updates)} · Flatpak {len(value.flatpak_updates)}"
             )
 
-        self._start_task("Memeriksa pembaruan; Flatpak dapat mengakses remote…", run_update_check, show)
+        self._start_task("Memeriksa pembaruan; Flatpak dapat mengakses remote…", self.services.check_updates, show)
 
     @Slot()
     def show_diagnostics(self) -> None:
@@ -384,15 +380,11 @@ class MainWindow(QMainWindow):
         if not path.lower().endswith(".csv"):
             path += ".csv"
         try:
-            buffer = io.StringIO(newline="")
-            writer = csv.DictWriter(buffer, fieldnames=list(applications[0].to_record().keys()))
-            writer.writeheader()
-            writer.writerows(csv_safe_record(app.to_record()) for app in applications)
-            write_private_file(path, buffer.getvalue().encode("utf-8-sig"))
+            count = self.services.export_csv(applications, path)
         except OSError as exc:
             QMessageBox.warning(self, "Ekspor gagal", str(exc))
             return
-        self.status_label.setText(f"Ekspor CSV selesai · {len(applications)} baris")
+        self.status_label.setText(f"Ekspor CSV selesai · {count} baris")
 
     @Slot()
     def export_encrypted_backup(self) -> None:
@@ -420,8 +412,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Cadangan batal", "Kedua kata sandi tidak cocok.")
             return
         try:
-            blob = encrypt_backup([app.to_record() for app in self.snapshot.applications], password)
-            write_private_file(path, blob)
+            count = self.services.create_encrypted_backup(self.snapshot.applications, path, password)
         except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Cadangan gagal", str(exc))
             return
@@ -430,7 +421,7 @@ class MainWindow(QMainWindow):
             confirm = ""
         QMessageBox.information(
             self, "Cadangan tersimpan",
-            "Cadangan inventaris berhasil dienkripsi dengan AES-GCM. Simpan kata sandi secara terpisah; kata sandi tidak disimpan oleh aplikasi."
+            f"Cadangan {count} aplikasi berhasil dienkripsi dengan AES-GCM. Simpan kata sandi secara terpisah; kata sandi tidak disimpan oleh aplikasi."
         )
         self.status_label.setText("Cadangan terenkripsi berhasil dibuat.")
 
@@ -447,7 +438,7 @@ class MainWindow(QMainWindow):
         if not ok:
             return
         try:
-            records = decrypt_backup(Path(path).read_bytes(), password)
+            records = self.services.restore_backup(path, password)
         except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Tidak dapat membuka cadangan", str(exc))
             return
@@ -467,9 +458,7 @@ class MainWindow(QMainWindow):
         if not target:
             return
         try:
-            write_private_file(
-                target, json.dumps(records, ensure_ascii=False, indent=2).encode("utf-8")
-            )
+            self.services.export_restored_json(target, records)
         except OSError as exc:
             QMessageBox.warning(self, "Simpan gagal", str(exc))
             return

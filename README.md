@@ -78,9 +78,9 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## PaketScope 2
+## PaketScope 3 (native development branch)
 
-Source aplikasi desktop ada di apps/paketscope/. Ini masih development preview; belum tersedia installer rilis bertanda tangan atau audit keamanan independen. Cara menjalankan dan batasan proyek tercantum dalam apps/paketscope/README.md.
+Source aplikasi desktop ada di apps/paketscope/. Branch `feature/paketscope-v3-native` memulai refaktor arsitektur native PaketScope 3; ini masih development preview dan belum menjadi rilis publik; belum tersedia installer rilis bertanda tangan atau audit keamanan independen. Cara menjalankan dan batasan proyek tercantum dalam apps/paketscope/README.md.
 
 ~~~bash
 cd apps/paketscope
