@@ -46,7 +46,7 @@
 <div class="detail-body"><span class="eyebrow">02 / PRIVASI & KEAMANAN</span><h2>Local data. Explicit actions.</h2>
 <p>PaketScope dirancang untuk meminimalkan akses: inventaris dibaca dengan hak pengguna biasa, tidak meminta akses root, dan tidak mengubah keadaan paket. Tidak ada tugas jaringan latar belakang atau pengiriman daftar aplikasi ke layanan pihak ketiga.</p>
 <p>Cadangan terenkripsi menggunakan AES-256-GCM dengan salt dan nonce acak untuk setiap berkas, serta kunci turunan scrypt. Kata sandi tidak disimpan oleh aplikasi. Jika kata sandi hilang, cadangan tidak dapat dipulihkan.</p>
-<p>Ekspor CSV dan JSON hasil dekripsi merupakan berkas teks biasa yang dapat mengungkap perangkat lunak yang digunakan. Simpan hanya di lokasi tepercaya dan hapus salinan sesuai kebutuhan.</p>
+<p>Ekspor CSV dan JSON hasil dekripsi merupakan berkas teks biasa yang dapat mengungkap perangkat lunak yang digunakan. Simpan hanya di lokasi tepercaya dan hapus salinan sesuai kebutuhan. Pada sistem POSIX, berkas ekspor dibuat dengan izin pemilik saja (0600), dan nilai CSV yang menyerupai formula spreadsheet dinetralkan.</p>
 <p>Enkripsi dalam kode sumber bukan pengganti audit independen. Sebelum rilis publik, proyek masih memerlukan pengujian pada instalasi Debian yang bersih, peninjauan dependensi, pengemasan bertanda tangan, dan tinjauan keamanan.</p>
 </div>
 <aside class="detail-spec"><div class="detail-spec-head"><img src="/assets/images/paketscope-icon.svg" alt="" width="36" height="36"><div><strong>PaketScope 2</strong><small>Development snapshot</small></div></div>
