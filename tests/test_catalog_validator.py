@@ -74,20 +74,77 @@ class CatalogValidatorTests(unittest.TestCase):
         errors = validate_data(self.data, self.root)
         self.assertTrue(any("HTTPS URL" in error for error in errors))
 
+    def test_malformed_port_is_rejected(self):
+        self.data["software"][0]["sourceUrl"] = "https://example.com:not-a-port/source"
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("HTTPS URL" in error for error in errors))
+
     def test_release_link_requires_released_status(self):
         self.data["software"][0]["releaseUrl"] = "https://example.com/download"
         errors = validate_data(self.data, self.root)
         self.assertTrue(any("only be shown for status 'released'" in error for error in errors))
+
+    def test_released_status_requires_release_url(self):
+        self.data["software"][0]["status"] = "released"
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("requires a verified HTTPS releaseUrl" in error for error in errors))
+
+    def test_released_status_with_https_release_url_passes(self):
+        self.data["software"][0]["status"] = "released"
+        self.data["software"][0]["releaseUrl"] = "https://github.com/example/demo/releases/download/v1/demo.tar.gz"
+        self.assertEqual(validate_data(self.data, self.root), [])
 
     def test_unsafe_detail_path_is_rejected(self):
         self.data["software"][0]["detailUrl"] = "/software/../secret.html"
         errors = validate_data(self.data, self.root)
         self.assertTrue(any("unsafe path" in error for error in errors))
 
+    def test_detail_url_must_match_slug(self):
+        self.data["software"][0]["detailUrl"] = "/software/some-other-app.html"
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("detailUrl must be '/software/demo.html'" in error for error in errors))
+
     def test_unknown_schema_version_is_rejected(self):
         self.data["schemaVersion"] = 1
         errors = validate_data(self.data, self.root)
         self.assertTrue(any("schemaVersion must be 2" in error for error in errors))
+
+    def test_unknown_app_field_is_rejected(self):
+        self.data["software"][0]["releaseNotes"] = "typo field"
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("unknown field(s): releaseNotes" in error for error in errors))
+
+    def test_wrong_field_types_report_errors_without_crashing(self):
+        app = self.data["software"][0]
+        app["summary"] = 123
+        app["status"] = ["released"]
+        app["type"] = {"desktop": True}
+        app["updatedAt"] = None
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("'summary' is missing or has the wrong type" in error for error in errors))
+        self.assertTrue(any("'status' is missing or has the wrong type" in error for error in errors))
+        self.assertTrue(any("'type' is missing or has the wrong type" in error for error in errors))
+        self.assertTrue(any("'updatedAt' is missing or has the wrong type" in error for error in errors))
+
+    def test_unknown_catalog_field_is_rejected(self):
+        self.data["catalog"]["pagSize"] = 12
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("Unknown catalog metadata field(s): pagSize" in error for error in errors))
+
+    def test_path_that_escapes_through_symlink_is_rejected(self):
+        outside = Path(self.temp.name).parent / "outside-preview.svg"
+        outside.write_text("<svg/>", encoding="utf-8")
+        link = self.root / "assets" / "images" / "external.svg"
+        try:
+            link.symlink_to(outside)
+        except (OSError, NotImplementedError):
+            outside.unlink(missing_ok=True)
+            self.skipTest("Symlink creation is unavailable on this platform")
+        self.data["software"][0]["previewImage"] = "/assets/images/external.svg"
+        errors = validate_data(self.data, self.root)
+        self.assertTrue(any("resolves outside the website root" in error for error in errors))
+        link.unlink(missing_ok=True)
+        outside.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
