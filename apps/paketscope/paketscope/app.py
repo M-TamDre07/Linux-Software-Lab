@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import json
 import sys
 from datetime import datetime
@@ -20,7 +21,7 @@ from . import __version__
 from .backup import decrypt_backup, encrypt_backup
 from .collectors import collect_inventory
 from .domain import InstalledApplication, InventorySnapshot
-from .exporting import csv_safe_record
+from .exporting import csv_safe_record, write_private_file
 from .updates import check_updates
 
 
@@ -383,10 +384,11 @@ class MainWindow(QMainWindow):
         if not path.lower().endswith(".csv"):
             path += ".csv"
         try:
-            with open(path, "w", encoding="utf-8-sig", newline="") as handle:
-                writer = csv.DictWriter(handle, fieldnames=list(applications[0].to_record().keys()))
-                writer.writeheader()
-                writer.writerows(csv_safe_record(app.to_record()) for app in applications)
+            buffer = io.StringIO(newline="")
+            writer = csv.DictWriter(buffer, fieldnames=list(applications[0].to_record().keys()))
+            writer.writeheader()
+            writer.writerows(csv_safe_record(app.to_record()) for app in applications)
+            write_private_file(path, buffer.getvalue().encode("utf-8-sig"))
         except OSError as exc:
             QMessageBox.warning(self, "Ekspor gagal", str(exc))
             return
@@ -419,8 +421,7 @@ class MainWindow(QMainWindow):
             return
         try:
             blob = encrypt_backup([app.to_record() for app in self.snapshot.applications], password)
-            with open(path, "wb") as handle:
-                handle.write(blob)
+            write_private_file(path, blob)
         except (OSError, ValueError) as exc:
             QMessageBox.warning(self, "Cadangan gagal", str(exc))
             return
@@ -466,8 +467,8 @@ class MainWindow(QMainWindow):
         if not target:
             return
         try:
-            Path(target).write_text(
-                json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8"
+            write_private_file(
+                target, json.dumps(records, ensure_ascii=False, indent=2).encode("utf-8")
             )
         except OSError as exc:
             QMessageBox.warning(self, "Simpan gagal", str(exc))
