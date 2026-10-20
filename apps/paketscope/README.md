@@ -51,6 +51,7 @@ The test suite covers parsing and the encrypted-backup format. This is not a sub
 - All subprocess calls pass an argument list with shell=False, use timeouts, and run as the current user.
 - Encrypted backup contents use AES-GCM authenticated encryption. A random salt and nonce are generated for every backup; scrypt derives the key from the passphrase.
 - The application does not store passwords or passphrases. Plain CSV/JSON exports are intentionally not encrypted; choose the encrypted backup option for portable protected copies.
+- CSV values that resemble spreadsheet formulas are neutralized during export. Export files and decrypted JSON are atomically written with owner-only POSIX permissions (`0600`); still treat them as sensitive data.
 - Do not run this project with elevated privileges. Report security problems privately to the maintainer before making them public.
 
 ## Roadmap (not yet implemented)
