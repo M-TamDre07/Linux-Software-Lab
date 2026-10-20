@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paketscope"
+version = "2.0.0.dev1"
+description = "Local-first package inventory for Debian and Flatpak desktops"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Linux Software Lab" }]
+dependencies = ["PySide6>=6.7", "cryptography>=42.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.0"]
+
+[project.scripts]
+paketscope = "paketscope.app:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["paketscope*"]
+
+[tool.setuptools.package-data]
+paketscope = ["assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
