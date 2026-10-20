@@ -5,6 +5,7 @@ on:
     branches: [main, feature/software-catalog-platform]
     paths:
       - "public/**"
+      - ".gitignore"
       - "index.html"
       - "software/**"
       - "assets/**"
