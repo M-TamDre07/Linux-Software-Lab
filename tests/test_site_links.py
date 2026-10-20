@@ -52,6 +52,26 @@ class SiteLinksTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+
+    def test_duplicate_html_ids_are_rejected(self):
+        (self.root / "software" / "demo.html").write_text(
+            '<html><head><link rel="canonical" href="https://example.test/software/demo.html"></head>'
+            '<body><div id="duplicate"></div><section id="duplicate"></section></body></html>',
+            encoding="utf-8",
+        )
+        errors = find_broken_links(self.root)
+        self.assertTrue(any("duplicate id 'duplicate'" in error for error in errors))
+
+    def test_inline_scripts_and_event_handlers_are_rejected_by_markup_policy(self):
+        (self.root / "software" / "demo.html").write_text(
+            '<html><head><link rel="canonical" href="https://example.test/software/demo.html"></head>'
+            '<body><button onclick="run()">Go</button><script>run()</script></body></html>',
+            encoding="utf-8",
+        )
+        errors = find_broken_links(self.root)
+        self.assertTrue(any("inline event handler 'onclick'" in error for error in errors))
+        self.assertTrue(any("inline script violates" in error for error in errors))
+
     def test_local_links_and_assets_pass(self):
         self.assertEqual(find_broken_links(self.root), [])
 
