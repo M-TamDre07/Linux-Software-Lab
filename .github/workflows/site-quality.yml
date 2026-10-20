@@ -1,0 +1,54 @@
+name: Website quality
+
+on:
+  push:
+    branches: [main, feature/software-catalog-platform]
+    paths:
+      - "index.html"
+      - "software/**"
+      - "assets/**"
+      - "data/**"
+      - "scripts/**"
+      - "tests/**"
+      - "docs/**"
+      - "vercel.json"
+      - ".github/workflows/site-quality.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "software/**"
+      - "assets/**"
+      - "data/**"
+      - "scripts/**"
+      - "tests/**"
+      - "docs/**"
+      - "vercel.json"
+      - ".github/workflows/site-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate catalog metadata
+        run: python scripts/validate_catalog.py
+      - name: Check all local HTML links and assets
+        run: python scripts/check_site_links.py
+      - name: Check JavaScript syntax
+        run: node --check assets/js/site.js
+      - name: Validate JSON syntax
+        run: |
+          python -m json.tool data/software.json > /dev/null
+          python -m json.tool data/software.schema.json > /dev/null
+      - name: Run catalog validator unit tests
+        run: python -m unittest discover -s tests -v
