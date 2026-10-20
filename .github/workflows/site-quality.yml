@@ -4,6 +4,7 @@ on:
   push:
     branches: [main, feature/software-catalog-platform]
     paths:
+      - "public/**"
       - "index.html"
       - "software/**"
       - "assets/**"
@@ -11,10 +12,15 @@ on:
       - "scripts/**"
       - "tests/**"
       - "docs/**"
+      - "README.md"
+      - "robots.txt"
+      - "sitemap.xml"
+      - "google505d5a75f881baa2.html"
       - "vercel.json"
       - ".github/workflows/site-quality.yml"
   pull_request:
     paths:
+      - "public/**"
       - "index.html"
       - "software/**"
       - "assets/**"
@@ -22,6 +28,10 @@ on:
       - "scripts/**"
       - "tests/**"
       - "docs/**"
+      - "README.md"
+      - "robots.txt"
+      - "sitemap.xml"
+      - "google505d5a75f881baa2.html"
       - "vercel.json"
       - ".github/workflows/site-quality.yml"
   workflow_dispatch:
@@ -40,15 +50,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Validate catalog metadata
+      - name: Validate catalog metadata and release-state rules
         run: python scripts/validate_catalog.py
-      - name: Check all local HTML links and assets
+      - name: Check local links, canonical metadata, robots and sitemap
         run: python scripts/check_site_links.py
-      - name: Check JavaScript syntax
-        run: node --check assets/js/site.js
-      - name: Validate JSON syntax
+      - name: Check website JavaScript syntax
+        run: node --check public/assets/js/site.js
+      - name: Validate website JSON and Vercel configuration
         run: |
-          python -m json.tool data/software.json > /dev/null
-          python -m json.tool data/software.schema.json > /dev/null
-      - name: Run catalog validator unit tests
+          python -m json.tool public/data/software.json > /dev/null
+          python -m json.tool public/data/software.schema.json > /dev/null
+          python -m json.tool vercel.json > /dev/null
+      - name: Run metadata, sitemap and link regression tests
         run: python -m unittest discover -s tests -v
