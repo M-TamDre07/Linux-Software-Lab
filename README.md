@@ -32,3 +32,18 @@ Edit \`data/software.json\` dan buat halaman detail di folder \`software/\`. Gun
 Situs ini dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela tersedia melalui https://saweria.co/tamaandrea.
 
 Situs statis ini dapat dihosting di Vercel tanpa framework build tambahan. Pastikan domain yang benar telah dikonfigurasi di dashboard Vercel.
+
+## PaketScope 2 (development preview)
+
+The desktop app source lives in `apps/paketscope/`. It provides local APT/dpkg and Flatpak inventory, search/filter, on-demand update checks, CSV export, and AES-GCM encrypted backups.
+
+~~~bash
+cd apps/paketscope
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[test]'
+python -m paketscope
+python -m pytest
+~~~
+
+PaketScope is still a development preview: no signed release binaries or independent security audit are available yet. See `apps/paketscope/README.md` and `apps/paketscope/docs/SECURITY.md` for scope and limitations.
