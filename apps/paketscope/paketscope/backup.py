@@ -14,7 +14,7 @@ AAD = b"PaketScope encrypted inventory backup v1"
 SALT_BYTES = 16
 NONCE_BYTES = 12
 KEY_BYTES = 32
-SCRYPT_N = 2**14
+SCRYPT_N = 2**15
 SCRYPT_R = 8
 SCRYPT_P = 1
 
