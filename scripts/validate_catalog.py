@@ -46,12 +46,17 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
         return ["Catalog root must be a JSON object."]
     if data.get("schemaVersion") != 2:
         errors.append("schemaVersion must be 2.")
+
     catalog = data.get("catalog")
     if not isinstance(catalog, dict):
         errors.append("catalog metadata must be an object.")
     else:
         if not isinstance(catalog.get("name"), str) or not catalog["name"].strip():
             errors.append("catalog.name is required.")
+        if not isinstance(catalog.get("description"), str) or not catalog["description"].strip():
+            errors.append("catalog.description is required.")
+        if catalog.get("searchMode") != "client-side":
+            errors.append("catalog.searchMode must be 'client-side'.")
         page_size = catalog.get("pageSize")
         if not isinstance(page_size, int) or isinstance(page_size, bool) or not 1 <= page_size <= 100:
             errors.append("catalog.pageSize must be an integer from 1 to 100.")
@@ -63,13 +68,15 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
     apps = data.get("software")
     if not isinstance(apps, list):
         return errors + ["software must be an array."]
+    if not apps:
+        errors.append("Catalog must contain at least one software entry.")
 
     ids: set[str] = set()
     slugs: set[str] = set()
     details: set[str] = set()
     required_strings = (
         "id", "slug", "name", "version", "summary", "description",
-        "category", "status", "type", "detailUrl", "iconImage",
+        "category", "status", "type", "detailUrl", "icon", "iconImage",
         "previewImage", "previewAlt", "updatedAt",
     )
     required_arrays = ("platforms", "tags", "keywords", "features")
@@ -79,9 +86,13 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
             errors.append(f"software[{position}] must be an object.")
             continue
         app_id = str(app.get("id", f"software[{position}]"))
+        for key in ("sourceUrl", "releaseUrl"):
+            if key not in app or not isinstance(app[key], str):
+                errors.append(f"{app_id}: required string '{key}' is missing.")
         for key in required_strings:
             if not isinstance(app.get(key), str) or not app[key].strip():
                 errors.append(f"{app_id}: required string '{key}' is missing.")
+
         if not all(isinstance(app.get(key), str) and app[key].strip() for key in ("id", "slug", "detailUrl", "name")):
             continue
 
@@ -95,6 +106,8 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
             errors.append(f"{app_id}: slug must use lowercase letters, numbers, and single hyphens.")
         if app["id"] != app["slug"]:
             errors.append(f"{app_id}: id and slug must match.")
+        if len(app["summary"]) > 320:
+            errors.append(f"{app_id}: summary cannot exceed 320 characters.")
         if app["status"] not in ALLOWED_STATUS:
             errors.append(f"{app_id}: unsupported status '{app['status']}'.")
         if app["type"] not in ALLOWED_TYPES:
@@ -108,8 +121,11 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
             value = app.get(key)
             if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
                 errors.append(f"{app_id}: '{key}' must be an array of non-empty strings.")
-            elif key in ("platforms", "tags") and not value:
-                errors.append(f"{app_id}: '{key}' cannot be empty.")
+            else:
+                if key in ("platforms", "tags") and not value:
+                    errors.append(f"{app_id}: '{key}' cannot be empty.")
+                if len(value) != len(set(value)):
+                    errors.append(f"{app_id}: '{key}' contains duplicate values.")
 
         detail = app["detailUrl"]
         _check_local_path(detail, root, "/software/", "detailUrl", errors, app_id)
@@ -123,11 +139,9 @@ def validate_data(data: Any, root: Path = ROOT) -> list[str]:
             value = app.get(key, "")
             if value and (not isinstance(value, str) or not _is_https_url(value)):
                 errors.append(f"{app_id}: '{key}' must be empty or an HTTPS URL.")
-        if app.get("releaseUrl") and app["status"] != "released":
+        if app.get("releaseUrl") and app.get("status") != "released":
             errors.append(f"{app_id}: a download/release URL can only be shown for status 'released'.")
 
-    if not apps:
-        errors.append("Catalog must contain at least one software entry.")
     return errors
 
 
@@ -147,13 +161,15 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=ROOT, help="Website repository root")
     parser.add_argument("--catalog", type=Path, default=None, help="Catalog JSON path (defaults to ROOT/data/software.json)")
     args = parser.parse_args()
-    errors = validate_catalog(args.root.resolve(), args.catalog.resolve() if args.catalog else None)
+    root = args.root.resolve()
+    path = args.catalog.resolve() if args.catalog else root / "data" / "software.json"
+    errors = validate_catalog(root, path)
     if errors:
         print("Catalog validation FAILED:")
         for error in errors:
             print(" - " + error)
         return 1
-    data = json.loads((args.catalog or (args.root / "data" / "software.json")).read_text(encoding="utf-8"))
+    data = json.loads(path.read_text(encoding="utf-8"))
     print(f"Catalog valid: {len(data['software'])} software entries.")
     return 0
 
