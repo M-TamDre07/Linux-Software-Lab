@@ -22,3 +22,12 @@ def test_wrong_password_and_tampering_are_rejected():
 def test_short_passphrase_is_rejected():
     with pytest.raises(ValueError, match="minimal 12"):
         encrypt_backup([], "too-short")
+
+
+def test_each_backup_uses_fresh_random_salt_and_nonce():
+    rows = [{"name": "Editor"}]
+    first = encrypt_backup(rows, "a-unique-long-passphrase")
+    second = encrypt_backup(rows, "a-unique-long-passphrase")
+    assert first != second
+    assert decrypt_backup(first, "a-unique-long-passphrase") == rows
+    assert decrypt_backup(second, "a-unique-long-passphrase") == rows
