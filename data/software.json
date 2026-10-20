@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "software": [
+    {
+      "id": "paketscope",
+      "name": "PaketScope",
+      "summary": "Pusat inventaris aplikasi Linux untuk memahami sumber instalasi, memeriksa pembaruan, dan meninjau informasi berkas dari satu antarmuka.",
+      "category": "Pengelolaan aplikasi",
+      "icon": "package",
+      "status": "testing",
+      "platforms": ["Debian 13", "Linux"],
+      "tags": ["Python", "PySide6", "APT", "Flatpak"],
+      "detailUrl": "/software/paketscope.html",
+      "sourceUrl": "",
+      "releaseUrl": ""
+    },
+    {
+      "id": "prompter-overlay",
+      "name": "Prompter Overlay",
+      "summary": "Teleprompter desktop dengan lapisan teks mengambang untuk membantu membaca naskah saat presentasi, merekam video, atau melakukan panggilan.",
+      "category": "Produktivitas",
+      "icon": "type",
+      "status": "testing",
+      "platforms": ["Debian 13", "Linux"],
+      "tags": ["Python", "PySide6", "Overlay", "Naskah"],
+      "detailUrl": "/software/prompter-overlay.html",
+      "sourceUrl": "",
+      "releaseUrl": ""
+    }
+  ]
+}
