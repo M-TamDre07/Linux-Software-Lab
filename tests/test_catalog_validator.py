@@ -1,9 +1,10 @@
 import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.validate_catalog import validate_data
+from scripts.validate_catalog import validate_data, validate_schema_contract
 
 
 class CatalogValidatorTests(unittest.TestCase):
@@ -55,6 +56,27 @@ class CatalogValidatorTests(unittest.TestCase):
 
     def test_valid_catalog_passes(self):
         self.assertEqual(validate_data(self.data, self.root), [])
+
+
+    def test_repository_schema_matches_runtime_validator(self):
+        self.assertEqual(validate_schema_contract(), [])
+
+    def test_malformed_schema_shapes_report_errors_without_crashing(self):
+        canonical_schema_path = Path(__file__).resolve().parents[1] / "public" / "data" / "software.schema.json"
+        schema = json.loads(canonical_schema_path.read_text(encoding="utf-8"))
+        schema["required"] = None
+        schema["properties"]["catalog"]["required"] = None
+        schema["properties"]["software"]["items"]["required"] = None
+        schema["properties"]["software"]["items"]["properties"]["status"]["enum"] = None
+        schema["properties"]["software"]["items"]["properties"]["type"]["enum"] = None
+        schema["properties"]["software"]["items"]["allOf"] = [
+            {"if": {"properties": None}, "then": {"properties": None}}
+        ]
+        (self.root / "data" / "software.schema.json").write_text(
+            json.dumps(schema), encoding="utf-8"
+        )
+        errors = validate_schema_contract(self.root)
+        self.assertTrue(errors)
 
     def test_duplicate_ids_and_slugs_are_rejected(self):
         second = copy.deepcopy(self.data["software"][0])
