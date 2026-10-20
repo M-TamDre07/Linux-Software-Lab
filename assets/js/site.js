@@ -210,7 +210,7 @@ const getFilteredRows = () => {
 };
 
 const cardMarkup = (app, index) => {
-  const status = ['released', 'testing', 'planned'].includes(app.status) ? app.status : 'planned';
+  const status = ['released', 'testing', 'planned', 'archived'].includes(app.status) ? app.status : 'planned';
   const detail = safeInternalPath(app.detailUrl);
   const source = safeExternalURL(app.sourceUrl);
   const release = safeExternalURL(app.releaseUrl);
