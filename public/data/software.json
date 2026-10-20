@@ -25,7 +25,26 @@
       "releaseUrl": "",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
-      "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis."
+      "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
+      "keywords": [
+        "package inventory",
+        "paket terpasang",
+        "apt",
+        "dpkg",
+        "flatpak",
+        "linux package list",
+        "periksa pembaruan",
+        "backup terenkripsi",
+        "csv export",
+        "privasi lokal"
+      ],
+      "features": [
+        "Inventaris paket lokal",
+        "Pencarian dan filter",
+        "Pemeriksaan pembaruan sesuai permintaan",
+        "Ekspor CSV",
+        "Cadangan terenkripsi"
+      ]
     },
     {
       "id": "prompter-overlay",
@@ -49,7 +68,21 @@
       "releaseUrl": "",
       "iconImage": "/assets/images/prompter-overlay-icon.svg",
       "previewImage": "/assets/images/prompter-overlay-preview.svg",
-      "previewAlt": "Konsep teleprompter mengambang dengan naskah dan kontrol teks di atas workspace presentasi."
+      "previewAlt": "Konsep teleprompter mengambang dengan naskah dan kontrol teks di atas workspace presentasi.",
+      "keywords": [
+        "teleprompter",
+        "floating text",
+        "overlay teks",
+        "membaca naskah",
+        "presentasi",
+        "rekam video",
+        "panggilan video"
+      ],
+      "features": [
+        "Teks overlay mengambang",
+        "Pengaturan ukuran dan posisi",
+        "Kontrol naskah"
+      ]
     }
   ]
 }
