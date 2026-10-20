@@ -1,49 +1,75 @@
 # Linux Software Lab
 
-Katalog software desktop independen oleh Muhammad Andreatama, berfokus pada kebutuhan nyata pengguna Debian dan keluarga Linux.
+Katalog software desktop independen oleh Muhammad Andreatama untuk kebutuhan pengguna Debian dan keluarga Linux. Website memakai HTML, CSS, JavaScript, serta JSON statis tanpa framework build wajib.
 
-## Struktur
-- \`index.html\` — katalog utama.
-- \`assets/css/site.css\` — desain responsif, tema terang/gelap, komponen UI.
-- \`assets/js/site.js\` — navigasi, tema, pencarian, filter, dan render katalog.
-- \`data/software.json\` — metadata katalog software.
-- \`software/\` — halaman detail proyek.
+## Struktur repository
 
-## Menjalankan secara lokal
-Jalankan server HTTP dari root repository:
+~~~text
+/
+├── public/                    # Website dan aset yang dipublikasikan Vercel
+│   ├── index.html
+│   ├── assets/css/site.css
+│   ├── assets/js/site.js
+│   ├── assets/images/
+│   ├── data/software.json
+│   └── software/              # Halaman detail aplikasi
+├── apps/paketscope/           # Source aplikasi desktop PaketScope 2
+├── scripts/validate_catalog.py
+├── docs/WEBSITE-ARCHITECTURE.md
+├── .github/workflows/
+└── vercel.json
+~~~
 
-\`\`\`bash
-python3 -m http.server 8000
-\`\`\`
+## Menjalankan website secara lokal
+
+~~~bash
+python3 -m http.server 8000 --directory public
+~~~
 
 Buka http://localhost:8000.
 
-## Menambah software
-Edit \`data/software.json\` dan buat halaman detail di folder \`software/\`. Gunakan status \`testing\`, \`planned\`, atau \`released\`. Jangan menautkan repository atau unduhan sebelum tersedia dan diverifikasi.
+## Menambah software ke katalog
+
+1. Tambahkan record pada public/data/software.json mengikuti public/data/catalog.schema.json.
+2. Buat halaman detail di public/software/<id>.html.
+3. Simpan ikon dan preview di public/assets/images/.
+4. Isi kata kunci dan fitur agar pencarian dapat menemukannya.
+5. Jalankan validasi:
+
+~~~bash
+python scripts/validate_catalog.py
+node --check public/assets/js/site.js
+~~~
+
+Setiap perubahan katalog akan diperiksa melalui GitHub Actions. Jangan menambahkan tautan rilis palsu atau menandai aplikasi sebagai released sebelum rilis benar-benar tersedia.
+
+## Deployment Vercel
+
+Vercel harus mengimpor repository GitHub M-TamDre07/Portofolio, bukan subfolder apps/paketscope. PaketScope merupakan aplikasi desktop Qt/Python dan tidak dijalankan sebagai website oleh Vercel.
+
+Biarkan Root Directory kosong pada repository root. vercel.json menetapkan public sebagai output directory yang dipublikasikan. Ikuti docs/WEBSITE-ARCHITECTURE.md untuk langkah import dan troubleshooting.
 
 ## Prinsip
-- Masalah pengguna lebih penting daripada jumlah fitur.
-- Jangan menduplikasi fungsi bawaan Linux tanpa alasan yang jelas.
-- Jangan klaim kompatibilitas tanpa pengujian.
-- Rilis dan kode sumber ditautkan setelah benar-benar tersedia.
-- Tidak ada telemetry tersembunyi atau pengiriman data pengguna dari katalog.
 
-## Kredit dan dukungan
-Situs ini dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela tersedia melalui https://saweria.co/tamaandrea.
+- Utamakan kebutuhan pengguna, bukan jumlah fitur.
+- Jangan mengklaim kompatibilitas sebelum diuji.
+- Jangan menyertakan telemetry tersembunyi atau mengirim inventaris pengguna.
+- Gunakan data katalog terstruktur, tautan lokal yang tervalidasi, dan status rilis transparan.
+- Jangan menyajikan concept art sebagai screenshot aplikasi rilis.
 
-Situs statis ini dapat dihosting di Vercel tanpa framework build tambahan. Pastikan domain yang benar telah dikonfigurasi di dashboard Vercel.
+## PaketScope 2
 
-## PaketScope 2 (development preview)
-
-The desktop app source lives in `apps/paketscope/`. It provides local APT/dpkg and Flatpak inventory, search/filter, on-demand update checks, CSV export, and AES-GCM encrypted backups.
+Source aplikasi desktop berada di apps/paketscope/. Ini masih development preview; belum tersedia installer rilis bertanda tangan atau audit keamanan independen. Cara menjalankan, dependensi, batasan privasi, dan tes ada di apps/paketscope/README.md.
 
 ~~~bash
 cd apps/paketscope
 python3 -m venv .venv
-. .venv/bin/activate
+source .venv/bin/activate
 python -m pip install -e '.[test]'
 python -m paketscope
 python -m pytest
 ~~~
 
-PaketScope is still a development preview: no signed release binaries or independent security audit are available yet. See `apps/paketscope/README.md` and `apps/paketscope/docs/SECURITY.md` for scope and limitations.
+## Kredit dan dukungan
+
+Website dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela tersedia melalui https://saweria.co/tamaandrea.
