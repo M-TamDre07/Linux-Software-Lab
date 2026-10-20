@@ -93,6 +93,12 @@ const safeInternalPath = value => {
   return path;
 };
 
+const safeAssetPath = value => {
+  const path = String(value || '');
+  if (!path.startsWith('/assets/images/') || path.startsWith('//') || path.includes('..') || /[<>"'\\s]/.test(path)) return '';
+  return path;
+};
+
 const safeExternalURL = value => {
   const url = String(value || '');
   if (!url.startsWith('https://') || /[\s<>"']/.test(url)) return '';
@@ -208,8 +214,8 @@ const cardMarkup = (app, index) => {
   const detail = safeInternalPath(app.detailUrl);
   const source = safeExternalURL(app.sourceUrl);
   const release = safeExternalURL(app.releaseUrl);
-  const preview = safeInternalPath(app.previewImage) || '/assets/images/linux-software-lab.svg';
-  const iconPath = safeInternalPath(app.iconImage);
+  const preview = safeAssetPath(app.previewImage) || '/assets/images/linux-software-lab.svg';
+  const iconPath = safeAssetPath(app.iconImage);
   const iconMarkup = iconPath
     ? '<img src="' + escapeHTML(iconPath) + '" alt="" width="64" height="64" loading="lazy" decoding="async">'
     : (ICONS[app.icon] || ICONS.default);
