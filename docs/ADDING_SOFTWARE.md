@@ -1,42 +1,54 @@
 # Adding software to the catalog
 
-Use this checklist for each new item.
+Use this checklist for each application, command-line tool, web app, library, or extension.
 
-## 1. Decide what kind of item it is
+## 1. Choose an identity and honest status
 
-Choose a stable lowercase slug with hyphens only, such as `sample-tool`. The catalog `id` and `slug` must match.
+Use a stable lowercase slug containing letters, numbers, and single hyphens, such as sample-tool. The id, slug, and detailUrl must match.
 
-Supported types: `desktop`, `web`, `cli`, `library`, `extension`.
+Supported types: desktop, web, cli, library, extension.
 
-Supported states: `planned`, `testing`, `released`, and `archived`.
+Supported statuses:
+- planned: proposed, not yet a usable implementation.
+- testing: implementation is being tested and is not a stable release.
+- released: a real, verified HTTPS release URL exists.
+- archived: no longer actively maintained.
 
-## 2. Create the files
+## 2. Create the files in the right place
 
-- Source code belongs in `apps/<slug>/` when it is an application maintained in this repository.
-- The public product page belongs in `software/<slug>.html`.
-- Original SVG icon and preview artwork belong in `assets/images/`.
-- Register all user-facing metadata in `data/software.json`. Do not add card content directly to `site.js`.
+- Source code maintained in this repository: apps/<slug>/.
+- Public product page: public/software/<slug>.html.
+- Original icon and preview artwork: public/assets/images/.
+- Single source of catalogue metadata: public/data/software.json.
 
-The preview `previewAlt` text must accurately describe the image. Concept artwork must be explicitly labelled as concept art.
+Do not put application cards directly into JavaScript. public/data/software.schema.json describes the expected metadata contract; scripts/validate_catalog.py enforces the principal field and safety rules.
 
-## 3. Fill every catalog field
+## 3. Complete the metadata
 
-Each software entry needs `id`, `slug`, `name`, `version`, `summary`, `description`, `category`, `status`, `type`, `platforms`, `tags`, `keywords`, `features`, `detailUrl`, `sourceUrl`, `releaseUrl`, `icon`, `iconImage`, `previewImage`, `previewAlt`, and `updatedAt`.
+Every record must include id, slug, name, version, summary, description, category, status, type, platforms, tags, keywords, features, detailUrl, sourceUrl, releaseUrl, icon, iconImage, previewImage, previewAlt, and updatedAt.
 
-Use empty strings for `sourceUrl` or `releaseUrl` when a verified URL does not exist. Do not use a placeholder download link. Release URLs must be HTTPS and the record must have `status: released`.
+Use an empty string for sourceUrl or releaseUrl if the verified URL is not available. Non-empty external links must use HTTPS. A record marked released must have a valid HTTPS releaseUrl; an unreleased project must not advertise a release URL. Concept artwork must be accurately labelled in previewAlt.
 
-## 4. Validate before opening a pull request
+## 4. Update discovery and SEO metadata
 
-From the repository root:
+Add the page's canonical URL to public/sitemap.xml. public/robots.txt should continue to point to the canonical sitemap. The CI link/sitemap check verifies that every catalogue detail route appears in the sitemap, the sitemap host matches the home canonical host, and each listed page has a matching canonical URL. Therefore, a new detail page without a matching sitemap entry will fail validation.
+
+## 5. Validate before pull request
+
+Run from repository root:
 
 ~~~bash
-python3 scripts/validate_catalog.py
-node --check assets/js/site.js
-python3 -m unittest discover -s tests -v
+python scripts/validate_catalog.py
+python scripts/check_site_links.py
+node --check public/assets/js/site.js
+python -m json.tool public/data/software.json > /dev/null
+python -m json.tool public/data/software.schema.json > /dev/null
+python -m json.tool vercel.json > /dev/null
+python -m unittest discover -s tests -v
 ~~~
 
-The catalog validator confirms that IDs/slugs are unique, date/status/type fields are valid, local detail pages and SVG files exist, and external links use HTTPS. CI repeats these checks on pushes and pull requests.
+GitHub Actions repeats the checks. Fix validation failures rather than bypassing the workflow.
 
-## 5. Keep the site light
+## 6. Keep the catalogue light and private
 
-Prefer optimized local SVG previews and concise descriptions. Do not add trackers, external search APIs, or a database without a specific requirement and a privacy/performance review.
+Use concise descriptions and optimized local SVG or raster assets. Search is client-side and the site has no analytics endpoint. Do not add trackers, remote search APIs, third-party scripts, or database dependencies without a concrete requirement and privacy/performance review.
