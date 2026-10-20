@@ -42,7 +42,7 @@ Package names and versions may be visible in the UI and exported file. Store exp
 python -m pytest
 ~~~
 
-The test suite covers parsing and the encrypted-backup format. This is not a substitute for testing against real Debian/Flatpak installations or a formal security audit.
+The test suite covers inventory parsing, command-error handling, encrypted-backup integrity, CSV formula protection, owner-only file permissions on POSIX, and importing the Qt UI module. These checks are not a substitute for testing against real Debian/Flatpak installations or a formal security audit.
 
 ## Privacy and security
 
