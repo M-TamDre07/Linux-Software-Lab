@@ -359,6 +359,19 @@ window.addEventListener('popstate', () => {
   refresh(false);
 });
 
+const updateCatalogOverview = () => {
+  const values = [
+    ['catalogTotal', software.length],
+    ['catalogReleased', software.filter(app => app.status === 'released').length],
+    ['catalogInDevelopment', software.filter(app => app.status === 'testing' || app.status === 'planned').length],
+    ['catalogPlatforms', new Set(software.flatMap(app => app.platforms || [])).size]
+  ];
+  values.forEach(([id, value]) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = String(value);
+  });
+};
+
 const fillCatalogControls = () => {
   const categories = [...new Set(software.map(app => app.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id'));
   const platforms = [...new Set(software.flatMap(app => app.platforms || []).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id'));
@@ -384,6 +397,7 @@ if (grid) {
         .filter(app => app && typeof app.id === 'string' && typeof app.name === 'string')
         .map(app => makeSearchIndex({ ...app }));
       fillCatalogControls();
+      updateCatalogOverview();
       catalogLoaded = true;
       applyURLState();
       refresh(false);
