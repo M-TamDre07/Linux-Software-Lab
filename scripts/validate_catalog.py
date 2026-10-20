@@ -224,7 +224,12 @@ def validate_schema_contract(root: Path = ROOT) -> list[str]:
         return ["Catalogue schema must define root properties."]
     if set(root_properties) != ROOT_FIELDS:
         errors.append("Catalogue schema root properties must match the runtime validator fields.")
-    if set(schema.get("required", [])) != ROOT_FIELDS:
+    def field_set(value: Any) -> set[str] | None:
+        if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+            return None
+        return set(value)
+
+    if field_set(schema.get("required")) != ROOT_FIELDS:
         errors.append("Catalogue schema root required fields must match the runtime validator.")
 
     version_rule = root_properties.get("schemaVersion", {})
@@ -235,7 +240,7 @@ def validate_schema_contract(root: Path = ROOT) -> list[str]:
     catalog_properties = catalog_rule.get("properties", {}) if isinstance(catalog_rule, dict) else {}
     if not isinstance(catalog_properties, dict) or set(catalog_properties) != CATALOG_FIELDS:
         errors.append("Catalogue schema catalog properties must match the runtime validator fields.")
-    if not isinstance(catalog_rule, dict) or set(catalog_rule.get("required", [])) != CATALOG_FIELDS:
+    if not isinstance(catalog_rule, dict) or field_set(catalog_rule.get("required")) != CATALOG_FIELDS:
         errors.append("Catalogue schema catalog required fields must match the runtime validator.")
 
     software_rule = root_properties.get("software", {})
@@ -245,14 +250,14 @@ def validate_schema_contract(root: Path = ROOT) -> list[str]:
     app_properties = items.get("properties", {})
     if not isinstance(app_properties, dict) or set(app_properties) != APP_FIELDS:
         errors.append("Catalogue schema software properties must match the runtime validator fields.")
-    if set(items.get("required", [])) != APP_FIELDS:
+    if field_set(items.get("required")) != APP_FIELDS:
         errors.append("Catalogue schema software required fields must match the runtime validator.")
 
     status_rule = app_properties.get("status", {}) if isinstance(app_properties, dict) else {}
     type_rule = app_properties.get("type", {}) if isinstance(app_properties, dict) else {}
-    if not isinstance(status_rule, dict) or set(status_rule.get("enum", [])) != ALLOWED_STATUS:
+    if not isinstance(status_rule, dict) or field_set(status_rule.get("enum")) != ALLOWED_STATUS:
         errors.append("Catalogue schema status enum must match the runtime validator.")
-    if not isinstance(type_rule, dict) or set(type_rule.get("enum", [])) != ALLOWED_TYPES:
+    if not isinstance(type_rule, dict) or field_set(type_rule.get("enum")) != ALLOWED_TYPES:
         errors.append("Catalogue schema type enum must match the runtime validator.")
 
     release_rule_exists = False
@@ -261,13 +266,17 @@ def validate_schema_contract(root: Path = ROOT) -> list[str]:
             continue
         condition = rule.get("if", {})
         consequence = rule.get("then", {})
-        condition_status = condition.get("properties", {}).get("status", {}) if isinstance(condition, dict) else {}
-        release_property = consequence.get("properties", {}).get("releaseUrl", {}) if isinstance(consequence, dict) else {}
+        condition_properties = condition.get("properties", {}) if isinstance(condition, dict) else {}
+        consequence_properties = consequence.get("properties", {}) if isinstance(consequence, dict) else {}
+        condition_status = condition_properties.get("status", {}) if isinstance(condition_properties, dict) else {}
+        release_property = consequence_properties.get("releaseUrl", {}) if isinstance(consequence_properties, dict) else {}
+        min_length = release_property.get("minLength", 0) if isinstance(release_property, dict) else 0
         if (
             isinstance(condition_status, dict)
             and condition_status.get("const") == "released"
-            and isinstance(release_property, dict)
-            and release_property.get("minLength", 0) >= 1
+            and isinstance(min_length, int)
+            and not isinstance(min_length, bool)
+            and min_length >= 1
         ):
             release_rule_exists = True
             break
