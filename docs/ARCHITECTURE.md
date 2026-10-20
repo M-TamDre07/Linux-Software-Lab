@@ -1,41 +1,60 @@
 # Website architecture
 
-Linux Software Lab is a static-first website. The goal is to keep it inexpensive to host, fast to deliver, easy to audit, and able to list many projects without introducing a database or search service before one is needed.
+Linux Software Lab is a static-first software catalogue. The design favours a small attack surface, predictable deployments, fast page loads, and simple maintenance. A database or backend search service is not needed for the current catalogue size.
 
-## Directory map
+## Directory ownership
 
-- `index.html` — landing page and a compact catalog view.
-- `software/index.html` — dedicated searchable software directory.
-- `software/<slug>.html` — product detail page with release and status information.
-- `data/software.json` — single source of truth for catalog cards and search metadata.
-- `data/software.schema.json` — versioned metadata contract for tools and editors.
-- `assets/css/site.css` — design tokens, layout, themes, responsive and accessible components.
-- `assets/js/site.js` — navigation/theme and client-side catalog search, filtering, sort, URL state, and pagination.
-- `assets/images/` — original icons and concept preview artwork.
-- `apps/<slug>/` — application source code. This is not the website directory.
-- `scripts/validate_catalog.py` — schema/asset/link checks run before deployment.
-- `.github/workflows/` — automated catalog quality and application tests.
-- `docs/` — contribution, architecture, and deployment guidance.
+~~~text
+repository/
+├── public/                       # Published website only
+│   ├── index.html
+│   ├── assets/css/site.css
+│   ├── assets/js/site.js
+│   ├── assets/images/
+│   ├── data/software.json
+│   ├── data/software.schema.json
+│   └── software/
+│       ├── index.html
+│       └── <slug>.html
+├── apps/<slug>/                  # Application source code
+├── scripts/                      # Repository checks, never published
+├── tests/                        # Regression tests, never published
+├── docs/                         # Maintainer documentation, never published
+└── vercel.json                   # Sets outputDirectory to public/
+~~~
 
-## Data flow
+Keep the Vercel Root Directory at the repository root. vercel.json selects public/ as the static output, so source code, test files, documentation, and unused legacy files are not part of the deployed website.
 
-1. A maintainer edits one entry in `data/software.json`.
-2. The validator checks required metadata, unique IDs/slugs, supported states, dates, links, and local image/detail files.
-3. CI runs the validator and a JavaScript syntax check.
-4. Pages read the JSON from the same origin. Search and filters run in the browser; search strings are not sent to an external search API.
-5. The UI renders a small page of results at a time. URL query parameters preserve a shareable search/filter state.
+## Source of truth and data flow
 
-## Scaling decisions
+1. Each entry is defined once in public/data/software.json.
+2. public/data/software.schema.json documents the catalogue data contract.
+3. scripts/validate_catalog.py validates required fields, safe local paths, unique IDs/slugs, date and URL formats, accepted software types/statuses, and release-link rules.
+4. scripts/check_site_links.py checks local HTML references and verifies sitemap, robots directives, and canonical URLs against actual catalogue pages.
+5. GitHub Actions runs the validators, JavaScript syntax check, JSON parsing, and regression tests.
+6. The browser fetches same-origin JSON and builds a searchable catalogue; it does not transmit search terms to a third-party search service.
 
-The first implementation supports a growing static catalog without a server or database. Category and platform filter options are derived from the data, not hard-coded. Search indexing is prepared once after loading. Only 12 cards are rendered at first and more are appended on demand.
+## Catalogue scaling
 
-For much larger catalogs, review payload size and browser performance using real measurements before introducing a generated search index, static build generator, database, or external search product. Do not add an external service just because the catalog gains its first few dozen entries.
+Search indexes are built once when catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
 
-## Truthful metadata
+Measure catalogue payload and render time before introducing a database, generated full-text index, external search provider, or framework build. Add infrastructure when measurements and user needs justify it, not by default.
 
-- Use `planned` for an idea without a usable implementation.
-- Use `testing` for an implementation that is not ready for a stable release.
-- Use `released` only when a real, verified release link exists.
-- Use `archived` for software that is no longer actively maintained.
-- Do not imply a concept image is a screenshot of a released app.
-- Do not advertise platform compatibility without testing it.
+## Metadata and release integrity
+
+- planned: idea or specification, not yet usable.
+- testing: implementation exists but is not ready for a stable release.
+- released: a real, verified HTTPS release URL exists.
+- archived: no longer actively maintained.
+- The catalogue must never present concept artwork as a screenshot of a released app.
+- Avoid compatibility claims that have not been tested on the stated platform.
+- New product pages must have canonical URLs and be added to public/sitemap.xml.
+- Search filters are client-side; search terms stay in the browser.
+
+## Security boundaries
+
+- Only public/ is sent to Vercel as static output.
+- The website has no backend, account database, or telemetry endpoint.
+- CSP allows same-origin scripts/data and the Google Fonts files/styles used by the pages.
+- X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and Permissions-Policy are configured in vercel.json.
+- Never place .env files, API keys, private credentials, or unreviewed files under public/.
