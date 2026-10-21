@@ -1,22 +1,65 @@
 # PaketScope security notes
 
+**Status:** PaketScope 3 is a development preview. These notes describe the
+current implementation, not a formal audit or a guarantee of security.
+
 ## Security boundaries
 
-PaketScope v2 is a local desktop inventory tool, not a system package manager. It uses unprivileged, read-only commands for discovery and does not invoke a shell. It intentionally does not provide install, remove, upgrade, cleanup, or privileged operations.
+PaketScope is a local desktop application. It does not require an account and
+does not include analytics, telemetry, or a remote inventory service. Inventory
+collection uses local system commands and configured package metadata.
 
-Package names, IDs, origins, and versions can disclose installed tools or parts of a work environment. Treat plaintext exports as private files. The encrypted backup format uses a per-file random salt, random AES-GCM nonce, authenticated encryption, and a passphrase-derived key using scrypt. A weak passphrase can still be guessed; the application cannot recover a forgotten passphrase.
+The current build supports the following APT/dpkg operations on one selected
+package at a time: install, remove, and purge. They are privileged system
+changes, so use the application carefully:
 
-The Flatpak update check can contact configured remotes, but only after the user presses the update-check button. The app itself has no account, analytics SDK, telemetry endpoint, or background network task.
+1. Package identifiers are validated and passed as argument arrays, not shell
+   command strings.
+2. APT first produces a simulation; the application checks the plan and
+   presents the changes for explicit user confirmation.
+3. Only after confirmation does the application request system authentication
+   through `pkexec`/polkit to run a fixed APT operation.
+4. Installation includes `--no-remove` and `--no-install-recommends`. The app
+   does not expose autoremove, bulk upgrades, arbitrary command input, or
+   background package mutation.
 
-## Before release
+Do not run PaketScope as root. APT package installation can run package
+maintainer scripts and change system state. Test package mutations in a
+disposable Debian virtual machine with a recoverable snapshot before trying
+them on a daily-use computer.
 
-- Test on clean Debian 13 systems with and without Flatpak.
-- Verify command behavior across supported Flatpak versions.
-- Review dependency advisories and lock or document reproducible release dependencies.
-- Build signed packages and verify artifact checksums.
-- Add integration tests and complete an independent security review.
-- Do not claim a formal audit or guaranteed security until one is completed.
+Flatpak inventory is read-only. User-triggered Flatpak update checks can contact
+configured remotes; APT update visibility is based on locally cached metadata
+and does not run `apt update` by itself.
+
+## Local data and backups
+
+Package names, versions, IDs, origins, and exports can disclose installed tools
+or parts of a work environment. Treat CSV exports and decrypted JSON as private,
+unencrypted files.
+
+Encrypted backups use AES-GCM authenticated encryption with a random per-file
+salt and nonce. A key is derived from the passphrase using scrypt. A weak
+passphrase may still be guessed; a forgotten passphrase cannot be recovered.
+The app does not store the passphrase.
+
+Exports and decrypted JSON are written locally using owner-only permissions on
+POSIX systems and atomic replacement. These protections do not replace careful
+handling of the resulting files or backups.
+
+## Before a stable release
+
+- Test install, launch, upgrade, remove, and purge paths on clean Debian 13
+  desktop sessions, including authentication cancellation and failure paths.
+- Validate compatibility separately for each supported distribution version.
+- Review dependency advisories, Debian metadata, file permissions, and package
+  contents.
+- Publish checksums and release provenance; define a signing approach.
+- Complete an independent security review. Do not claim a formal audit or
+  guaranteed security until one has actually been completed.
 
 ## Reporting
 
-Please report suspected vulnerabilities privately to the project maintainer before public disclosure. Do not include package inventories or personal data unless strictly necessary.
+Please report suspected vulnerabilities privately to the project maintainer
+before public disclosure. Avoid including package inventories, credentials, or
+personal data unless strictly necessary.
