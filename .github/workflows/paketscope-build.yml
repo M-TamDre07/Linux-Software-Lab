@@ -83,7 +83,7 @@ jobs:
           # Run outside the checkout and verify Python imports the installed package,
           # not the repository source tree (which could create a false-positive smoke test).
           cd /tmp
-          env -u PYTHONPATH /usr/bin/python3 - <<'PYTHON_SMOKE'
+          env -u PYTHONPATH PYTHONDONTWRITEBYTECODE=1 /usr/bin/python3 -B - <<'PYTHON_SMOKE'
           from pathlib import Path
           import paketscope
 
