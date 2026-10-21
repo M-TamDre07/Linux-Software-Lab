@@ -69,7 +69,7 @@ Gunakan status planned, testing, released, atau archived secara jujur. Status re
 
 ## Deployment Vercel
 
-Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Portofolio dengan Root Directory tetap di root repository. vercel.json menetapkan public sebagai output website yang diterbitkan, sehingga source aplikasi, dokumentasi, tes, dan aset lama tidak ikut disajikan sebagai file situs.
+Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Linux-Software-Lab dengan Root Directory tetap di root repository. vercel.json menetapkan public sebagai output website yang diterbitkan, sehingga source aplikasi, dokumentasi, tes, dan aset lama tidak ikut disajikan sebagai file situs.
 
 PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website terpisah untuk diimpor ke Vercel. Untuk proyek yang sudah terhubung, jangan membuat proyek duplikat hanya karena daftar Import menghilang atau gagal dimuat. Lihat docs/VERCEL_DEPLOYMENT.md.
 
