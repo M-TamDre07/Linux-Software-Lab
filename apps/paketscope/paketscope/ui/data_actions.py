@@ -4,7 +4,6 @@ from __future__ import annotations
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QLineEdit, QMessageBox
 
-from ..domain import InstalledApplication
 
 
 class DataActionsMixin:
