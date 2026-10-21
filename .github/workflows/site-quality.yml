@@ -2,7 +2,7 @@ name: Website quality
 
 on:
   push:
-    branches: [main, feature/software-catalog-platform]
+    branches: [main, feature/software-catalog-platform, "feature/linux-software-lab-global"]
     paths:
       - "public/**"
       - ".gitignore"
