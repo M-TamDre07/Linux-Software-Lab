@@ -16,6 +16,7 @@ class DeploymentConfigTests(unittest.TestCase):
         for relative in (
             "index.html",
             "assets/css/site.css",
+            "assets/css/experience.css",
             "assets/js/site.js",
             "assets/images/linux-software-lab.svg",
             "data/software.json",
