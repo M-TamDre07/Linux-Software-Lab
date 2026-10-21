@@ -31,7 +31,7 @@ from .inventory_actions import InventoryActionsMixin
 from .package_actions import PackageManagementActionsMixin
 
 
-class MainWindow(PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin, QMainWindow):
+class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("PaketScope 3")
