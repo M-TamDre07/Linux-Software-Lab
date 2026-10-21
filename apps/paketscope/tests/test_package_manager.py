@@ -1,5 +1,7 @@
 import pytest
 
+from paketscope import __version__
+
 from paketscope.commands import CommandResult
 from paketscope.package_manager import (
     PackageOperationError,
@@ -107,3 +109,7 @@ def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     assert "--no-remove" in seen["argv"]
     assert seen["timeout"] == 900.0
     assert not any("shell" in part.lower() for part in seen["argv"])
+
+
+def test_app_version_matches_development_package_version():
+    assert __version__ == "3.0.0.dev2"
