@@ -31,6 +31,22 @@ class DeploymentConfigTests(unittest.TestCase):
             with self.subTest(path=relative):
                 self.assertTrue((public / relative).is_file(), f"Missing public/{relative}")
 
+    def test_legacy_portfolio_files_are_not_tracked_at_repository_root(self):
+        for relative in (
+            "MuhammadAndreatama.png",
+            "favicon.png",
+            "project1.png",
+            "project2.png",
+            "project3.png",
+            "script.js",
+            "style.css",
+        ):
+            with self.subTest(path=relative):
+                self.assertFalse(
+                    (REPO_ROOT / relative).exists(),
+                    f"Legacy portfolio file should be removed: {relative}",
+                )
+
     def test_baseline_security_headers_are_configured(self):
         headers = {}
         for rule in self.config.get("headers", []):
