@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from .. import __version__
-from ..domain import InventorySnapshot
+from ..domain import InstalledApplication, InventorySnapshot
 from ..services import PaketScopeService
 from .models import InventoryModel, InventoryProxy
 from .workers import Worker
