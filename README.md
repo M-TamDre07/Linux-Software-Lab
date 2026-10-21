@@ -9,7 +9,8 @@ Katalog software independen oleh Muhammad Andreatama. Website dibuat dengan HTML
 ├── public/                       # Satu-satunya direktori website yang diterbitkan Vercel
 │   ├── index.html                # Halaman utama
 │   ├── assets/
-│   │   ├── css/site.css          # Sistem desain dan layout responsif
+│   │   ├── css/site.css          # Komponen dasar dan layout lama yang tetap dipakai
+│   │   ├── css/experience.css    # Sistem desain responsif bersama untuk pengalaman produk
 │   │   ├── js/site.js            # Pencarian, filter, pengurutan, tema, dan navigasi
 │   │   └── images/               # Ikon dan ilustrasi asli
 │   ├── data/
@@ -21,10 +22,13 @@ Katalog software independen oleh Muhammad Andreatama. Website dibuat dengan HTML
 │   ├── robots.txt
 │   ├── sitemap.xml
 │   └── google505d5a75f881baa2.html
-├── apps/paketscope/              # Source aplikasi desktop; bukan direktori website
+├── apps/
+│   ├── README.md                 # Pedoman folder per aplikasi
+│   ├── paketscope/               # Source desktop native; bukan direktori website
+│   └── prompter-overlay/         # Folder proyek kedua; masih tahap perencanaan
 ├── scripts/                      # Validator katalog dan pemeriksaan website
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
-├── docs/                         # Arsitektur, penambahan software, deployment
+├── docs/                         # Arsitektur, struktur software, rilis, deployment
 ├── .github/workflows/            # Pemeriksaan otomatis
 └── vercel.json                   # Konfigurasi output dan header keamanan
 ~~~
@@ -61,11 +65,11 @@ GitHub Actions mengulang pemeriksaan katalog, tautan HTML/aset, canonical URL, s
 4. Perbarui public/sitemap.xml dengan URL canonical halaman baru.
 5. Jalankan seluruh pemeriksaan di atas sebelum membuka pull request.
 
-Gunakan status planned, testing, released, atau archived secara jujur. Status released wajib memiliki releaseUrl HTTPS yang valid. Jangan menautkan unduhan yang belum tersedia atau menyajikan concept art sebagai screenshot aplikasi rilis. Lihat docs/ADDING_SOFTWARE.md.
+Gunakan status planned, testing, released, atau archived secara jujur. Status released wajib memiliki releaseUrl HTTPS yang valid. Jangan menautkan unduhan yang belum tersedia atau menyajikan concept art sebagai screenshot aplikasi rilis. Lihat docs/ADDING_SOFTWARE.md dan docs/SOFTWARE_DIRECTORY_LAYOUT.md.
 
 ## Deployment Vercel
 
-Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Portofolio dengan Root Directory tetap di root repository. vercel.json menetapkan public sebagai output website yang diterbitkan, sehingga source aplikasi, dokumentasi, tes, dan aset lama tidak ikut disajikan sebagai file situs.
+Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Linux-Software-Lab dengan Root Directory tetap di root repository. vercel.json menetapkan public sebagai output website yang diterbitkan, sehingga source aplikasi, dokumentasi, tes, dan aset lama tidak ikut disajikan sebagai file situs.
 
 PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website terpisah untuk diimpor ke Vercel. Untuk proyek yang sudah terhubung, jangan membuat proyek duplikat hanya karena daftar Import menghilang atau gagal dimuat. Lihat docs/VERCEL_DEPLOYMENT.md.
 
@@ -78,18 +82,24 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## PaketScope 3 (native development branch)
+## PaketScope 3 (pratinjau pengembangan)
 
-Source aplikasi desktop ada di apps/paketscope/. Branch `feature/paketscope-v3-native` memulai refaktor arsitektur native PaketScope 3; ini masih development preview dan belum menjadi rilis publik; belum tersedia installer rilis bertanda tangan atau audit keamanan independen. Cara menjalankan dan batasan proyek tercantum dalam apps/paketscope/README.md.
+Source aplikasi desktop native ada di `apps/paketscope/`. Versi source saat ini adalah `3.0.0.dev2` dan sudah terintegrasi di `main`. CI memvalidasi tes Python serta paket Debian di lingkungan Debian 13, tetapi ini tetap pratinjau pengembangan, bukan rilis stabil. Paket belum menjadi rilis publik bertanda tangan, belum melalui pengujian desktop menyeluruh, dan belum diaudit secara independen. Jangan menganggapnya siap untuk penggunaan produksi.
 
-~~~bash
+Arsitektur memisahkan UI di `paketscope/ui/`, layanan aplikasi di `services.py`, model dan parser di `domain.py`, serta adaptor OS untuk APT/dpkg dan Flatpak. Tindakan perubahan APT dibatasi pada satu paket dengan simulasi dan konfirmasi eksplisit; inventaris Flatpak masih read-only. Detail pengembangan dan batas keamanan ada di `apps/paketscope/docs/DEVELOPING.md`, `apps/paketscope/docs/PAKETSCOPE_V3_ARCHITECTURE.md`, dan `apps/paketscope/docs/SECURITY.md`.
+
+### Menjalankan dari source
+
+```bash
 cd apps/paketscope
 python3 -m venv .venv
-source .venv/bin/activate
+. .venv/bin/activate
 python -m pip install -e '.[test]'
-python -m paketscope
 python -m pytest
-~~~
+python -m paketscope
+```
+
+Untuk menguji pemasangan atau penghapusan paket, gunakan mesin virtual Debian 13 dengan snapshot yang bisa dipulihkan. Jangan menguji transaksi paket pada sistem utama sampai pengujian desktop dan proses pemulihan selesai ditinjau.
 
 ## Kredit dan dukungan
 
