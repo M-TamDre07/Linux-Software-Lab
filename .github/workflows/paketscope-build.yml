@@ -55,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           set +e
-          docker run --name paketscope-debian-ci --pull=always \
+          docker run -i --name paketscope-debian-ci --pull=always \
             -v "$GITHUB_WORKSPACE:/workspace" \
             -w /workspace/apps/paketscope \
             debian:trixie bash -s <<'DEBIAN_CI'
