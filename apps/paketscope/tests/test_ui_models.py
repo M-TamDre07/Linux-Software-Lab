@@ -25,7 +25,7 @@ def test_inventory_model_exposes_consistent_rows_and_headers():
     assert model.data(model.index(0, 3)) == "firefox"
     assert model.headerData(0, Qt.Orientation.Horizontal) == "Nama aplikasi / paket"
     assert model.data(model.index(0, 0), Qt.ItemDataRole.ToolTipRole) == (
-        "Firefox\\nID: firefox\\nSumber: APT / dpkg"
+        "Firefox\nID: firefox\nSumber: APT / dpkg"
     )
 
 
