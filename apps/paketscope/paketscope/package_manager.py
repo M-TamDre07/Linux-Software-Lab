@@ -43,6 +43,13 @@ def validate_apt_package_name(package_name: str) -> str:
     return package_name
 
 
+def _matches_requested_package(requested: str, actual: str) -> bool:
+    """Match unqualified Debian names against the architecture-qualified APT output."""
+    if requested == actual:
+        return True
+    return ":" not in requested and actual.split(":", 1)[0] == requested
+
+
 def search_apt_packages(query: str, limit: int = 60) -> tuple[AptSearchResult, ...]:
     """Search the local APT package index; no network refresh is triggered."""
     if not isinstance(query, str):
@@ -110,12 +117,14 @@ def preview_apt_action(action: str, package_name: str) -> AptTransactionPreview:
     purge = tuple(dict.fromkeys(re.findall(r"^Purg\s+([^\s(]+)", result.stdout, re.MULTILINE)))
     if action == "install" and (remove or purge):
         raise PackageOperationError("Simulasi pemasangan mencoba menghapus paket lain; operasi ditolak.")
-    if action == "install" and package_name not in install:
+    if action == "install" and not any(_matches_requested_package(package_name, item) for item in install):
         raise PackageOperationError(
             "APT tidak merencanakan pemasangan untuk paket itu. Paket mungkin sudah terpasang "
             "atau tidak tersedia pada indeks lokal."
         )
-    if action in {"remove", "purge"} and package_name not in set(remove + purge):
+    if action in {"remove", "purge"} and not any(
+        _matches_requested_package(package_name, item) for item in (remove + purge)
+    ):
         raise PackageOperationError("APT tidak merencanakan penghapusan paket yang dipilih.")
     if not (install or remove or purge):
         raise PackageOperationError("Simulasi APT tidak menunjukkan perubahan; operasi dibatalkan.")
