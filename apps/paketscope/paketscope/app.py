@@ -18,6 +18,14 @@ from . import __version__
 from .domain import InstalledApplication, InventorySnapshot
 from .services import PaketScopeService
 from .updates import UpdateCheckResult
+from .package_manager import (
+    AptSearchResult,
+    AptTransactionPreview,
+    PackageOperationError,
+    apply_apt_action,
+    preview_apt_action,
+    search_apt_packages,
+)
 
 
 COLUMNS = ("Nama aplikasi / paket", "Versi", "Sumber", "ID paket", "Asal / cabang")
@@ -174,7 +182,7 @@ class MainWindow(QMainWindow):
         title_group.addWidget(subtitle)
         header_layout.addLayout(title_group)
         header_layout.addStretch(1)
-        self.version_label = QLabel("VERSION 3.0.0-DEV")
+        self.version_label = QLabel(f"VERSION {__version__.upper()}")
         self.version_label.setObjectName("mono")
         header_layout.addWidget(self.version_label, alignment=Qt.AlignmentFlag.AlignTop)
         layout.addWidget(header)
@@ -230,6 +238,28 @@ class MainWindow(QMainWindow):
         self.table.setAccessibleName("Tabel inventaris aplikasi dan paket")
         layout.addWidget(self.table, 1)
 
+        management_row = QHBoxLayout()
+        management_row.setSpacing(8)
+        self.install_button = QPushButton("Cari & pasang APT…")
+        self.install_button.setToolTip("Cari paket pada indeks APT lokal, tinjau simulasi, lalu konfirmasi sebelum pemasangan.")
+        self.install_button.clicked.connect(self.install_apt_package)
+        management_row.addWidget(self.install_button)
+        self.remove_button = QPushButton("Hapus paket terpilih…")
+        self.remove_button.setObjectName("secondary")
+        self.remove_button.setToolTip("Hanya untuk aplikasi APT/dpkg. Simulasi dan konfirmasi selalu ditampilkan.")
+        self.remove_button.setEnabled(False)
+        self.remove_button.clicked.connect(self.remove_selected_apt_package)
+        management_row.addWidget(self.remove_button)
+        self.purge_button = QPushButton("Purge paket terpilih…")
+        self.purge_button.setObjectName("secondary")
+        self.purge_button.setToolTip("Menghapus paket dan konfigurasi sistem yang dikelola dpkg; data pengguna bisa tetap ada.")
+        self.purge_button.setEnabled(False)
+        self.purge_button.clicked.connect(self.purge_selected_apt_package)
+        management_row.addWidget(self.purge_button)
+        management_row.addStretch(1)
+        layout.addLayout(management_row)
+        self.table.selectionModel().currentRowChanged.connect(self._selection_changed)
+
         action_row = QHBoxLayout()
         self.status_label = QLabel("Siap memindai inventaris lokal.")
         self.status_label.setObjectName("body-muted")
@@ -253,7 +283,7 @@ class MainWindow(QMainWindow):
         action_row.addWidget(self.decrypt_button)
         layout.addLayout(action_row)
 
-        privacy = QLabel("LOCAL-FIRST  ·  TANPA TELEMETRI  ·  TIDAK MEMERLUKAN ROOT  ·  TIDAK ADA AKSI INSTALL/REMOVE")
+        privacy = QLabel("LOCAL-FIRST  ·  TANPA TELEMETRI  ·  APT DENGAN KONFIRMASI SISTEM  ·  FLATPAK MASIH READ-ONLY")
         privacy.setObjectName("mono")
         privacy.setWordWrap(True)
         layout.addWidget(privacy)
@@ -273,8 +303,13 @@ class MainWindow(QMainWindow):
         return value
 
     def _set_busy(self, busy: bool, message: str = "") -> None:
-        for button in (self.refresh_button, self.updates_button, self.csv_button, self.backup_button, self.decrypt_button):
+        self._busy = busy
+        for button in (
+            self.refresh_button, self.updates_button, self.csv_button,
+            self.backup_button, self.decrypt_button, self.install_button,
+        ):
             button.setEnabled(not busy)
+        self._selection_changed(QModelIndex(), QModelIndex())
         if message:
             self.status_label.setText(message)
 
@@ -306,6 +341,177 @@ class MainWindow(QMainWindow):
         self._set_busy(False)
         self.status_label.setText("Operasi tidak selesai.")
         QMessageBox.warning(self, "PaketScope", error)
+
+    def _selected_application(self) -> InstalledApplication | None:
+        current = self.table.currentIndex()
+        if not current.isValid():
+            return None
+        source_index = self.proxy.mapToSource(current)
+        if not source_index.isValid():
+            return None
+        row = source_index.row()
+        if not (0 <= row < len(self.inventory_model.applications)):
+            return None
+        return self.inventory_model.applications[row]
+
+    def _selection_changed(self, current: QModelIndex, previous: QModelIndex) -> None:
+        selected = self._selected_application()
+        can_change = (
+            not getattr(self, "_busy", False)
+            and selected is not None
+            and selected.source == "APT / dpkg"
+        )
+        self.remove_button.setEnabled(bool(can_change))
+        self.purge_button.setEnabled(bool(can_change))
+
+    @Slot()
+    def install_apt_package(self) -> None:
+        query, accepted = QInputDialog.getText(
+            self,
+            "Cari aplikasi APT",
+            "Nama aplikasi atau kata pencarian (menggunakan indeks APT lokal):",
+        )
+        if not accepted:
+            return
+        if not query.strip():
+            QMessageBox.information(self, "Cari aplikasi APT", "Masukkan nama atau kata pencarian terlebih dahulu.")
+            return
+        self._start_task(
+            "Mencari paket pada indeks APT lokal…",
+            lambda: search_apt_packages(query),
+            self._apt_search_ready,
+        )
+
+    def _apt_search_ready(self, value: object) -> None:
+        if not isinstance(value, tuple):
+            QMessageBox.warning(self, "Pencarian APT", "Hasil pencarian tidak valid.")
+            return
+        results = [item for item in value if isinstance(item, AptSearchResult)]
+        installed = {
+            item.identifier.split(":", 1)[0]
+            for item in self.snapshot.applications
+            if item.source == "APT / dpkg"
+        }
+        available = [item for item in results if item.name.split(":", 1)[0] not in installed]
+        if not available:
+            QMessageBox.information(
+                self,
+                "Pencarian APT",
+                "Tidak ada paket baru yang cocok pada indeks lokal. Coba kata lain atau perbarui indeks paket melalui alat sistem tepercaya terlebih dahulu.",
+            )
+            return
+        labels = [f"{item.name} — {item.description}" for item in available]
+        selected, accepted = QInputDialog.getItem(
+            self,
+            "Pilih paket untuk dipasang",
+            "Pilih paket dari repositori APT yang sudah dikonfigurasi:",
+            labels,
+            0,
+            False,
+        )
+        if not accepted:
+            return
+        chosen = available[labels.index(selected)]
+        self._begin_apt_action("install", chosen.name, chosen.description)
+
+    @Slot()
+    def remove_selected_apt_package(self) -> None:
+        self._remove_selected_apt_package("remove")
+
+    @Slot()
+    def purge_selected_apt_package(self) -> None:
+        self._remove_selected_apt_package("purge")
+
+    def _remove_selected_apt_package(self, action: str) -> None:
+        selected = self._selected_application()
+        if selected is None:
+            QMessageBox.information(self, "Kelola aplikasi", "Pilih satu baris aplikasi terlebih dahulu.")
+            return
+        if selected.source != "APT / dpkg":
+            QMessageBox.information(
+                self,
+                "Sumber paket belum didukung",
+                "Aksi perubahan pada antarmuka ini saat ini hanya tersedia untuk paket APT/dpkg. "
+                "Aplikasi Flatpak tetap dapat dilihat dan diperiksa pembaruannya, tetapi belum dapat diubah dari PaketScope.",
+            )
+            return
+        self._begin_apt_action(action, selected.identifier, selected.name)
+
+    def _begin_apt_action(self, action: str, package_name: str, display_name: str) -> None:
+        self._start_task(
+            f"Memeriksa rencana APT untuk {package_name}…",
+            lambda: preview_apt_action(action, package_name),
+            lambda value: self._confirm_apt_action(value, action, package_name, display_name),
+        )
+
+    def _confirm_apt_action(
+        self,
+        value: object,
+        action: str,
+        package_name: str,
+        display_name: str,
+    ) -> None:
+        if not isinstance(value, AptTransactionPreview):
+            QMessageBox.warning(self, "PaketScope", "Simulasi APT tidak menghasilkan rencana yang dapat diverifikasi.")
+            return
+        verb = {"install": "memasang", "remove": "menghapus", "purge": "melakukan purge pada"}[action]
+        lines = [
+            f"PaketScope akan meminta APT untuk {verb}: {display_name} ({package_name}).",
+            "",
+        ]
+        if value.install:
+            lines.append(f"Paket yang akan dipasang ({len(value.install)}):")
+            lines.extend(f"  • {name}" for name in value.install[:24])
+            if len(value.install) > 24:
+                lines.append(f"  • dan {len(value.install) - 24} paket lainnya")
+        removed = tuple(dict.fromkeys(value.remove + value.purge))
+        if removed:
+            lines.append(f"Paket yang akan dihapus ({len(removed)}):")
+            lines.extend(f"  • {name}" for name in removed[:24])
+            if len(removed) > 24:
+                lines.append(f"  • dan {len(removed) - 24} paket lainnya")
+        if action == "purge":
+            lines.extend([
+                "",
+                "Purge menghapus paket dan konfigurasi sistem yang dikelola dpkg. Data pengguna "
+                "di direktori home atau konfigurasi aplikasi di luar dpkg mungkin tetap ada.",
+            ])
+        elif action == "remove":
+            lines.extend([
+                "",
+                "Penghapusan paket tidak otomatis menghapus dependensi yang sudah tidak dipakai "
+                "atau semua data pengguna.",
+            ])
+        lines.extend([
+            "",
+            "Operasi baru berjalan setelah kamu menyetujui dialog ini dan autentikasi sistem. "
+            "PaketScope tidak menjalankan autoremove dan tidak menjalankan upgrade massal.",
+        ])
+        answer = QMessageBox.question(
+            self,
+            "Tinjau perubahan paket",
+            "\n".join(lines),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            self.status_label.setText("Operasi paket dibatalkan; sistem tidak diubah.")
+            return
+        self._start_task(
+            "Menjalankan APT melalui autentikasi sistem…",
+            lambda: apply_apt_action(action, package_name),
+            lambda result: self._apt_action_completed(result, action, display_name),
+        )
+
+    def _apt_action_completed(self, value: object, action: str, display_name: str) -> None:
+        verb = {"install": "Pemasangan", "remove": "Penghapusan", "purge": "Purge"}[action]
+        QMessageBox.information(
+            self,
+            f"{verb} selesai",
+            f"APT melaporkan operasi {verb.lower()} untuk {display_name} selesai. "
+            "Inventaris akan dipindai ulang agar tampilan mengikuti kondisi sistem terbaru.",
+        )
+        self.refresh_inventory()
 
     @Slot()
     def refresh_inventory(self) -> None:
