@@ -1,49 +1,187 @@
 <!doctype html>
 <html lang="id" data-theme="light">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark">
-<title>Linux Software Lab — Software Linux oleh Muhammad Andreatama</title>
-<meta name="description" content="Kumpulan software desktop open-source yang berfokus pada kebutuhan nyata pengguna Debian dan keluarga Linux.">
-<meta name="author" content="Muhammad Andreatama"><meta name="robots" content="index,follow"><link rel="canonical" href="https://muhammadandrea.vercel.app/">
-<meta property="og:type" content="website"><meta property="og:title" content="Linux Software Lab — Software Linux yang berguna"><meta property="og:description" content="Software desktop open-source untuk menyelesaikan masalah nyata pengguna Debian dan keluarga Linux."><meta property="og:url" content="https://muhammadandrea.vercel.app/"><meta property="og:locale" content="id_ID">
-<link rel="icon" href="/assets/images/linux-software-lab.svg" type="image/svg+xml"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/site.css"><script src="/assets/js/site.js" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Linux Software Lab — Alat Linux untuk masalah nyata</title>
+<meta name="description" content="Software desktop Linux independen yang berfokus pada kebutuhan nyata, privasi, kejelasan status rilis, dan pengalaman yang mudah dipahami.">
+<meta name="author" content="Muhammad Andreatama">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://muhammadandrea.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Linux Software Lab — Alat Linux untuk masalah nyata">
+<meta property="og:description" content="Software desktop Linux yang dibuat untuk menyelesaikan pekerjaan dengan cara yang sederhana, terbuka, dan transparan.">
+<meta property="og:url" content="https://muhammadandrea.vercel.app/">
+<meta property="og:locale" content="id_ID">
+<meta name="theme-color" content="#fbfcfe">
+<link rel="icon" href="/assets/images/linux-software-lab.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/experience.css">
+<script src="/assets/js/site.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Lewati ke konten</a>
-<header class="site-header"><div class="container nav">
-<a class="brand" href="/" aria-label="Linux Software Lab"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"/><path d="M8 9h8M8 12h5M8 15h7"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Open-source desktop tools</small></span></a>
-<nav class="nav-links" id="navLinks" aria-label="Navigasi utama"><a href="/software/">Katalog</a><a href="#prinsip">Prinsip proyek</a><a href="#tentang">Tentang</a></nav>
-<div class="nav-actions"><a class="btn btn-small btn-secondary desktop-github" href="https://github.com/M-TamDre07" target="_blank" rel="noopener noreferrer">GitHub ↗</a><button class="icon-btn" id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/></svg></button><button class="menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Buka menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></div>
-</div></header>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"/><path d="M8 9h8M8 12h5M8 15h7"/></svg></span>
+      <span class="brand-copy"><strong>Linux Software Lab</strong><small>Alat berguna. Dibangun terbuka.</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Navigasi utama">
+      <a href="/software/">Jelajahi software</a>
+      <a href="#pendekatan">Pendekatan</a>
+      <a href="#install">Instalasi</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-small btn-secondary desktop-github" href="https://github.com/M-TamDre07/Portofolio" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/></svg></button>
+      <button class="menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Buka menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
 <main id="main">
-<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><span class="status-dot"></span> Proyek independen · Open-source</span><h1>Software Linux yang <span>menyelesaikan masalah nyata.</span></h1><p class="hero-lead">Perangkat desktop yang dirancang untuk membuat pekerjaan sehari-hari di Debian dan keluarga Linux terasa lebih mudah—tanpa fitur tambahan yang tidak dibutuhkan.</p><div class="hero-actions"><a class="btn btn-primary" href="#software">Jelajahi software ↓</a><a class="btn btn-secondary" href="https://github.com/M-TamDre07" target="_blank" rel="noopener noreferrer">Lihat GitHub ↗</a></div><div class="hero-notes"><span>✓ Fokus pada kegunaan</span><span>✓ Status rilis transparan</span><span>✓ Dibangun untuk Linux</span></div></div>
-<div class="hero-panel" aria-label="Ringkasan proyek"><div class="panel-top"><span class="window-dots"><i></i><i></i><i></i></span><span>PROJECT OVERVIEW</span><span class="panel-index">01 / LAB</span></div><div class="terminal-card catalog-overview"><div class="terminal-label"><span class="terminal-symbol">Σ</span> CATALOG SNAPSHOT</div><div class="terminal-line"><span class="terminal-key">Software terdaftar</span><strong id="catalogTotal">—</strong></div><div class="terminal-line"><span class="terminal-key">Sudah dirilis</span><strong id="catalogReleased" class="text-accent">—</strong></div><div class="terminal-line"><span class="terminal-key">Dalam pengembangan</span><strong id="catalogInDevelopment">—</strong></div><div class="terminal-line"><span class="terminal-key">Target platform</span><strong id="catalogPlatforms">—</strong></div></div><div class="panel-bottom"><span class="pulse"></span> Ringkasan dihitung dari metadata katalog. Rilis hanya ditautkan setelah diuji.</div></div></div></section>
-<section class="section" id="software"><div class="container">
-<div class="section-heading"><div><span class="eyebrow">KATALOG SOFTWARE</span><h2>Temukan alat yang tepat.</h2></div><p>Telusuri proyek berdasarkan nama, kebutuhan, fitur, teknologi, kategori, platform, dan status rilis. Informasi katalog dimuat dari satu sumber data terpusat.</p></div>
-<div class="catalog-search-row">
-<label class="search-box catalog-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg><span class="sr-only">Cari software</span><input id="softwareSearch" type="search" placeholder="Contoh: backup, teleprompter, Debian, PySide6…" autocomplete="off" aria-describedby="searchHelp"><kbd class="search-shortcut">/</kbd></label>
-<button class="btn btn-secondary catalog-clear" id="clearFilters" type="button">Reset pencarian</button>
-</div>
-<p class="catalog-help" id="searchHelp">Tekan <kbd>/</kbd> untuk mencari. Pencarian bekerja lokal di browser; tidak mengirim kata kunci atau daftar software ke server eksternal.</p>
-<div class="catalog-toolbar catalog-toolbar-expanded">
-<div class="filter-list" id="statusFilters" role="group" aria-label="Filter status software"><button class="filter-btn is-active" type="button" data-filter="all" aria-pressed="true">Semua status</button><button class="filter-btn" type="button" data-filter="released" aria-pressed="false">Sudah dirilis</button><button class="filter-btn" type="button" data-filter="testing" aria-pressed="false">Dalam pengujian</button><button class="filter-btn" type="button" data-filter="planned" aria-pressed="false">Direncanakan</button><button class="filter-btn" type="button" data-filter="archived" aria-pressed="false">Arsip</button></div>
-<div class="catalog-selects">
-<label class="select-field"><span>Kategori</span><select id="categoryFilter"><option value="all">Semua kategori</option></select></label>
-<label class="select-field"><span>Platform</span><select id="platformFilter"><option value="all">Semua platform</option></select></label>
-<label class="select-field"><span>Urutkan</span><select id="sortFilter"><option value="relevance">Paling relevan</option><option value="name">Nama A–Z</option><option value="name-desc">Nama Z–A</option><option value="updated">Terbaru diperbarui</option><option value="status">Status rilis</option></select></label>
-</div></div>
-<div class="catalog-meta"><span id="resultCount" aria-live="polite">Memuat katalog…</span><span id="catalogHealth">Katalog terpusat · metadata tervalidasi saat build</span></div>
-<div class="software-grid" id="softwareGrid" aria-live="polite"><article class="software-card skeleton" aria-hidden="true"><div class="skeleton-icon"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></article><article class="software-card skeleton" aria-hidden="true"><div class="skeleton-icon"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></article></div>
-<div class="catalog-pagination"><span id="paginationSummary"></span><button class="btn btn-secondary" id="loadMore" type="button" hidden>Muat lebih banyak</button></div>
-<noscript><p class="notice">Aktifkan JavaScript untuk menjalankan pencarian dan memuat katalog software.</p></noscript>
-</div></section>
-<section class="section section-alt" id="prinsip"><div class="container"><div class="section-heading"><div><span class="eyebrow">CARA KERJA</span><h2>Fitur harus punya alasan.</h2></div><p>Software yang baik bukan yang punya menu paling banyak, tetapi yang menyelesaikan pekerjaan dengan aman dan jelas.</p></div><div class="principle-grid">
-<article class="principle-card"><span class="principle-number">01</span><div class="principle-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16 16 4 4M8 11h6"/></svg></div><h3>Masalah lebih dulu</h3><p>Setiap fitur harus menjawab kebutuhan yang jelas. Jika fungsi sudah tersedia dengan baik di Linux, jangan menduplikasinya tanpa manfaat nyata.</p></article>
-<article class="principle-card"><span class="principle-number">02</span><div class="principle-icon"><svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></div><h3>Aman dan transparan</h3><p>Operasi penting harus bisa dipahami, diuji, dan dibatalkan bila memungkinkan. Status pengujian dan batasan tidak akan disamarkan.</p></article>
-<article class="principle-card"><span class="principle-number">03</span><div class="principle-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg></div><h3>Terbuka untuk ditinjau</h3><p>Kode sumber, dokumentasi, dan catatan rilis akan tersedia melalui repositori masing-masing setelah siap dipublikasikan.</p></article>
-</div></div></section>
-<section class="section" id="tentang"><div class="container about-panel"><div><span class="eyebrow">TENTANG PROYEK</span><h2>Dibuat untuk membantu pengguna Linux.</h2><p>Linux Software Lab adalah katalog proyek software desktop independen yang dikembangkan oleh Muhammad Andreatama. Fokusnya adalah pengguna Debian dan distribusi turunannya, dengan perhatian pada kegunaan, aksesibilitas, keamanan, dan pengalaman desktop yang konsisten.</p><p>Lisensi, kode sumber, dependensi, dan status rilis akan dicantumkan pada halaman masing-masing proyek setelah tersedia. Kompatibilitas hanya akan diklaim berdasarkan pengujian.</p></div><aside class="support-card"><span class="support-icon"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg></span><h3>Dukung pengembangan</h3><p>Dukungan sukarela membantu pengujian, dokumentasi, dan pengembangan berikutnya.</p><a class="btn btn-primary btn-full" href="https://saweria.co/tamaandrea" target="_blank" rel="noopener noreferrer">Dukung melalui Saweria ↗</a><small>Dukungan bersifat sukarela dan tidak memengaruhi akses ke software.</small></aside></div></section>
+  <section class="home-hero">
+    <div class="container home-hero-grid">
+      <div class="home-copy">
+        <span class="eyebrow"><span class="status-dot" aria-hidden="true"></span> PROYEK INDEPENDEN · OPEN-SOURCE</span>
+        <h1>Tools kecil.<span>Masalah nyata.</span></h1>
+        <p class="hero-lead">Software Linux yang dirancang untuk membantu pekerjaan sehari-hari—tanpa membuat hal sederhana jadi rumit. Fokus pada kebutuhan, privasi, dan kontrol tetap di tangan pengguna.</p>
+        <div class="home-actions">
+          <a class="btn btn-primary" href="/software/">Jelajahi software <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-secondary" href="#install">Cara instalasi <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="home-quiet-note" aria-label="Prinsip utama">
+          <span>Fokus pada masalah</span><span>Status rilis transparan</span><span>Dirancang untuk Linux</span>
+        </div>
+      </div>
+      <div class="showcase-wrap" aria-label="Pratinjau konsep antarmuka PaketScope">
+        <div class="showcase-glow" aria-hidden="true"></div>
+        <div class="showcase-window">
+          <div class="showcase-topbar">
+            <span class="window-controls" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="showcase-title"><strong>PaketScope</strong><small>Inventaris software Linux</small></span>
+            <span class="showcase-tag">KONSEP UI</span>
+          </div>
+          <div class="product-screen">
+            <aside class="mock-sidebar" aria-hidden="true">
+              <div class="mock-sidebar-brand"><span class="mock-app-icon">P</span> PaketScope</div>
+              <div class="mock-nav-label">Ruang kerja</div>
+              <div class="mock-nav-item is-current"><span class="mock-nav-glyph">▦</span> Inventaris</div>
+              <div class="mock-nav-item"><span class="mock-nav-glyph">↻</span> Pembaruan</div>
+              <div class="mock-nav-item"><span class="mock-nav-glyph">⇩</span> Ekspor</div>
+            </aside>
+            <div class="mock-main" aria-hidden="true">
+              <div class="mock-main-head">
+                <div><small>INVENTARIS LOKAL</small><strong>Software terpasang</strong></div>
+                <span class="mock-local-badge">Data lokal</span>
+              </div>
+              <div class="mock-stats">
+                <div class="mock-stat"><small>Sumber</small><strong>APT / dpkg</strong></div>
+                <div class="mock-stat"><small>Integrasi</small><strong>Flatpak</strong></div>
+              </div>
+              <div class="mock-table-head"><span>Nama</span><span>Sumber</span><span>Status</span></div>
+              <div class="mock-table-row"><span class="mock-table-name"><strong>firefox-esr</strong><small>Browser</small></span><span class="mock-table-source">APT</span><span class="mock-pill">Lokal</span></div>
+              <div class="mock-table-row"><span class="mock-table-name"><strong>python3</strong><small>Runtime</small></span><span class="mock-table-source">APT</span><span class="mock-pill">Lokal</span></div>
+              <div class="mock-table-row"><span class="mock-table-name"><strong>org.demo.App</strong><small>Aplikasi</small></span><span class="mock-table-source">Flatpak</span><span class="mock-pill">Lokal</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="showcase-caption"><span>PRATINJAU KONSEP · BUKAN SCREENSHOT RILIS</span><span>01 / PAKETSCOPE</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-proof" aria-label="Prinsip pengembangan">
+    <div class="container home-proof-grid">
+      <div class="proof-item"><span class="proof-symbol" aria-hidden="true">◎</span><span>Data tetap di perangkat sebisa mungkin</span></div>
+      <div class="proof-item"><span class="proof-symbol" aria-hidden="true">↗</span><span>Kode sumber dapat ditinjau</span></div>
+      <div class="proof-item"><span class="proof-symbol" aria-hidden="true">✓</span><span>Unduhan hanya saat benar-benar siap</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="pendekatan">
+    <div class="container">
+      <div class="home-section-head">
+        <div><span class="eyebrow">CARA KAMI MEMBANGUN</span><h2>Software harus mengurangi kerepotan, bukan menambahkannya.</h2></div>
+        <p>Setiap fitur harus punya alasan yang jelas. Kalau sebuah alat tidak menyelesaikan masalah nyata, kami tidak perlu menambahkannya.</p>
+      </div>
+      <div class="problem-grid">
+        <article class="problem-card"><span class="problem-number">01 / GUNAKAN DENGAN JELAS</span><h3>Mulai dari tugas pengguna</h3><p>Antarmuka menyebutkan apa yang dapat dilakukan dan apa yang belum didukung. Tidak perlu menebak fungsi tombol atau status aplikasi.</p></article>
+        <article class="problem-card"><span class="problem-number">02 / JAGA KONTROL</span><h3>Aksi penting tetap eksplisit</h3><p>Operasi sensitif tidak berjalan diam-diam. Batasan, kebutuhan izin, dan efek tindakan harus jelas sebelum fitur dirilis.</p></article>
+        <article class="problem-card"><span class="problem-number">03 / UTAMAKAN KEPERCAYAAN</span><h3>Jujur soal statusnya</h3><p>Konsep, pengujian, dan rilis stabil tidak disamakan. Tautan unduhan baru tersedia setelah artefak dan instruksi pemasangannya diverifikasi.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section home-tools-section" id="software">
+    <div class="container">
+      <div class="home-section-head">
+        <div><span class="eyebrow">PROYEK PILIHAN</span><h2>Alat yang sedang dibangun.</h2></div>
+        <p>Kami mengutamakan sedikit software yang tujuannya jelas dibanding katalog panjang berisi fitur yang tidak dibutuhkan.</p>
+      </div>
+      <div class="home-tools-grid">
+        <article class="tool-feature-card">
+          <div class="tool-feature-visual">
+            <span class="feature-visual-label">01 · INVENTARIS LINUX</span>
+            <div class="feature-visual-app"><span class="feature-visual-app-icon" aria-hidden="true">P</span><span><strong>PaketScope</strong><small>Native desktop · Python / Qt</small></span></div>
+          </div>
+          <div class="tool-feature-copy">
+            <div class="tool-card-meta"><span class="status-chip is-testing">Pratinjau pengembangan</span><span class="status-chip">Debian / Linux · pengujian awal</span></div>
+            <h3>Lihat software di sistem dengan lebih mudah.</h3>
+            <p>PaketScope ditujukan untuk menelusuri inventaris paket APT/dpkg dan Flatpak, memeriksa pembaruan saat diminta, serta mengekspor data. Versi 3 sedang dikembangkan; ini belum menjadi rilis stabil.</p>
+            <a class="btn btn-primary" href="/software/paketscope.html">Lihat status PaketScope <span aria-hidden="true">↗</span></a>
+          </div>
+        </article>
+        <article class="tool-secondary-card">
+          <div>
+            <span class="tool-secondary-icon" aria-hidden="true">T</span>
+            <div class="tool-card-meta" style="margin-top:18px"><span class="status-chip is-planned">Direncanakan</span></div>
+            <div class="tool-secondary-copy"><h3>Prompter Overlay</h3><p>Konsep teleprompter desktop untuk menjaga naskah tetap mudah dibaca saat presentasi atau merekam video.</p></div>
+          </div>
+          <a class="btn btn-secondary" href="/software/prompter-overlay.html">Lihat rencana proyek <span aria-hidden="true">↗</span></a>
+        </article>
+      </div>
+      <div style="margin-top:22px"><a class="card-link" href="/software/">Jelajahi semua proyek dan filter katalog ↗</a></div>
+    </div>
+  </section>
+
+  <section class="section install-section" id="install">
+    <div class="container install-panel">
+      <div class="install-copy">
+        <span class="eyebrow">INSTALASI LINUX</span>
+        <h2>Perintah terminal yang aman, saat paketnya siap.</h2>
+        <p>Target berikutnya adalah distribusi yang mudah dipahami: halaman unduhan resmi, instruksi terminal, checksum, dan paket yang ditandatangani. Kami tidak akan menyuruh pengguna menjalankan perintah instalasi yang belum tersedia atau belum diuji.</p>
+        <span class="install-state">Instruksi instalasi resmi belum tersedia</span>
+        <p style="margin-top:18px">PaketScope masih dalam pengembangan. Jangan menambahkan repository pihak ketiga atau menjalankan perintah dengan <code>sudo</code> berdasarkan panduan yang belum diterbitkan di situs resmi ini.</p>
+        <a class="btn btn-secondary" href="/software/paketscope.html#install-status">Lihat kesiapan rilis PaketScope <span aria-hidden="true">↗</span></a>
+      </div>
+      <aside class="terminal-note" aria-label="Status kesiapan instalasi">
+        <div class="terminal-note-head"><span>INSTALLATION STATUS</span><span>LINUX SOFTWARE LAB</span></div>
+        <div class="terminal-comment"># Instruksi resmi akan ditampilkan di sini</div>
+        <div class="terminal-comment"># setelah paket dibangun, diuji, dan diverifikasi.</div>
+        <div class="terminal-state">Belum ada perintah yang dapat dijalankan. Ini status rilis, bukan perintah terminal.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section home-about">
+    <div class="container home-about-panel">
+      <div><span class="eyebrow">TENTANG LAB</span><h2>Independen. Terbuka. Fokus pada kegunaan.</h2><p>Linux Software Lab adalah proyek software independen yang dikembangkan oleh Muhammad Andreatama. Fokus awalnya adalah aplikasi desktop Linux dengan pengalaman yang sederhana, dokumentasi yang jujur, dan perhatian pada privasi.</p></div>
+      <div class="home-about-cta"><a class="btn btn-secondary" href="https://github.com/M-TamDre07/Portofolio" target="_blank" rel="noopener noreferrer">Lihat kode sumber ↗</a><a class="btn btn-secondary" href="https://saweria.co/tamaandrea" target="_blank" rel="noopener noreferrer">Dukung proyek ↗</a></div>
+    </div>
+  </section>
 </main>
-<footer class="site-footer"><div class="container footer-main"><a class="brand footer-brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"/><path d="M8 9h8M8 12h5M8 15h7"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Useful tools, built openly.</small></span></a><p>Dirancang dan dikembangkan oleh <strong>Muhammad Andreatama</strong>.</p><a class="footer-link" href="https://github.com/M-TamDre07" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><div class="container footer-bottom"><span>© <span id="year"></span> Muhammad Andreatama</span><span>Software yang berguna. Tanpa fitur yang tidak perlu.</span><a href="#main">Kembali ke atas ↑</a></div></footer>
-</body></html>
+<footer class="site-footer">
+  <div class="container footer-main">
+    <a class="brand footer-brand" href="/"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5.5h14v13H5z"/><path d="M8 9h8M8 12h5M8 15h7"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Alat berguna. Dibangun terbuka.</small></span></a>
+    <p>Dibangun oleh <strong>Muhammad Andreatama</strong>.</p>
+    <a class="footer-link" href="https://github.com/M-TamDre07/Portofolio" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+  </div>
+  <div class="container footer-bottom"><span>© <span id="year"></span> Muhammad Andreatama</span><span>Utamakan masalah pengguna, bukan jumlah fitur.</span><a href="#main">Kembali ke atas ↑</a></div>
+</footer>
+</body>
+</html>
