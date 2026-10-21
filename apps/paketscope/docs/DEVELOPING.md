@@ -45,7 +45,10 @@ paketscope/
   backup.py          Encrypted backup format and cryptographic operations
   exporting.py       Private, atomic file writes and CSV-safe values
   ui/
-    main_window.py  Main window, event coordination, and UI actions
+    main_window.py  Window layout, Qt setup, and task coordination
+    package_actions.py APT search, preview, and confirmation dialogs
+    inventory_actions.py Inventory refresh, update checks, diagnostics
+    data_actions.py  CSV export, encrypted backup, and restore dialogs
     theme.py         Table headings and Qt stylesheet
     models.py        Qt inventory table and search/filter model
     workers.py       Background task runner and result/error signals
