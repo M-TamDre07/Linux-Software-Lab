@@ -94,7 +94,7 @@ The test suite covers inventory parsing and UI filtering, command-error handling
 
 ## Build the Debian development package
 
-The repository now contains a Debian package definition and a GitHub Actions workflow that runs the Python tests and attempts to build a Debian 13 .deb. A successful workflow stores a short-lived development artifact; it is not a signed stable release and should not be linked as a final public download before the clean-install checks pass.
+The repository contains a Debian package definition and GitHub Actions workflows for Python tests, static import checks, and a Debian 13 container build/install/smoke-test/purge cycle. A successful run stores a short-lived development artifact; it is not a signed stable release and must not be presented as a final public download.
 
 For a Debian 13 build environment with debhelper installed:
 
