@@ -65,6 +65,14 @@ jobs:
           test -n "$package"
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
+      - name: Install and smoke-test package in Debian container
+        run: |
+          package="$(find .. -maxdepth 1 -type f -name 'paketscope_*_all.deb' -print -quit)"
+          test -n "$package"
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$package"
+          dpkg-query -W -f='\${Status}\\n' paketscope | grep -Fx 'install ok installed'
+          command -v paketscope
+          python3 -c 'import paketscope; assert paketscope.__version__ == "3.0.0.dev2"; print(paketscope.__version__)'
       - name: Upload development package artifact
         uses: actions/upload-artifact@v4
         with:
