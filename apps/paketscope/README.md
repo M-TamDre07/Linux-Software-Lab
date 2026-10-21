@@ -25,11 +25,21 @@ The v3 branch adds a service boundary between the GUI and package operations. It
 
 Unsupported package formats and user-installed AppImages are deliberately not inferred as managed packages. Missing system tools are shown as diagnostics, not silently treated as an empty inventory.
 
+## Compatibility status
+
+**The only currently CI-validated native package target is Debian 13 (Trixie).** The Debian package workflow builds the `.deb`, installs it in a clean Debian 13 container, checks that the installed module and desktop launcher are present, then purges the package and checks package-owned files are removed.
+
+Ubuntu, Linux Mint, Pop!_OS, and other Debian derivatives are **not yet declared supported targets** for this development `.deb`. Being Debian-based is not sufficient: package names and available Qt/PySide versions can differ between distribution releases. Do not assume this `.deb` is compatible with them until dedicated install tests pass.
+
+Running from source in a Python virtual environment is an experimental alternative, provided that the target system has a working desktop session, Python 3.10+, and can install the required PySide6 and cryptography libraries. Source-mode success on one distribution does not count as validation of the packaged build on that distribution.
+
+Arch Linux, Fedora/RPM, openSUSE, and Alpine are out of the current scope. Future support should add and test distribution-specific package-manager adapters and build recipes without changing the core inventory and UI layers.
+
 ## Requirements
 
 - Python 3.10+
-- Debian 13 or a Debian-family desktop (initial development target)
-- PySide6 and cryptography (installed by the project command below)
+- Debian 13 (Trixie) for the currently validated `.deb` package
+- PySide6 6.7+ and cryptography 42.0+ for source-mode development
 - Optional system tools: dpkg-query, apt, and flatpak
 
 ## Run from source
