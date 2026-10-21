@@ -2,37 +2,24 @@ name: Website quality
 
 on:
   push:
-    branches: [main, feature/software-catalog-platform]
+    branches: [main, "feature/linux-software-lab-global"]
     paths:
       - "public/**"
       - ".gitignore"
-      - "index.html"
-      - "software/**"
-      - "assets/**"
-      - "data/**"
       - "scripts/**"
       - "tests/**"
       - "docs/**"
       - "README.md"
-      - "robots.txt"
-      - "sitemap.xml"
-      - "google505d5a75f881baa2.html"
       - "vercel.json"
       - ".github/workflows/site-quality.yml"
   pull_request:
     paths:
       - "public/**"
-      - "index.html"
-      - "software/**"
-      - "assets/**"
-      - "data/**"
+      - ".gitignore"
       - "scripts/**"
       - "tests/**"
       - "docs/**"
       - "README.md"
-      - "robots.txt"
-      - "sitemap.xml"
-      - "google505d5a75f881baa2.html"
       - "vercel.json"
       - ".github/workflows/site-quality.yml"
   workflow_dispatch:

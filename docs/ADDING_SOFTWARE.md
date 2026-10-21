@@ -16,7 +16,7 @@ Supported statuses:
 
 ## 2. Create the files in the right place
 
-- Source code maintained in this repository: apps/<slug>/.
+- Source code maintained in this repository: apps/<slug>/ (one dedicated folder per product).
 - Public product page: public/software/<slug>.html.
 - Original icon and preview artwork: public/assets/images/.
 - Single source of catalogue metadata: public/data/software.json.
@@ -25,7 +25,7 @@ Do not put application cards directly into JavaScript. public/data/software.sche
 
 ## 3. Complete the metadata
 
-Every record must include id, slug, name, version, summary, description, category, status, type, platforms, tags, keywords, features, detailUrl, sourceUrl, releaseUrl, icon, iconImage, previewImage, previewAlt, and updatedAt.
+Every record must include id, slug, name, version, summary, description, category, status, type, platforms, tags, keywords, features, detailUrl, sourceUrl, releaseUrl, icon, iconImage, previewImage, previewAlt, and updatedAt. For source projects, keep README.md, the selected LICENSE, changelog, tests, documentation, dependency metadata, and packaging files in that product’s own apps/<slug>/ directory.
 
 Use an empty string for sourceUrl or releaseUrl if the verified URL is not available. Non-empty external links must use HTTPS. A record marked released must have a valid HTTPS releaseUrl; an unreleased project must not advertise a release URL. Concept artwork must be accurately labelled in previewAlt.
 
@@ -33,7 +33,11 @@ Use an empty string for sourceUrl or releaseUrl if the verified URL is not avail
 
 Add the page's canonical URL to public/sitemap.xml. public/robots.txt should continue to point to the canonical sitemap. The CI link/sitemap check verifies that every catalogue detail route appears in the sitemap, the sitemap host matches the home canonical host, and each listed page has a matching canonical URL. Therefore, a new detail page without a matching sitemap entry will fail validation.
 
-## 5. Validate before pull request
+## 5. Prepare a dedicated product directory
+
+Start from apps/README.md and docs/SOFTWARE_DIRECTORY_LAYOUT.md. Do not reuse another product's license by assumption. A planned product folder may contain its README only, but must not imply that working source, installable packages, or a release exists. Add Debian packaging metadata only once dependencies, package contents, and install/uninstall behaviour can be tested.
+
+## 6. Validate before pull request
 
 Run from repository root:
 
@@ -49,6 +53,6 @@ python -m unittest discover -s tests -v
 
 GitHub Actions repeats the checks. Fix validation failures rather than bypassing the workflow.
 
-## 6. Keep the catalogue light and private
+## 7. Keep the catalogue light and private
 
 Use concise descriptions and optimized local SVG or raster assets. Search is client-side and the site has no analytics endpoint. Do not add trackers, remote search APIs, third-party scripts, or database dependencies without a concrete requirement and privacy/performance review.
