@@ -5,16 +5,16 @@
     "description": "Katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-10-20"
+    "updatedAt": "2026-10-21"
   },
   "software": [
     {
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "2.0.0-dev1",
-      "summary": "Inventaris lokal APT/dpkg dan Flatpak dengan pencarian, pemeriksaan pembaruan sesuai permintaan, ekspor CSV, serta cadangan terenkripsi.",
-      "description": "Aplikasi desktop local-first untuk membantu memahami software yang terpasang tanpa mengambil alih kendali sistem. PaketScope masih dalam tahap pengembangan dan belum dirilis sebagai installer stabil.",
+      "version": "3.0.0.dev1",
+      "summary": "Aplikasi desktop native untuk menelusuri inventaris APT/dpkg dan Flatpak, memeriksa pembaruan sesuai permintaan, mengekspor CSV, serta membuat cadangan terenkripsi.",
+      "description": "PaketScope 3 sedang dikembangkan sebagai aplikasi desktop native berbasis Qt. Aplikasi masih berupa pratinjau pengembangan dan belum memiliki paket instalasi resmi.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
@@ -46,13 +46,13 @@
         "Cadangan terenkripsi"
       ],
       "detailUrl": "/software/paketscope.html",
-      "sourceUrl": "https://github.com/M-TamDre07/Portofolio/tree/main/apps/paketscope",
+      "sourceUrl": "https://github.com/M-TamDre07/Portofolio/tree/feature/paketscope-v3-native/apps/paketscope",
       "releaseUrl": "",
       "icon": "package",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-20"
+      "updatedAt": "2026-10-21"
     },
     {
       "id": "prompter-overlay",
