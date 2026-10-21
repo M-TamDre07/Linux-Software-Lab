@@ -82,18 +82,24 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## PaketScope (versi di cabang utama)
+## PaketScope 3 (pratinjau pengembangan)
 
-Setiap software memiliki folder tersendiri di apps/<slug>/. Lihat apps/README.md dan docs/SOFTWARE_DIRECTORY_LAYOUT.md. PaketScope 3 dikembangkan pada cabang feature/paketscope-v3-native; source v3 sudah memiliki README, LICENSE GPL-3.0, pyproject.toml, tests, dan dokumentasi arsitektur. Cabang tersebut belum digabung ke main dan belum menjadi rilis yang dapat dipasang. Lihat apps/paketscope/README.md pada cabang pengembangan untuk detailnya.
+Source aplikasi desktop native ada di `apps/paketscope/`. Versi source saat ini adalah `3.0.0.dev2` dan sudah terintegrasi di `main`. CI memvalidasi tes Python serta paket Debian di lingkungan Debian 13, tetapi ini tetap pratinjau pengembangan, bukan rilis stabil. Paket belum menjadi rilis publik bertanda tangan, belum melalui pengujian desktop menyeluruh, dan belum diaudit secara independen. Jangan menganggapnya siap untuk penggunaan produksi.
 
-~~~bash
+Arsitektur memisahkan UI di `paketscope/ui/`, layanan aplikasi di `services.py`, model dan parser di `domain.py`, serta adaptor OS untuk APT/dpkg dan Flatpak. Tindakan perubahan APT dibatasi pada satu paket dengan simulasi dan konfirmasi eksplisit; inventaris Flatpak masih read-only. Detail pengembangan dan batas keamanan ada di `apps/paketscope/docs/DEVELOPING.md`, `apps/paketscope/docs/PAKETSCOPE_V3_ARCHITECTURE.md`, dan `apps/paketscope/docs/SECURITY.md`.
+
+### Menjalankan dari source
+
+```bash
 cd apps/paketscope
 python3 -m venv .venv
-source .venv/bin/activate
+. .venv/bin/activate
 python -m pip install -e '.[test]'
-python -m paketscope
 python -m pytest
-~~~
+python -m paketscope
+```
+
+Untuk menguji pemasangan atau penghapusan paket, gunakan mesin virtual Debian 13 dengan snapshot yang bisa dipulihkan. Jangan menguji transaksi paket pada sistem utama sampai pengujian desktop dan proses pemulihan selesai ditinjau.
 
 ## Kredit dan dukungan
 

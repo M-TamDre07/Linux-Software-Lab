@@ -1,0 +1,5 @@
+#!/usr/bin/python3
+"""PaketScope desktop launcher for Debian package installations."""
+from paketscope.app import main
+
+raise SystemExit(main())

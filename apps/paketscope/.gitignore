@@ -7,3 +7,9 @@ dist/
 *.egg-info/
 .pytest_cache/
 .coverage
+
+# Debian package build outputs
+debian/.debhelper/
+debian/paketscope/
+debian/tmp/
+../paketscope_*.deb

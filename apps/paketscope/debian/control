@@ -1,0 +1,16 @@
+Source: paketscope
+Section: utils
+Priority: optional
+Maintainer: Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+
+Package: paketscope
+Architecture: all
+Depends: ${misc:Depends}, python3 (>= 3.10), python3-pyside6.qtwidgets, python3-cryptography, apt, pkexec
+Description: Desktop application inventory and APT package manager
+ PaketScope gives users a searchable view of installed APT/dpkg and Flatpak
+ applications. It can preview and confirm selected APT package installation,
+ removal, and purge operations using the system's polkit authentication flow.
+ Package changes are never made automatically in the background.

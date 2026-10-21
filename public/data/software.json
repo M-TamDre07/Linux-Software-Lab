@@ -46,7 +46,7 @@
         "Cadangan terenkripsi"
       ],
       "detailUrl": "/software/paketscope.html",
-      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/feature/paketscope-v3-native/apps/paketscope",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
       "releaseUrl": "",
       "icon": "package",
       "iconImage": "/assets/images/paketscope-icon.svg",
