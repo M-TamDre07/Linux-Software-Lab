@@ -1,7 +1,6 @@
 """Main desktop window and event coordination."""
 from __future__ import annotations
 
-from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
@@ -9,10 +8,8 @@ from PySide6.QtCore import QModelIndex, Qt, QThreadPool, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QComboBox,
-    QFileDialog,
     QFrame,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QLineEdit,
     QMainWindow,
@@ -25,21 +22,16 @@ from PySide6.QtWidgets import (
 )
 
 from .. import __version__
-from ..domain import InstalledApplication, InventorySnapshot
-from ..package_manager import (
-    AptSearchResult,
-    AptTransactionPreview,
-    apply_apt_action,
-    preview_apt_action,
-    search_apt_packages,
-)
+from ..domain import InventorySnapshot
 from ..services import PaketScopeService
-from ..updates import UpdateCheckResult
 from .models import InventoryModel, InventoryProxy
 from .workers import Worker
+from .data_actions import DataActionsMixin
+from .inventory_actions import InventoryActionsMixin
+from .package_actions import PackageManagementActionsMixin
 
 
-class MainWindow(QMainWindow):
+class MainWindow(PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin, QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("PaketScope 3")
@@ -262,308 +254,3 @@ class MainWindow(QMainWindow):
         )
         self.remove_button.setEnabled(bool(can_change))
         self.purge_button.setEnabled(bool(can_change))
-
-    @Slot()
-    def install_apt_package(self) -> None:
-        query, accepted = QInputDialog.getText(
-            self,
-            "Cari aplikasi APT",
-            "Nama aplikasi atau kata pencarian (menggunakan indeks APT lokal):",
-        )
-        if not accepted:
-            return
-        if not query.strip():
-            QMessageBox.information(self, "Cari aplikasi APT", "Masukkan nama atau kata pencarian terlebih dahulu.")
-            return
-        self._start_task(
-            "Mencari paket pada indeks APT lokal…",
-            lambda: search_apt_packages(query),
-            self._apt_search_ready,
-        )
-
-    def _apt_search_ready(self, value: object) -> None:
-        if not isinstance(value, tuple):
-            QMessageBox.warning(self, "Pencarian APT", "Hasil pencarian tidak valid.")
-            return
-        results = [item for item in value if isinstance(item, AptSearchResult)]
-        installed = {
-            item.identifier.split(":", 1)[0]
-            for item in self.snapshot.applications
-            if item.source == "APT / dpkg"
-        }
-        available = [item for item in results if item.name.split(":", 1)[0] not in installed]
-        if not available:
-            QMessageBox.information(
-                self,
-                "Pencarian APT",
-                "Tidak ada paket baru yang cocok pada indeks lokal. Coba kata lain atau perbarui indeks paket melalui alat sistem tepercaya terlebih dahulu.",
-            )
-            return
-        labels = [f"{item.name} — {item.description}" for item in available]
-        selected, accepted = QInputDialog.getItem(
-            self,
-            "Pilih paket untuk dipasang",
-            "Pilih paket dari repositori APT yang sudah dikonfigurasi:",
-            labels,
-            0,
-            False,
-        )
-        if not accepted:
-            return
-        chosen = available[labels.index(selected)]
-        self._begin_apt_action("install", chosen.name, chosen.description)
-
-    @Slot()
-    def remove_selected_apt_package(self) -> None:
-        self._remove_selected_apt_package("remove")
-
-    @Slot()
-    def purge_selected_apt_package(self) -> None:
-        self._remove_selected_apt_package("purge")
-
-    def _remove_selected_apt_package(self, action: str) -> None:
-        selected = self._selected_application()
-        if selected is None:
-            QMessageBox.information(self, "Kelola aplikasi", "Pilih satu baris aplikasi terlebih dahulu.")
-            return
-        if selected.source != "APT / dpkg":
-            QMessageBox.information(
-                self,
-                "Sumber paket belum didukung",
-                "Aksi perubahan pada antarmuka ini saat ini hanya tersedia untuk paket APT/dpkg. "
-                "Aplikasi Flatpak tetap dapat dilihat dan diperiksa pembaruannya, tetapi belum dapat diubah dari PaketScope.",
-            )
-            return
-        self._begin_apt_action(action, selected.identifier, selected.name)
-
-    def _begin_apt_action(self, action: str, package_name: str, display_name: str) -> None:
-        self._start_task(
-            f"Memeriksa rencana APT untuk {package_name}…",
-            lambda: preview_apt_action(action, package_name),
-            lambda value: self._confirm_apt_action(value, action, package_name, display_name),
-        )
-
-    def _confirm_apt_action(
-        self,
-        value: object,
-        action: str,
-        package_name: str,
-        display_name: str,
-    ) -> None:
-        if not isinstance(value, AptTransactionPreview):
-            QMessageBox.warning(self, "PaketScope", "Simulasi APT tidak menghasilkan rencana yang dapat diverifikasi.")
-            return
-        verb = {"install": "memasang", "remove": "menghapus", "purge": "melakukan purge pada"}[action]
-        lines = [
-            f"PaketScope akan meminta APT untuk {verb}: {display_name} ({package_name}).",
-            "",
-        ]
-        if value.install:
-            lines.append(f"Paket yang akan dipasang ({len(value.install)}):")
-            lines.extend(f"  • {name}" for name in value.install[:24])
-            if len(value.install) > 24:
-                lines.append(f"  • dan {len(value.install) - 24} paket lainnya")
-        removed = tuple(dict.fromkeys(value.remove + value.purge))
-        if removed:
-            lines.append(f"Paket yang akan dihapus ({len(removed)}):")
-            lines.extend(f"  • {name}" for name in removed[:24])
-            if len(removed) > 24:
-                lines.append(f"  • dan {len(removed) - 24} paket lainnya")
-        if action == "purge":
-            lines.extend([
-                "",
-                "Purge menghapus paket dan konfigurasi sistem yang dikelola dpkg. Data pengguna "
-                "di direktori home atau konfigurasi aplikasi di luar dpkg mungkin tetap ada.",
-            ])
-        elif action == "remove":
-            lines.extend([
-                "",
-                "Penghapusan paket tidak otomatis menghapus dependensi yang sudah tidak dipakai "
-                "atau semua data pengguna.",
-            ])
-        lines.extend([
-            "",
-            "Operasi baru berjalan setelah kamu menyetujui dialog ini dan autentikasi sistem. "
-            "PaketScope tidak menjalankan autoremove dan tidak menjalankan upgrade massal.",
-        ])
-        answer = QMessageBox.question(
-            self,
-            "Tinjau perubahan paket",
-            "\n".join(lines),
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if answer != QMessageBox.StandardButton.Yes:
-            self.status_label.setText("Operasi paket dibatalkan; sistem tidak diubah.")
-            return
-        self._start_task(
-            "Menjalankan APT melalui autentikasi sistem…",
-            lambda: apply_apt_action(action, package_name),
-            lambda result: self._apt_action_completed(result, action, display_name),
-        )
-
-    def _apt_action_completed(self, value: object, action: str, display_name: str) -> None:
-        verb = {"install": "Pemasangan", "remove": "Penghapusan", "purge": "Purge"}[action]
-        QMessageBox.information(
-            self,
-            f"{verb} selesai",
-            f"APT melaporkan operasi {verb.lower()} untuk {display_name} selesai. "
-            "Inventaris akan dipindai ulang agar tampilan mengikuti kondisi sistem terbaru.",
-        )
-        self.refresh_inventory()
-
-    @Slot()
-    def refresh_inventory(self) -> None:
-        self._start_task("Membaca inventaris lokal…", self.services.scan_inventory, self._inventory_ready)
-
-    def _inventory_ready(self, value: object) -> None:
-        if not isinstance(value, InventorySnapshot):
-            self.status_label.setText("Hasil inventaris tidak valid.")
-            return
-        self.snapshot = value
-        self.inventory_model.set_applications(value.applications)
-        apt_count = sum(1 for app in value.applications if app.source == "APT / dpkg")
-        flatpak_count = sum(1 for app in value.applications if app.source == "Flatpak")
-        self.total_value.setText(f"{len(value.applications):,}")
-        self.apt_value.setText(f"{apt_count:,}")
-        self.flatpak_value.setText(f"{flatpak_count:,}")
-        self.diagnostics_button.setEnabled(bool(value.diagnostics))
-        self.status_label.setText(
-            f"Diperbarui {datetime.now().strftime('%H:%M:%S')}  ·  {self.proxy.rowCount():,} baris cocok"
-        )
-        if value.diagnostics:
-            self.status_label.setText(self.status_label.text() + f"  ·  {len(value.diagnostics)} catatan diagnostik")
-
-    @Slot()
-    def check_for_updates(self) -> None:
-        def show(value: object) -> None:
-            if not isinstance(value, UpdateCheckResult):
-                return
-            lines = [
-                f"Pembaruan APT (berdasarkan metadata lokal): {len(value.apt_updates)}",
-                f"Pembaruan Flatpak (memeriksa remote yang dikonfigurasi): {len(value.flatpak_updates)}",
-                "",
-                "Tidak ada paket yang dipasang, diperbarui, atau dihapus.",
-            ]
-            if value.apt_updates:
-                lines.extend(["", "APT: " + ", ".join(value.apt_updates[:20])])
-            if value.flatpak_updates:
-                lines.extend(["", "Flatpak: " + ", ".join(value.flatpak_updates[:20])])
-            if value.diagnostics:
-                lines.extend(["", "Catatan:", *value.diagnostics])
-            QMessageBox.information(self, "Hasil pemeriksaan pembaruan", "\n".join(lines))
-            self.status_label.setText(
-                f"Pembaruan ditemukan — APT {len(value.apt_updates)} · Flatpak {len(value.flatpak_updates)}"
-            )
-
-        self._start_task("Memeriksa pembaruan; Flatpak dapat mengakses remote…", self.services.check_updates, show)
-
-    @Slot()
-    def show_diagnostics(self) -> None:
-        details = "\n".join("• " + item for item in self.snapshot.diagnostics)
-        QMessageBox.information(self, "Diagnostik inventaris", details or "Tidak ada catatan diagnostik.")
-
-    def _visible_applications(self) -> list[InstalledApplication]:
-        rows = []
-        for proxy_row in range(self.proxy.rowCount()):
-            source_row = self.proxy.mapToSource(self.proxy.index(proxy_row, 0)).row()
-            rows.append(self.inventory_model.applications[source_row])
-        return rows
-
-    @Slot()
-    def export_csv(self) -> None:
-        applications = self._visible_applications()
-        if not applications:
-            QMessageBox.information(self, "Ekspor CSV", "Tidak ada baris yang terlihat untuk diekspor.")
-            return
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Ekspor inventaris yang terlihat", "paketscope-inventory.csv", "CSV (*.csv)"
-        )
-        if not path:
-            return
-        if not path.lower().endswith(".csv"):
-            path += ".csv"
-        try:
-            count = self.services.export_csv(applications, path)
-        except (OSError, ValueError) as exc:
-            QMessageBox.warning(self, "Ekspor gagal", str(exc))
-            return
-        self.status_label.setText(f"Ekspor CSV selesai · {count} baris")
-
-    @Slot()
-    def export_encrypted_backup(self) -> None:
-        if not self.snapshot.applications:
-            QMessageBox.information(self, "Cadangan terenkripsi", "Pindai inventaris terlebih dahulu.")
-            return
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Simpan cadangan terenkripsi", "paketscope-backup.psbackup", "PaketScope backup (*.psbackup)"
-        )
-        if not path:
-            return
-        if not path.lower().endswith(".psbackup"):
-            path += ".psbackup"
-        password, ok = QInputDialog.getText(
-            self, "Kata sandi cadangan", "Buat kata sandi minimal 12 karakter:", QLineEdit.EchoMode.Password
-        )
-        if not ok:
-            return
-        confirm, ok = QInputDialog.getText(
-            self, "Konfirmasi kata sandi", "Masukkan kembali kata sandi:", QLineEdit.EchoMode.Password
-        )
-        if not ok:
-            return
-        if password != confirm:
-            QMessageBox.warning(self, "Cadangan batal", "Kedua kata sandi tidak cocok.")
-            return
-        try:
-            count = self.services.create_encrypted_backup(self.snapshot.applications, path, password)
-        except (OSError, ValueError) as exc:
-            QMessageBox.warning(self, "Cadangan gagal", str(exc))
-            return
-        finally:
-            password = ""
-            confirm = ""
-        QMessageBox.information(
-            self, "Cadangan tersimpan",
-            f"Cadangan {count} aplikasi berhasil dienkripsi dengan AES-GCM. Simpan kata sandi secara terpisah; kata sandi tidak disimpan oleh aplikasi."
-        )
-        self.status_label.setText("Cadangan terenkripsi berhasil dibuat.")
-
-    @Slot()
-    def decrypt_backup_to_json(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Buka cadangan PaketScope", "", "PaketScope backup (*.psbackup)"
-        )
-        if not path:
-            return
-        password, ok = QInputDialog.getText(
-            self, "Kata sandi cadangan", "Masukkan kata sandi cadangan:", QLineEdit.EchoMode.Password
-        )
-        if not ok:
-            return
-        try:
-            records = self.services.restore_backup(path, password)
-        except (OSError, ValueError) as exc:
-            QMessageBox.warning(self, "Tidak dapat membuka cadangan", str(exc))
-            return
-        finally:
-            password = ""
-        confirm = QMessageBox.warning(
-            self, "Simpan JSON tanpa enkripsi?",
-            "File JSON hasil dekripsi berisi nama dan versi paket dalam bentuk teks biasa. Simpan hanya di lokasi tepercaya.",
-            QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Cancel,
-            QMessageBox.StandardButton.Cancel,
-        )
-        if confirm != QMessageBox.StandardButton.Save:
-            return
-        target, _ = QFileDialog.getSaveFileName(
-            self, "Simpan hasil dekripsi", "paketscope-inventory.json", "JSON (*.json)"
-        )
-        if not target:
-            return
-        try:
-            self.services.export_restored_json(target, records)
-        except (OSError, ValueError) as exc:
-            QMessageBox.warning(self, "Simpan gagal", str(exc))
-            return
-        self.status_label.setText("Cadangan dibuka; JSON tanpa enkripsi disimpan secara eksplisit.")
