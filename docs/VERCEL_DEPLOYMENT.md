@@ -4,14 +4,14 @@
 
 The repository contains a static website and application source code. The website is deployed from public/; PaketScope's Python/Qt source is in apps/paketscope/ and opens as a desktop application. It is not a separate Vercel website.
 
-The existing Vercel project should remain connected to GitHub repository M-TamDre07/Portofolio. This update does not require a second project.
+The existing Vercel project should remain connected to GitHub repository M-TamDre07/Linux-Software-Lab. This update does not require a second project.
 
 ## Recommended Vercel settings
 
 For the existing project:
 
 1. Open the project currently serving Linux Software Lab.
-2. In Settings → Git, confirm it is connected to M-TamDre07/Portofolio and uses main for production.
+2. In Settings → Git, confirm it is connected to M-TamDre07/Linux-Software-Lab and uses main for production.
 3. In Settings → Build and Deployment, keep Root Directory at the repository root (empty/default). Do not set it to apps/paketscope.
 4. Use the Other framework preset for this plain static website if the dashboard asks.
 5. Leave the custom build command empty. The website has no framework build step.
