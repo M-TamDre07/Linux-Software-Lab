@@ -35,7 +35,7 @@ single-package APT transaction and delegates only that operation through polkit.
 
 ```text
 paketscope/
-  app.py             Application startup and MainWindow event coordination
+  app.py             Small application entry point and Qt event-loop startup
   domain.py          Plain data models and output parsers
   services.py        Application use cases and local data workflows
   commands.py        Bounded subprocess execution helper
@@ -45,6 +45,7 @@ paketscope/
   backup.py          Encrypted backup format and cryptographic operations
   exporting.py       Private, atomic file writes and CSV-safe values
   ui/
+    main_window.py  Main window, event coordination, and UI actions
     theme.py         Table headings and Qt stylesheet
     models.py        Qt inventory table and search/filter model
     workers.py       Background task runner and result/error signals
