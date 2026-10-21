@@ -5,7 +5,7 @@ while package validation, simulation, and execution live in package_manager.py.
 """
 from __future__ import annotations
 
-from PySide6.QtCore import QModelIndex, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QInputDialog, QMessageBox
 
 from ..domain import InstalledApplication
