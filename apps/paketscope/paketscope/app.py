@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, QRunnable, QSortFilterProxyModel, Qt, QThreadPool, Signal, Slot
+from PySide6.QtCore import QModelIndex, Qt, QThreadPool, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication, QComboBox, QFileDialog, QFrame, QHBoxLayout, QInputDialog,
@@ -16,128 +16,18 @@ from PySide6.QtWidgets import (
 
 from . import __version__
 from .domain import InstalledApplication, InventorySnapshot
+from .ui.models import InventoryModel, InventoryProxy
+from .ui.theme import APP_QSS
+from .ui.workers import Worker
 from .services import PaketScopeService
 from .updates import UpdateCheckResult
 from .package_manager import (
     AptSearchResult,
     AptTransactionPreview,
-    PackageOperationError,
     apply_apt_action,
     preview_apt_action,
     search_apt_packages,
 )
-
-
-COLUMNS = ("Nama aplikasi / paket", "Versi", "Sumber", "ID paket", "Asal / cabang")
-APP_QSS = """
-QMainWindow, QWidget#root { background: #f4f6fa; color: #192230; }
-QWidget { font-family: "Inter", "Segoe UI", "SF Pro Text", "Noto Sans", sans-serif; font-size: 13px; }
-QFrame#topbar, QFrame#stat, QFrame#panel { background: #ffffff; border: 1px solid #e1e7f0; border-radius: 14px; }
-QLabel#eyebrow, QLabel#mono { color: #667085; font-family: "Noto Sans Mono", monospace; font-size: 10px; letter-spacing: .6px; }
-QLabel#title { color: #172033; font-size: 28px; font-weight: 700; letter-spacing: -.7px; }
-QLabel#stat-value { color: #172033; font-size: 24px; font-weight: 700; }
-QLabel#body-muted { color: #667085; }
-QLineEdit, QComboBox { background: #ffffff; color: #192230; border: 1px solid #cfd7e5; border-radius: 9px; padding: 9px 11px; min-height: 20px; }
-QLineEdit:focus, QComboBox:focus, QTableView:focus { border: 1px solid #315df5; }
-QPushButton { background: #315df5; color: #ffffff; border: 1px solid #315df5; border-radius: 9px; padding: 10px 13px; font-size: 12px; font-weight: 650; }
-QPushButton:hover { background: #2448cf; border-color: #2448cf; }
-QPushButton:pressed { background: #1d3cae; }
-QPushButton:disabled { background: #d8deea; border-color: #d8deea; color: #7a8496; }
-QPushButton#secondary { background: #ffffff; color: #273247; border-color: #d4dce8; }
-QPushButton#secondary:hover { background: #f1f5fb; border-color: #b8c4d8; }
-QTableView { background: #ffffff; alternate-background-color: #f7f9fc; color: #192230; border: 1px solid #e1e7f0; border-radius: 10px; gridline-color: #e8edf4; selection-background-color: #dce7ff; selection-color: #172033; outline: none; }
-QHeaderView::section { background: #f3f6fb; color: #667085; border: none; border-bottom: 1px solid #e1e7f0; padding: 11px 9px; font-family: "Noto Sans Mono", monospace; font-size: 10px; font-weight: 650; }
-QScrollBar:vertical { background: #f3f6fb; width: 10px; margin: 2px; border-radius: 5px; }
-QScrollBar::handle:vertical { background: #c0cadb; min-height: 25px; border-radius: 5px; }
-QScrollBar::handle:vertical:hover { background: #9eacc3; }
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
-"""
-
-
-class InventoryModel(QAbstractTableModel):
-    def __init__(self) -> None:
-        super().__init__()
-        self.applications: list[InstalledApplication] = []
-
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return 0 if parent.isValid() else len(self.applications)
-
-    def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        return 0 if parent.isValid() else len(COLUMNS)
-
-    def data(self, index: QModelIndex, role: int = Qt.ItemDataRole.DisplayRole):
-        if not index.isValid() or not (0 <= index.row() < len(self.applications)):
-            return None
-        app = self.applications[index.row()]
-        values = (app.name, app.version, app.source, app.identifier, " · ".join(part for part in (app.origin, app.branch) if part) or "—")
-        if role == Qt.ItemDataRole.DisplayRole:
-            return values[index.column()]
-        if role == Qt.ItemDataRole.ToolTipRole:
-            return f"{app.name}\nID: {app.identifier}\nSumber: {app.source}"
-        return None
-
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole):
-        if role != Qt.ItemDataRole.DisplayRole:
-            return None
-        if orientation == Qt.Orientation.Horizontal and 0 <= section < len(COLUMNS):
-            return COLUMNS[section]
-        if orientation == Qt.Orientation.Vertical:
-            return str(section + 1)
-        return None
-
-    def set_applications(self, applications: tuple[InstalledApplication, ...]) -> None:
-        self.beginResetModel()
-        self.applications = list(applications)
-        self.endResetModel()
-
-
-class InventoryProxy(QSortFilterProxyModel):
-    def __init__(self, parent: QObject | None = None) -> None:
-        super().__init__(parent)
-        self.query = ""
-        self.source_filter = "Semua sumber"
-        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        self.setSortCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-
-    def set_query(self, query: str) -> None:
-        self.query = query.strip().casefold()
-        self.invalidateFilter()
-
-    def set_source_filter(self, source: str) -> None:
-        self.source_filter = source
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
-        model = self.sourceModel()
-        if model is None:
-            return True
-        values = [str(model.index(source_row, col, source_parent).data() or "") for col in range(model.columnCount())]
-        if self.source_filter != "Semua sumber":
-            selected = "flatpak" if self.source_filter == "Flatpak" else "apt / dpkg"
-            if selected not in values[2].casefold():
-                return False
-        return not self.query or any(self.query in value.casefold() for value in values)
-
-
-class WorkerSignals(QObject):
-    result = Signal(object)
-    error = Signal(str)
-
-
-class Worker(QRunnable):
-    def __init__(self, function: Callable[[], object]) -> None:
-        super().__init__()
-        self.function = function
-        self.signals = WorkerSignals()
-
-    @Slot()
-    def run(self) -> None:
-        try:
-            value = self.function()
-        except Exception as exc:
-            self.signals.error.emit(f"{type(exc).__name__}: {exc}")
-        else:
-            self.signals.result.emit(value)
 
 
 class MainWindow(QMainWindow):
