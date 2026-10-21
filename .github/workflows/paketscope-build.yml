@@ -1,0 +1,70 @@
+name: PaketScope build
+
+on:
+  push:
+    branches: [main, feature/paketscope-v3-native]
+    paths:
+      - "apps/paketscope/**"
+      - ".github/workflows/paketscope-build.yml"
+  pull_request:
+    paths:
+      - "apps/paketscope/**"
+      - ".github/workflows/paketscope-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/paketscope
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/paketscope/pyproject.toml
+      - name: Install test dependencies
+        run: python -m pip install -e ".[test]"
+      - name: Compile source
+        run: python -m compileall -q paketscope
+      - name: Run unit tests
+        run: python -m pytest
+
+  debian-package:
+    name: Build Debian 13 package
+    runs-on: ubuntu-latest
+    container: debian:trixie
+    defaults:
+      run:
+        working-directory: apps/paketscope
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and runtime dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential debhelper dpkg-dev python3 python3-pyside6.qtwidgets \
+            python3-cryptography
+      - name: Prepare Debian metadata
+        run: chmod +x debian/rules
+      - name: Build .deb
+        run: dpkg-buildpackage --build=binary --no-sign
+      - name: Inspect package metadata and contents
+        run: |
+          package="$(find .. -maxdepth 1 -type f -name 'paketscope_*_all.deb' -print -quit)"
+          test -n "$package"
+          dpkg-deb --info "$package"
+          dpkg-deb --contents "$package"
+      - name: Upload development package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paketscope-debian13-development
+          path: apps/paketscope_*.deb
+          if-no-files-found: error
+          retention-days: 7
