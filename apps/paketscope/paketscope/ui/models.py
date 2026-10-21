@@ -4,6 +4,7 @@ from __future__ import annotations
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, QSortFilterProxyModel, Qt
 
 from ..domain import InstalledApplication
+from .theme import COLUMNS
 
 
 class InventoryModel(QAbstractTableModel):
