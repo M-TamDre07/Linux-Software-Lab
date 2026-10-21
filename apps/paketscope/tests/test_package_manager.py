@@ -106,7 +106,7 @@ def test_preview_rejects_failed_apt_simulation(monkeypatch):
         return result(argv, stderr="E: Unable to locate package missing-app", returncode=100)
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
-    with pytest.raises(PackageOperationError, match="simulasi APT"):
+    with pytest.raises(PackageOperationError, match="menyiapkan simulasi"):
         preview_apt_action("install", "missing-app")
 
 
