@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+
+%:
+	dh $@ --buildsystem=none
+
+override_dh_auto_install:
+	install -d debian/tmp/usr/lib/python3/dist-packages
+	cp -a paketscope debian/tmp/usr/lib/python3/dist-packages/
+	install -D -m 0755 packaging/paketscope-launcher debian/tmp/usr/bin/paketscope
+	install -D -m 0644 packaging/paketscope.desktop debian/tmp/usr/share/applications/paketscope.desktop
+	install -D -m 0644 paketscope/assets/paketscope.svg debian/tmp/usr/share/icons/hicolor/scalable/apps/paketscope.svg
