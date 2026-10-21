@@ -34,8 +34,8 @@ from ..package_manager import (
     search_apt_packages,
 )
 from ..services import PaketScopeService
+from ..updates import UpdateCheckResult
 from .models import InventoryModel, InventoryProxy
-from .theme import APP_QSS
 from .workers import Worker
 
 
@@ -437,7 +437,6 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_for_updates(self) -> None:
         def show(value: object) -> None:
-            from .updates import UpdateCheckResult
             if not isinstance(value, UpdateCheckResult):
                 return
             lines = [
