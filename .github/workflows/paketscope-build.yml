@@ -54,12 +54,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$GITHUB_WORKSPACE/dist"
-          docker run --rm --pull=always \
+          set +e
+          docker run --name paketscope-debian-ci --pull=always \
             -v "$GITHUB_WORKSPACE:/workspace" \
-            -v "$GITHUB_WORKSPACE/dist:/out" \
             -w /workspace/apps/paketscope \
             debian:trixie bash -s <<'DEBIAN_CI'
+          set -euo pipefail
           set -euo pipefail
 
           apt-get update
@@ -76,10 +76,6 @@ jobs:
           test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev2"
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
-
-          # Export the tested .deb into a stable runner-visible artifact directory.
-          cp "$package" /out/
-          ls -l /out/
 
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$package"
           dpkg-query -W -f='${Status}\n' paketscope | grep -Fx 'install ok installed'
@@ -115,6 +111,16 @@ jobs:
             fi
           done
           DEBIAN_CI
+          container_exit=$?
+          set -e
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          if [[ "$container_exit" -ne 0 ]]; then
+            docker logs paketscope-debian-ci || true
+            docker rm paketscope-debian-ci || true
+            exit "$container_exit"
+          fi
+          docker cp paketscope-debian-ci:/workspace/apps/paketscope_3.0.0~dev2_all.deb "$GITHUB_WORKSPACE/dist/"
+          docker rm paketscope-debian-ci
       - name: Confirm Debian package artifact is visible on the runner
         shell: bash
         run: |
