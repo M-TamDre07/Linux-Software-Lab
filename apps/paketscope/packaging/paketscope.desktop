@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=PaketScope
+GenericName=Package Manager
+Comment=Inspect and manage installed Linux applications
+Exec=paketscope
+Icon=paketscope
+Terminal=false
+Categories=System;Settings;PackageManager;
+StartupNotify=true
