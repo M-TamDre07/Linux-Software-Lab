@@ -62,6 +62,15 @@ def test_install_preview_blocks_removal_and_requires_requested_package(monkeypat
     assert plan.remove == ()
 
 
+def test_install_preview_matches_architecture_qualified_name(monkeypatch):
+    def fake_run(argv, timeout):
+        return result(argv, "Inst firefox:amd64 (1.0 repo [amd64])\\n")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    plan = preview_apt_action("install", "firefox")
+    assert plan.install == ("firefox:amd64",)
+
+
 def test_install_preview_refuses_remove_side_effects(monkeypatch):
     def fake_run(argv, timeout):
         return result(argv, "Inst firefox (1.0 repo [amd64])\nRemv unrelated-package [1.0]\n")
