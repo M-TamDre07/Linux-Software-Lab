@@ -73,6 +73,13 @@ jobs:
           dpkg-query -W -f='${Status}\n' paketscope | grep -Fx 'install ok installed'
           command -v paketscope
           python3 -c 'import paketscope; assert paketscope.__version__ == "3.0.0.dev2"; print(paketscope.__version__)'
+      - name: Verify clean package removal
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt-get purge -y --no-install-recommends paketscope
+          if dpkg-query -W -f='${db:Status-Abbrev}\\n' paketscope 2>/dev/null | grep -q '^ii'; then
+            echo "paketscope still reports installed after purge"
+            exit 1
+          fi
       - name: Upload development package artifact
         uses: actions/upload-artifact@v4
         with:
