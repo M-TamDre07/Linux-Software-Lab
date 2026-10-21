@@ -1,77 +1,106 @@
 # PaketScope 3 — native architecture
 
-Status: development proposal / active refactor. This document describes the intended architecture and distinguishes implemented foundations from later work.
+Status: active development refactor. This document records the current design
+and separates implemented foundations from work that remains before a stable
+release.
 
 ## Product boundary
 
-PaketScope is a native Linux desktop application for Debian-family systems, with Debian and Ubuntu as the initial target. It is not a web application and must not be wrapped in a browser view. PySide6/Qt Widgets provides the desktop frontend, keyboard navigation, native window behaviour, dialogs, and accessibility hooks. The product may adopt familiar visual conventions from Windows and macOS without pretending to be either platform or copying proprietary assets.
+PaketScope is a native Linux desktop application. Debian 13 (Trixie) is the
+currently CI-validated native package target. Other Debian derivatives are not
+automatically considered supported until dedicated packaging and installation
+tests pass. Arch Linux, Fedora/RPM, openSUSE, and Alpine remain future work.
 
-The companion Linux Software Lab website is a separate static catalogue. It documents the software and provides verified release links; it does not host or execute the desktop application as a Python web function.
+The Qt Widgets frontend is independent from the Linux Software Lab static
+website. The website documents the software and can link to verified releases;
+it does not host or run the desktop application as a web function.
 
 ## Layers
 
 ```text
-Qt Widgets frontend (views, input, dialogs, presentation)
-                    |
-                    v
-Application services (use cases, orchestration, UI-independent validation)
-                    |
-           +--------+---------+
-           v                  v
-Domain models & rules     Local file workflows
-(normalized records,      (CSV, encrypted backup,
-snapshots, parsers)       explicit JSON restore)
-           |
-           v
+Application startup (app.py)
+          |
+          v
+Qt UI (ui/main_window.py + focused action modules)
+          |
+          v
+Application services (services.py)
+          |
+          +---------------------------+
+          |                           |
+          v                           v
+Domain types/parsers             Local file workflows
+(domain.py)                      (backup.py, exporting.py)
+          |
+          v
 Operating-system adapters
-(APT/dpkg, Flatpak, command runner, diagnostics)
-           |
-           v
-Debian / Ubuntu user session and package metadata
+(collectors.py, updates.py, commands.py, package_manager.py)
+          |
+          v
+Debian 13 user session and local package metadata
 ```
 
-### Frontend
+## Module responsibilities
 
-- Keep widgets, event handlers, progress, accessible names, and dialog state in the Qt layer.
-- No HTML/WebView/Electron shell is used for PaketScope's desktop interface.
-- Work-intensive reads run off the GUI thread, with results delivered back to the UI thread.
-- The presentation can be refreshed independently of the service and domain layers.
+- `app.py` creates the Qt application, applies the shared theme, and starts the
+  event loop. It should remain a small entry point.
+- `ui/main_window.py` constructs the main window and coordinates asynchronous
+  tasks and shared UI state.
+- `ui/models.py` owns the Qt inventory table model and search/source filtering.
+- `ui/package_actions.py` presents APT search and transaction confirmation.
+- `ui/inventory_actions.py` refreshes inventory and presents update/diagnostic
+  results.
+- `ui/data_actions.py` handles user-initiated CSV export and backup/restore
+  dialogs.
+- `ui/theme.py` owns column labels and the Qt stylesheet; `ui/workers.py`
+  supplies a bounded background-task wrapper and result/error signals.
+- `services.py` coordinates application use cases without owning widget layout
+  or raw package-manager command strings.
+- `domain.py` contains normalized records and pure parsers.
+- `commands.py`, `collectors.py`, `updates.py`, and `package_manager.py`
+  encapsulate OS command execution and Debian/Flatpak integration.
+- `backup.py` and `exporting.py` implement local file/backup behaviour.
 
-### Local backend and application services
+Preserve the dependency direction: presentation calls services or focused
+adapters; parsers and domain rules should not import Qt widgets. Do not couple
+core models to APT-specific command syntax. A future package backend should
+implement its own adapter and tests while reusing domain/UI interfaces where
+appropriate.
 
-- `paketscope/services.py` is the use-case boundary consumed by the Qt frontend.
-- Services coordinate inventory scanning, explicit update checks, CSV export, encrypted backup creation, and user-requested backup restoration.
-- Services do not accept arbitrary shell strings, add sudo, mutate package state, or send inventory data to a remote API.
-- Domain parsing and OS command invocation remain separate modules; tests can exercise the service layer without opening a GUI.
+## System and privilege boundary
 
-### OS adapters
+Inventory collection is local and read-only. Read commands use argument arrays,
+explicit timeouts, stable locale handling, and no shell. APT mutation is limited
+to one selected package, validates its identifier, simulates first, shows the
+proposed changes for confirmation, and delegates the fixed operation through
+polkit. The interface itself must run as the regular user. Flatpak mutation,
+remote inventory, accounts, telemetry, and background package changes remain
+out of scope.
 
-- `commands.py` resolves executables, passes argument arrays with `shell=False`, sets a timeout and stable locale, and returns structured results.
-- `collectors.py` reads supported APT/dpkg and Flatpak inventory.
-- `updates.py` runs only when a user requests it. Flatpak remote checks can make network requests, so the UI must communicate this before starting.
-- Unsupported sources should produce a diagnostic rather than a fabricated empty result.
+The user-triggered Flatpak update check can contact configured remotes. The APT
+update display uses cached local metadata and does not run `apt update` for the
+user. Exported package information can be sensitive; backups are encrypted but
+CSV and decrypted JSON are intentionally plaintext.
 
-### Local data and privacy
+## Implementation status
 
-- Inventory scans and package names remain local. There is no remote application backend, user account, analytics, or telemetry.
-- Exported inventory can contain package names and versions; exports use owner-only permissions on POSIX and atomic replacement.
-- Encrypted backup uses authenticated encryption. A restored JSON file is deliberately unencrypted and must require an explicit save action.
-- Persistent scan history or preferences must be designed as a separate, documented local-storage feature. History must not be enabled silently; retention and delete controls are required before adding it.
+- [x] Introduce a UI-independent application-service boundary and service tests.
+- [x] Separate the application entry point, main window, UI models, theme,
+      background worker, and feature-specific action handlers.
+- [x] Add guarded APT install/remove/purge flows with simulation, confirmation,
+      validated identifiers, and polkit authorization.
+- [x] Add Python tests, import/undefined-name checks, and Debian 13 CI that builds
+      the `.deb`, installs it in a clean container, checks the installed module
+      and launcher, purges it, and checks package-owned paths are removed.
+- [x] Document module responsibilities, test commands, contribution practices,
+      and current package compatibility.
+- [ ] Exercise the graphical application on a real Debian 13 desktop, including
+      cancellation, failure, accessibility, and display/session behaviours.
+- [ ] Validate Ubuntu, Linux Mint, and any other planned derivative separately.
+- [ ] Complete dependency/security review and independent security assessment.
+- [ ] Define stable release signing, provenance, upgrade/recovery guidance, and
+      public support/reporting expectations.
 
-## Distribution boundary
-
-Vercel publishes only the static website in `public/`. It is not a build or release channel for the Qt executable. Keep PaketScope desktop builds separate from the web project's deployment pipeline. The Vercel project named `paketscope` currently fails with `PYTHON_ENTRYPOINT_NOT_FOUND` because it is configured as a Python web-function project; it should not be treated as the desktop-app distribution target.
-
-For the desktop release path, select and test formats deliberately (for example, a Debian package and/or Flatpak). Before calling any build a release, define supported Debian/Ubuntu versions, verify install/launch/uninstall on clean systems, test permissions and update behaviour, publish checksums and provenance, and document upgrade/recovery steps. Signed builds, sandboxing, and reproducibility are release gates, not assumptions.
-
-## Implementation stages
-
-1. **Service boundary** — move use-case orchestration and file operations behind a UI-independent service facade; add service-level tests.
-2. **Native UX** — evolve the Qt dashboard, navigation, detail view, progress/cancellation and empty/error states without coupling widgets to subprocess details.
-3. **Reliability** — expand adapter contract tests, malformed-command-output tests, accessibility checks, and integration tests on supported Debian/Ubuntu releases.
-4. **Packaging** — build and verify the selected native package formats in isolated CI; do not point Vercel at the desktop source.
-5. **Public release review** — dependency/security review, privacy review, documentation, release notes, checksums, and a clear support/reporting process.
-
-## Current limits
-
-This branch begins stage 1 and some visual refinement. It is not yet a stable PaketScope 3 release. Do not change the public catalogue's release status or publish an installer until the remaining stages are verified.
+CI results do not replace real desktop tests or an independent security review.
+Do not claim stable status or advertise the development artifact as a final
+release until the remaining release gates are complete.
