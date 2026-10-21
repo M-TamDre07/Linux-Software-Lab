@@ -75,6 +75,11 @@ jobs:
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
 
+          # Export the tested .deb into a stable runner-visible artifact directory.
+          mkdir -p /workspace/dist
+          cp "$package" /workspace/dist/
+          ls -l /workspace/dist/
+
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$package"
           dpkg-query -W -f='${Status}\n' paketscope | grep -Fx 'install ok installed'
           command -v paketscope
@@ -109,11 +114,17 @@ jobs:
             fi
           done
           DEBIAN_CI
+      - name: Confirm Debian package artifact is visible on the runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          find dist -maxdepth 1 -type f -name "paketscope_*.deb" -print
+          test -n "$(find dist -maxdepth 1 -type f -name "paketscope_*.deb" -print -quit)"
       - name: Upload Debian 13 development package
         uses: actions/upload-artifact@v4
         with:
           name: paketscope-debian13-development
-          path: apps/paketscope_*.deb
+          path: dist/paketscope_*.deb
           if-no-files-found: error
           retention-days: 7
 
