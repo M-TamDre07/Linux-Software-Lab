@@ -35,6 +35,23 @@ Running from source in a Python virtual environment is an experimental alternati
 
 Arch Linux, Fedora/RPM, openSUSE, and Alpine are out of the current scope. Future support should add and test distribution-specific package-manager adapters and build recipes without changing the core inventory and UI layers.
 
+## Project structure and contributing
+
+The codebase is organized by responsibility: domain parsing, OS command adapters,
+application services, package operations, file workflows, and Qt UI modules live
+in separate files. The UI's table models, visual theme, and background worker
+are kept in `paketscope/ui/` rather than defined inside the application window.
+
+Start with [the developer guide](docs/DEVELOPING.md) for the module map, data flow,
+local test commands, package-backend guidance, and pull-request checklist. The
+[architecture overview](docs/PAKETSCOPE_V3_ARCHITECTURE.md) describes the intended
+boundaries between the interface, services, and operating-system adapters.
+
+Changes should be incremental and covered by tests. The application window still
+coordinates many use cases; further UI extraction should preserve behavior and
+be reviewed in separate changes rather than mixing a large rewrite with package
+manager or release changes.
+
 ## Requirements
 
 - Python 3.10+
