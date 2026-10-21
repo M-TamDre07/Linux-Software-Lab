@@ -33,7 +33,11 @@ Use an empty string for sourceUrl or releaseUrl if the verified URL is not avail
 
 Add the page's canonical URL to public/sitemap.xml. public/robots.txt should continue to point to the canonical sitemap. The CI link/sitemap check verifies that every catalogue detail route appears in the sitemap, the sitemap host matches the home canonical host, and each listed page has a matching canonical URL. Therefore, a new detail page without a matching sitemap entry will fail validation.
 
-## 5. Prepare a dedicated product directory\n\nStart from apps/README.md and docs/SOFTWARE_DIRECTORY_LAYOUT.md. Do not reuse another product’s license by assumption. A planned product folder may contain its README only, but must not imply that working source, installable packages, or a release exists. Add Debian packaging metadata only once dependencies, package contents, and install/uninstall behaviour can be tested.\n\n## 6. Validate before pull request
+## 5. Prepare a dedicated product directory
+
+Start from apps/README.md and docs/SOFTWARE_DIRECTORY_LAYOUT.md. Do not reuse another product's license by assumption. A planned product folder may contain its README only, but must not imply that working source, installable packages, or a release exists. Add Debian packaging metadata only once dependencies, package contents, and install/uninstall behaviour can be tested.
+
+## 6. Validate before pull request
 
 Run from repository root:
 
