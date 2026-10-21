@@ -38,50 +38,78 @@ jobs:
         run: python -m pip install -e ".[test]"
       - name: Compile source
         run: python -m compileall -q paketscope
-      - name: Run unit tests
+      - name: Run unit tests (headless Qt)
+        env:
+          QT_QPA_PLATFORM: offscreen
         run: python -m pytest
 
   debian-package:
-    name: Build Debian 13 package
+    name: Build, install, and purge on Debian 13
     runs-on: ubuntu-latest
-    container: debian:trixie
-    defaults:
-      run:
-        working-directory: apps/paketscope
     steps:
+      # Checkout happens on the runner, where git is guaranteed to be available.
+      # The package is then built and tested inside an isolated Debian 13 container.
       - uses: actions/checkout@v4
-      - name: Install build and runtime dependencies
+      - name: Build and smoke-test the Debian package in a clean container
+        shell: bash
         run: |
+          set -euo pipefail
+          docker run --rm --pull=always \
+            -v "$GITHUB_WORKSPACE:/workspace" \
+            -w /workspace/apps/paketscope \
+            debian:trixie bash -s <<'DEBIAN_CI'
+          set -euo pipefail
+
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             build-essential debhelper dpkg-dev python3 python3-pyside6.qtwidgets \
-            python3-cryptography
-      - name: Prepare Debian metadata
-        run: chmod +x debian/rules
-      - name: Build .deb
-        run: dpkg-buildpackage --build=binary --no-sign
-      - name: Inspect package metadata and contents
-        run: |
+            python3-cryptography desktop-file-utils
+
+          chmod +x debian/rules
+          dpkg-buildpackage --build=binary --no-sign
+
           package="$(find .. -maxdepth 1 -type f -name 'paketscope_*_all.deb' -print -quit)"
           test -n "$package"
+          test "$(dpkg-deb -f "$package" Package)" = "paketscope"
+          test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev2"
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
-      - name: Install and smoke-test package in Debian container
-        run: |
-          package="$(find .. -maxdepth 1 -type f -name 'paketscope_*_all.deb' -print -quit)"
-          test -n "$package"
+
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$package"
           dpkg-query -W -f='${Status}\n' paketscope | grep -Fx 'install ok installed'
           command -v paketscope
-          python3 -c 'import paketscope; assert paketscope.__version__ == "3.0.0.dev2"; print(paketscope.__version__)'
-      - name: Verify clean package removal
-        run: |
-          DEBIAN_FRONTEND=noninteractive apt-get purge -y --no-install-recommends paketscope
-          if dpkg-query -W -f='${db:Status-Abbrev}\\n' paketscope 2>/dev/null | grep -q '^ii'; then
-            echo "paketscope still reports installed after purge"
+          desktop-file-validate /usr/share/applications/paketscope.desktop
+
+          # Run outside the checkout and verify Python imports the installed package,
+          # not the repository source tree (which could create a false-positive smoke test).
+          cd /tmp
+          env -u PYTHONPATH /usr/bin/python3 - <<'PYTHON_SMOKE'
+          from pathlib import Path
+          import paketscope
+
+          module_path = Path(paketscope.__file__).resolve()
+          installed_root = Path("/usr/lib/python3/dist-packages").resolve()
+          assert module_path.is_relative_to(installed_root), (
+              f"Imported source-tree package instead of installed Debian package: {module_path}"
+          )
+          assert paketscope.__version__ == "3.0.0.dev2", paketscope.__version__
+          print(f"Installed package import OK: {module_path} (v{paketscope.__version__})")
+          PYTHON_SMOKE
+
+          DEBIAN_FRONTEND=noninteractive apt-get purge -y paketscope
+          status="$(dpkg-query -W -f='${db:Status-Abbrev}' paketscope 2>/dev/null || true)"
+          if [[ "$status" == ii* ]]; then
+            echo "paketscope is still installed after purge (status: $status)"
             exit 1
           fi
-      - name: Upload development package artifact
+          for path in /usr/bin/paketscope /usr/share/applications/paketscope.desktop /usr/lib/python3/dist-packages/paketscope; do
+            if [[ -e "$path" ]]; then
+              echo "Package-owned path remains after purge: $path"
+              exit 1
+            fi
+          done
+          DEBIAN_CI
+      - name: Upload Debian 13 development package
         uses: actions/upload-artifact@v4
         with:
           name: paketscope-debian13-development
