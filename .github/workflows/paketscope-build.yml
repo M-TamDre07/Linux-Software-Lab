@@ -54,8 +54,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p "$GITHUB_WORKSPACE/dist"
           docker run --rm --pull=always \
             -v "$GITHUB_WORKSPACE:/workspace" \
+            -v "$GITHUB_WORKSPACE/dist:/out" \
             -w /workspace/apps/paketscope \
             debian:trixie bash -s <<'DEBIAN_CI'
           set -euo pipefail
@@ -76,9 +78,8 @@ jobs:
           dpkg-deb --contents "$package"
 
           # Export the tested .deb into a stable runner-visible artifact directory.
-          mkdir -p /workspace/dist
-          cp "$package" /workspace/dist/
-          ls -l /workspace/dist/
+          cp "$package" /out/
+          ls -l /out/
 
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "$package"
           dpkg-query -W -f='${Status}\n' paketscope | grep -Fx 'install ok installed'
@@ -118,8 +119,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          find dist -maxdepth 1 -type f -name "paketscope_*.deb" -print
-          test -n "$(find dist -maxdepth 1 -type f -name "paketscope_*.deb" -print -quit)"
+          find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name "paketscope_*.deb" -print
+          test -n "$(find "$GITHUB_WORKSPACE/dist" -maxdepth 1 -type f -name "paketscope_*.deb" -print -quit)"
+          ls -la "$GITHUB_WORKSPACE/dist"
       - name: Upload Debian 13 development package
         uses: actions/upload-artifact@v4
         with:
