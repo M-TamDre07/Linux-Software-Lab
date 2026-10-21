@@ -359,3 +359,8 @@ html[data-theme=dark] .btn-primary{color:#07101b}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* Small spacing utilities used by semantic markup. */
+.tool-card-meta-spaced{margin-top:18px}
+.home-tools-catalog-link{margin-top:22px}
+.install-followup{margin-top:18px}
