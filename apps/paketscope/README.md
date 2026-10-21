@@ -72,6 +72,7 @@ The repository now contains a Debian package definition and a GitHub Actions wor
 For a Debian 13 build environment with debhelper installed:
 
 ~~~bash
+chmod +x debian/rules
 dpkg-buildpackage --build=binary --no-sign
 ~~~
 
