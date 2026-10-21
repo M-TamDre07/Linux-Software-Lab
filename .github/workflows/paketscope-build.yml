@@ -3,6 +3,7 @@ name: PaketScope build
 on:
   push:
     branches: [main, feature/paketscope-v3-native]
+    tags: ["paketscope-v*"]
     paths:
       - "apps/paketscope/**"
       - ".github/workflows/paketscope-build.yml"
@@ -87,3 +88,53 @@ jobs:
           path: apps/paketscope_*.deb
           if-no-files-found: error
           retention-days: 7
+
+  publish-prerelease:
+    name: Publish tagged development release
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'paketscope-v')
+    needs: [test, debian-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Download tested Debian package
+        uses: actions/download-artifact@v4
+        with:
+          name: paketscope-debian13-development
+          path: dist/
+      - name: Verify tag, generate SHA-256, and write release notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          package="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          test -n "$package"
+          deb_version="$(dpkg-deb -f "$package" Version)"
+          expected_tag="paketscope-v${deb_version//~/-}"
+          if [[ "$RELEASE_TAG" != "$expected_tag" ]]; then
+            echo "Tag mismatch: expected $expected_tag for Debian package version $deb_version, got $RELEASE_TAG"
+            exit 1
+          fi
+          sha256sum "$package" > dist/SHA256SUMS
+          cat > dist/RELEASE_NOTES.md <<'EOF'
+          **Experimental development preview — not a stable release.**
+
+          Built and tested in a clean Debian 13 CI container. Review the source and checksum before use.
+
+          - Intended initial target: Debian 13.
+          - APT install/remove/purge actions require a transaction preview, explicit confirmation, and the system authentication prompt.
+          - Flatpak inventory is visible, but Flatpak install/remove is not enabled in this development build.
+          - This CI check does not replace testing on a real desktop or a security review.
+          EOF
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(dpkg-deb -f dist/*.deb Version)"
+          gh release create "$GITHUB_REF_NAME" dist/*.deb dist/SHA256SUMS \
+            --repo "$GITHUB_REPOSITORY" \
+            --prerelease \
+            --title "PaketScope $version — Development preview" \
+            --notes-file dist/RELEASE_NOTES.md
