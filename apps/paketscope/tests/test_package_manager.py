@@ -66,7 +66,7 @@ def test_install_preview_blocks_removal_and_requires_requested_package(monkeypat
 
 def test_install_preview_matches_architecture_qualified_name(monkeypatch):
     def fake_run(argv, timeout):
-        return result(argv, "Inst firefox:amd64 (1.0 repo [amd64])\\n")
+        return result(argv, "Inst firefox:amd64 (1.0 repo [amd64])\n")
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
     plan = preview_apt_action("install", "firefox")
@@ -92,6 +92,34 @@ def test_purge_preview_recognizes_purg_records(monkeypatch):
     assert plan.purge == ("sample-app",)
 
 
+def test_preview_rejects_unknown_action_before_running_command(monkeypatch):
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("run_command must not be reached")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fail_if_called)
+    with pytest.raises(PackageOperationError, match="tidak didukung"):
+        preview_apt_action("upgrade", "firefox")
+
+
+def test_preview_rejects_failed_apt_simulation(monkeypatch):
+    def fake_run(argv, timeout):
+        return result(argv, stderr="E: Unable to locate package missing-app", returncode=100)
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="simulasi APT"):
+        preview_apt_action("install", "missing-app")
+
+
+def test_remove_preview_requires_the_requested_package(monkeypatch):
+    def fake_run(argv, timeout):
+        assert "remove" in argv
+        return result(argv, "Remv different-package [1.0]\n")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="tidak merencanakan penghapusan"):
+        preview_apt_action("remove", "firefox")
+
+
 def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     seen = {}
 
@@ -109,6 +137,15 @@ def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     assert "--no-remove" in seen["argv"]
     assert seen["timeout"] == 900.0
     assert not any("shell" in part.lower() for part in seen["argv"])
+
+
+def test_apply_rejects_invalid_package_before_running_command(monkeypatch):
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("run_command must not be reached")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fail_if_called)
+    with pytest.raises(PackageOperationError, match="tidak valid"):
+        apply_apt_action("install", "firefox; touch /tmp/not-allowed")
 
 
 def test_app_version_matches_development_package_version():
