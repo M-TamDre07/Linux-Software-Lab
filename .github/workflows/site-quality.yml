@@ -45,8 +45,11 @@ jobs:
           python-version: "3.12"
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          # Track the newest security-patched Node.js 24.x release, matching Vercel.
+          # Check the latest patched Node.js 24.x release even when an older version is cached.
           node-version: "24.x"
+          check-latest: true
+      - name: Show Node.js runtime version
+        run: node --version
       - name: Validate catalog metadata and release-state rules
         run: python scripts/validate_catalog.py
       - name: Check local links, canonical metadata, robots and sitemap
