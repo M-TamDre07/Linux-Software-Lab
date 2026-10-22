@@ -9,6 +9,19 @@ This is an operational checklist, not a claim that the project has passed an ind
 - `vercel.json` sets HSTS, a restrictive Content Security Policy, anti-framing protections, and baseline browser security headers. Do not enable HSTS `includeSubDomains` or `preload` unless every affected subdomain has been checked.
 - The site uses external Google Fonts stylesheets, but no inline script or inline style is required. CI guards this assumption before the CSP is tightened.
 
+## Node.js runtime
+
+- The Vercel project is configured for Node.js `24.x`. The website is statically published, but CI also uses Node.js to validate its JavaScript.
+- The site-quality workflow uses Node.js `24.x` with `check-latest: true`, so a stale runner cache cannot silently keep CI on an older patch. Verify the exact version in the workflow log after a runtime update.
+- The repository currently has no npm package manifest or npm lockfile, so `npm audit` is not a meaningful dependency check until npm dependencies are introduced. If dependencies are added, commit a lockfile and add a dependency audit to CI.
+
+## Supabase database
+
+- The `Linux-Software-Lab` Supabase project was initialized on 2026-10-22. During the initial review it had no application tables, no user-created Storage buckets, and no migration history. Do not treat an empty database as a backup of the website: static website source and release artifacts must also be backed up in Git and/or an independent artifact archive.
+- The database has an `ensure_rls` DDL event trigger which calls `public.rls_auto_enable()`. It remains enabled after the security fix. This function automatically enables RLS on new tables in `public`; **RLS being enabled does not create access policies**. Every future table still needs explicit, reviewed policies appropriate to its data and access model.
+- Migration `20261022164925_revoke_public_execute_rls_auto_enable.sql` revokes direct function execution from `PUBLIC`, `anon`, `authenticated`, and `service_role`. It does not drop or disable the event trigger. Keep database changes in versioned migrations and re-run the Supabase Security Advisor after schema updates.
+- Verify the configured backup/export mechanism and perform a restore test before storing production data. Supabase backup availability depends on the plan; database backups do not include the contents of Storage buckets. Keep an independent off-site export where the plan does not provide suitable backups.
+
 ## Dependency and source scanning
 
 - The PaketScope CI workflow runs unit tests, Ruff checks, compilation, and `pip-audit --strict` against a pinned snapshot of resolved non-editable Python dependencies. The local editable PaketScope project is explicitly excluded from the external package index audit.
