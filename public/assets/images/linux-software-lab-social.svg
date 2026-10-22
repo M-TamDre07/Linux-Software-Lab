@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Linux Software Lab — Alat Linux untuk masalah nyata</title>
+  <desc id="desc">Pratinjau editorial untuk katalog software Linux independen, dengan ilustrasi inventaris paket PaketScope.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fbfaf6"/>
+      <stop offset="1" stop-color="#e9e5dc"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#246bfe"/>
+      <stop offset="1" stop-color="#74d7c6"/>
+    </linearGradient>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+      <path d="M28 0H0V28" fill="none" stroke="#8a948f" stroke-opacity=".13"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#paper)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <path d="M0 0H1200V12H0Z" fill="#246bfe"/>
+  <g transform="translate(76 66)">
+    <rect width="54" height="54" rx="13" fill="#101923"/>
+    <rect x="13" y="13" width="28" height="28" rx="5" fill="none" stroke="#fbfaf6" stroke-width="2.5"/>
+    <path d="M19 22h16M19 28h11M19 34h13" stroke="#74d7c6" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="72" y="22" font-family="Inter,Manrope,Arial,sans-serif" font-size="20" font-weight="700" fill="#101923">LINUX SOFTWARE LAB</text>
+    <text x="72" y="44" font-family="Inter,Arial,sans-serif" font-size="13" letter-spacing="2.5" fill="#5b6878">INDEPENDENT · OPEN SOURCE</text>
+  </g>
+  <g font-family="Inter,Manrope,Arial,sans-serif" fill="#101923">
+    <text x="76" y="244" font-size="57" font-weight="800" letter-spacing="-2">Alat Linux untuk</text>
+    <text x="76" y="310" font-size="57" font-weight="800" letter-spacing="-2">masalah nyata.</text>
+    <rect x="78" y="342" width="76" height="5" rx="2.5" fill="url(#accent)"/>
+    <text x="76" y="386" font-size="22" fill="#4f5c68">Software yang berguna, terbuka, dan transparan.</text>
+    <text x="76" y="420" font-size="22" fill="#4f5c68">Status rilis jelas. Kontrol tetap di tangan pengguna.</text>
+  </g>
+  <g transform="translate(690 150)">
+    <rect x="0" y="0" width="438" height="346" rx="18" fill="#fff" stroke="#cbd3d3" stroke-width="2"/>
+    <path d="M18 0h402a18 18 0 0 1 18 18v46H0V18A18 18 0 0 1 18 0Z" fill="#101923"/>
+    <circle cx="26" cy="27" r="5" fill="#e78678"/>
+    <circle cx="44" cy="27" r="5" fill="#e9c477"/>
+    <circle cx="62" cy="27" r="5" fill="#74c6a0"/>
+    <text x="84" y="32" font-family="monospace" font-size="14" fill="#f6f4ed">PaketScope / local inventory</text>
+    <g font-family="Inter,Arial,sans-serif">
+      <text x="26" y="98" font-size="12" font-weight="700" letter-spacing="1.5" fill="#64717b">INVENTARIS LOKAL</text>
+      <text x="26" y="127" font-size="23" font-weight="700" fill="#101923">Software terpasang</text>
+      <rect x="26" y="148" width="386" height="52" rx="9" fill="#f2f5f6"/>
+      <text x="42" y="169" font-size="12" fill="#64717b">SUMBER PAKET</text>
+      <text x="42" y="188" font-size="16" font-weight="700" fill="#101923">APT / dpkg</text>
+      <rect x="26" y="212" width="386" height="52" rx="9" fill="#f2f5f6"/>
+      <text x="42" y="233" font-size="12" fill="#64717b">INTEGRASI INVENTARIS</text>
+      <text x="42" y="252" font-size="16" font-weight="700" fill="#101923">Flatpak · baca-saja</text>
+      <rect x="26" y="282" width="386" height="38" rx="8" fill="#eaf1ff"/>
+      <circle cx="45" cy="301" r="5" fill="#246bfe"/>
+      <text x="59" y="306" font-size="13" font-weight="600" fill="#1d4fc0">Pratinjau pengembangan · bukan rilis stabil</text>
+    </g>
+  </g>
+  <path d="M76 555H1124" stroke="#cbd3d3" stroke-width="1.5"/>
+  <text x="76" y="586" font-family="Inter,Arial,sans-serif" font-size="15" font-weight="600" fill="#5b6878">linux-software-lab.vercel.app</text>
+  <text x="1124" y="586" text-anchor="end" font-family="monospace" font-size="13" fill="#5b6878">BUILT OPEN · LINUX FIRST</text>
+</svg>
