@@ -77,7 +77,6 @@ jobs:
             -w /workspace/apps/paketscope \
             debian:trixie bash -s <<'DEBIAN_CI'
           set -euo pipefail
-          set -euo pipefail
 
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -164,12 +163,13 @@ jobs:
       contents: write
       actions: read
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Download tested Debian package
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: paketscope-debian13-development
           path: dist/
-      - name: Verify tag, generate SHA-256, and write release notes
+      - name: Verify tag, prepare source archive, generate SHA-256, and write release notes
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
@@ -182,16 +182,19 @@ jobs:
             echo "Tag mismatch: expected $expected_tag for Debian package version $deb_version, got $RELEASE_TAG"
             exit 1
           fi
-          sha256sum "$package" > dist/SHA256SUMS
+          source_archive="dist/paketscope_${deb_version}_source.tar.gz"
+          git archive --format=tar.gz --prefix="paketscope-${deb_version}/" HEAD:apps/paketscope > "$source_archive"
+          sha256sum "$package" "$source_archive" > dist/SHA256SUMS
           cat > dist/RELEASE_NOTES.md <<'EOF'
           **Experimental development preview — not a stable release.**
 
-          Built and tested in a clean Debian 13 CI container. Review the source and checksum before use.
+          The Debian package was built and installed/purged in a clean Debian 13 CI container. The source archive is provided for review and experimental source-mode use; it is not a prebuilt installer for every Linux distribution.
 
-          - Intended initial target: Debian 13.
+          - Tested binary package target: Debian 13.
+          - Other distributions may try the source archive with Python 3.10+, pip, and a working Qt desktop runtime, but compatibility is not yet validated.
+          - PaketScope currently manages APT packages only. Flatpak inventory is visible, but Flatpak install/remove is not enabled.
           - APT install/remove/purge actions require a transaction preview, explicit confirmation, and the system authentication prompt.
-          - Flatpak inventory is visible, but Flatpak install/remove is not enabled in this development build.
-          - This CI check does not replace testing on a real desktop or a security review.
+          - Review SHA-256 checksums and the source before use. CI does not replace testing on a real desktop or a security review.
           EOF
       - name: Publish GitHub prerelease
         env:
@@ -199,7 +202,7 @@ jobs:
         run: |
           set -euo pipefail
           version="$(dpkg-deb -f dist/*.deb Version)"
-          gh release create "$GITHUB_REF_NAME" dist/*.deb dist/SHA256SUMS \
+          gh release create "$GITHUB_REF_NAME" dist/*.deb dist/*_source.tar.gz dist/SHA256SUMS \
             --repo "$GITHUB_REPOSITORY" \
             --prerelease \
             --title "PaketScope $version — Development preview" \
