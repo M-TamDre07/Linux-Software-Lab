@@ -73,6 +73,12 @@ Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Linux-Software-Lab denga
 
 PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website terpisah untuk diimpor ke Vercel. Untuk proyek yang sudah terhubung, jangan membuat proyek duplikat hanya karena daftar Import menghilang atau gagal dimuat. Lihat docs/VERCEL_DEPLOYMENT.md.
 
+## Aset, SEO, dan integrasi sumber paket
+
+- [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
+- [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
+- Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
+
 ## Prinsip
 
 - Utamakan kebutuhan pengguna, bukan jumlah fitur.
