@@ -104,3 +104,8 @@ Untuk menguji pemasangan atau penghapusan paket, gunakan mesin virtual Debian 13
 ## Kredit dan dukungan
 
 Website dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela: https://saweria.co/tamaandrea
+
+
+## UI/UX design lock
+
+The website and PaketScope desktop interface follow a mandatory, ArtCraft-inspired editorial design system. Routine updates must preserve the established visual identity; redesigns require explicit maintainer approval. See [docs/DESIGN_SYSTEM_LOCK.md](docs/DESIGN_SYSTEM_LOCK.md) before changing UI, styling, layout, or motion.
