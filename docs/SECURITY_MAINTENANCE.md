@@ -11,7 +11,7 @@ This is an operational checklist, not a claim that the project has passed an ind
 
 ## Dependency and source scanning
 
-- The PaketScope CI workflow runs unit tests, Ruff checks, compilation, and `pip-audit --strict` against the resolved Python environment.
+- The PaketScope CI workflow runs unit tests, Ruff checks, compilation, and `pip-audit --strict` against a pinned snapshot of resolved non-editable Python dependencies. The local editable PaketScope project is explicitly excluded from the external package index audit.
 - Dependabot checks Python package metadata and GitHub Actions updates weekly. Review update PRs; do not merge solely because a bot proposed them.
 - CodeQL analyzes the JavaScript website and Python desktop application on pushes, pull requests, and a weekly schedule.
 - The Debian 13 packaging job refreshes repository metadata, then builds, installs, smoke-tests, and purges the development package in a clean container.
