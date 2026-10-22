@@ -1,4 +1,5 @@
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -60,6 +61,30 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("object-src 'none'", headers.get("Content-Security-Policy", ""))
         self.assertIn("script-src 'self'", headers.get("Content-Security-Policy", ""))
         self.assertIn("connect-src 'self'", headers.get("Content-Security-Policy", ""))
+        self.assertEqual(headers.get("Strict-Transport-Security"), "max-age=31536000")
+        self.assertEqual(headers.get("Cross-Origin-Opener-Policy"), "same-origin")
+        self.assertEqual(headers.get("X-Permitted-Cross-Domain-Policies"), "none")
+        csp = headers.get("Content-Security-Policy", "")
+        self.assertIn("style-src 'self' https://fonts.googleapis.com", csp)
+        self.assertIn("frame-src 'none'", csp)
+        self.assertNotIn("'unsafe-inline'", csp)
+
+    def test_static_pages_do_not_require_inline_scripts_or_styles(self):
+        public = REPO_ROOT / "public"
+        for path in public.rglob("*.html"):
+            source = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(public)):
+                self.assertNotRegex(source, r"\sstyle\s*=", "CSP should not need inline style attributes")
+                self.assertNotRegex(source, r"<style\b", "CSP should not need inline style blocks")
+                for match in re.finditer(r"<script\b([^>]*)>(.*?)</script\s*>", source, flags=re.IGNORECASE | re.DOTALL):
+                    attributes, body = match.groups()
+                    if not re.search(r"\bsrc\s*=", attributes, flags=re.IGNORECASE):
+                        self.assertFalse(body.strip(), f"Inline script found in {path.relative_to(public)}")
+
+    def test_static_site_does_not_ship_php_source_files(self):
+        public = REPO_ROOT / "public"
+        php_files = list(public.rglob("*.php"))
+        self.assertEqual([], php_files, "The site is intended to be static and must not publish PHP source files")
 
     def test_catalog_data_has_a_short_cache_lifetime(self):
         rules = {
