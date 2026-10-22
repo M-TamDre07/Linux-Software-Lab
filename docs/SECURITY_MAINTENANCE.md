@@ -12,7 +12,7 @@ This is an operational checklist, not a claim that the project has passed an ind
 ## Node.js runtime
 
 - The Vercel project is configured for Node.js `24.x`. The website is statically published, but CI also uses Node.js to validate its JavaScript.
-- The site-quality workflow follows the current `24.x` patch line so security fixes arrive without pinning CI to a stale patch. Review the official Node.js security announcements whenever the project is maintained.
+- The site-quality workflow uses Node.js `24.x` with `check-latest: true`, so a stale runner cache cannot silently keep CI on an older patch. Verify the exact version in the workflow log after a runtime update.
 - The repository currently has no npm package manifest or npm lockfile, so `npm audit` is not a meaningful dependency check until npm dependencies are introduced. If dependencies are added, commit a lockfile and add a dependency audit to CI.
 
 ## Supabase database
