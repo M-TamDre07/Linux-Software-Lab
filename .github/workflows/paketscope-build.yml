@@ -55,6 +55,14 @@ jobs:
         run: ruff check --select F401,F821 paketscope tests
       - name: Compile source
         run: python -m compileall -q paketscope
+      - name: Validate source archive creation
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/paketscope-source-test.tar.gz"
+          git archive --format=tar.gz --prefix="paketscope-test/" HEAD:apps/paketscope > "$archive"
+          tar -tzf "$archive" | grep -Fx "paketscope-test/pyproject.toml"
+          tar -tzf "$archive" | grep -Fx "paketscope-test/README.md"
       - name: Run unit tests (headless Qt)
         env:
           QT_QPA_PLATFORM: offscreen
