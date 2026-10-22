@@ -1,6 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="17" fill="#0969da"/>
-  <rect x="14" y="14" width="36" height="36" rx="8" fill="none" stroke="#fff" stroke-width="3"/>
-  <path d="M22 25h20M22 32h13M22 39h17" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="43" cy="39" r="3" fill="#78e4ce"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Linux Software Lab</title>
+  <rect width="64" height="64" rx="16" fill="#101923"/>
+  <path d="M16 18.5 32 10l16 8.5v27L32 54 16 45.5z" fill="#f7f5ee" stroke="#cbd3d3" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M16.5 19 32 27.5 47.5 19M32 28v25" fill="none" stroke="#101923" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="m23 23 9 5 9-5" fill="none" stroke="#246bfe" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24 36h16M24 41h11" stroke="#101923" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="42" cy="41" r="4" fill="#74d7c6" stroke="#101923" stroke-width="1.5"/>
 </svg>
