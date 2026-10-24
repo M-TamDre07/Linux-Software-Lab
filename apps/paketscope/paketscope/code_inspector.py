@@ -255,8 +255,12 @@ def _python_details(text: str) -> tuple[list[str], list[str], list[str], list[Co
             elif name == "yaml.load":
                 safe_loader = any(
                     keyword.arg == "Loader"
-                    and isinstance(keyword.value, ast.Name)
-                    and keyword.value.id in {"SafeLoader", "CSafeLoader"}
+                    and (
+                        (isinstance(keyword.value, ast.Name)
+                         and keyword.value.id in {"SafeLoader", "CSafeLoader"})
+                        or (isinstance(keyword.value, ast.Attribute)
+                            and keyword.value.attr in {"SafeLoader", "CSafeLoader"})
+                    )
                     for keyword in node.keywords
                 )
                 if not safe_loader:
