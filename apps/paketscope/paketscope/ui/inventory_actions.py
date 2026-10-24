@@ -23,6 +23,16 @@ class InventoryActionsMixin:
             return
         self.snapshot = value
         self.inventory_model.set_applications(value.applications)
+        previous_source = self.source_filter.currentText()
+        available_sources = sorted({item.source for item in value.applications}, key=str.casefold)
+        self.source_filter.blockSignals(True)
+        self.source_filter.clear()
+        self.source_filter.addItem("Semua sumber")
+        self.source_filter.addItems(available_sources)
+        selected_source = previous_source if previous_source in available_sources else "Semua sumber"
+        self.source_filter.setCurrentText(selected_source)
+        self.source_filter.blockSignals(False)
+        self.proxy.set_source_filter(selected_source)
         apt_count = sum(1 for app in value.applications if app.source == "APT / dpkg")
         flatpak_count = sum(1 for app in value.applications if app.source == "Flatpak")
         self.total_value.setText(f"{len(value.applications):,}")
