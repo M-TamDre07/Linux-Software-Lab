@@ -24,12 +24,14 @@ from PySide6.QtWidgets import (
 from .. import __version__
 from ..domain import InstalledApplication, InventorySnapshot
 from ..services import PaketScopeService
+from ..application_details import ApplicationDetails, inspect_application
 from .models import InventoryModel, InventoryProxy
 from .workers import Worker
 from .data_actions import DataActionsMixin
 from .inventory_actions import InventoryActionsMixin
 from .package_actions import PackageManagementActionsMixin
 from .inspection_dialog import InspectionDialog
+from .application_details_dialog import ApplicationDetailsDialog
 
 
 class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin):
@@ -137,6 +139,14 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         self.install_button.setToolTip("Cari paket pada indeks APT lokal, tinjau simulasi, lalu konfirmasi sebelum pemasangan.")
         self.install_button.clicked.connect(self.install_apt_package)
         management_row.addWidget(self.install_button)
+        self.details_button = QPushButton("Detail & asal…")
+        self.details_button.setObjectName("secondary")
+        self.details_button.setToolTip(
+            "Lihat deskripsi resmi, jenis paket, asal repositori yang diketahui, dan metadata aplikasi terpilih."
+        )
+        self.details_button.setEnabled(False)
+        self.details_button.clicked.connect(self.show_selected_application_details)
+        management_row.addWidget(self.details_button)
         self.remove_button = QPushButton("Hapus paket terpilih…")
         self.remove_button.setObjectName("secondary")
         self.remove_button.setToolTip("Hanya untuk aplikasi APT/dpkg. Simulasi dan konfirmasi selalu ditampilkan.")
@@ -205,6 +215,7 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         for button in (
             self.refresh_button, self.updates_button, self.csv_button,
             self.backup_button, self.decrypt_button, self.install_button,
+            self.details_button, self.inspection_button,
         ):
             button.setEnabled(not busy)
         self._selection_changed(QModelIndex(), QModelIndex())
@@ -240,6 +251,29 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         self.status_label.setText("Operasi tidak selesai.")
         QMessageBox.warning(self, "PaketScope", error)
 
+    @Slot()
+    def show_selected_application_details(self) -> None:
+        selected = self._selected_application()
+        if selected is None:
+            QMessageBox.information(
+                self, "Detail aplikasi", "Pilih satu aplikasi atau paket dari tabel terlebih dahulu."
+            )
+            return
+        self._start_task(
+            f"Membaca metadata lokal untuk {selected.identifier}…",
+            lambda: inspect_application(selected),
+            self._application_details_ready,
+        )
+
+    def _application_details_ready(self, value: object) -> None:
+        if not isinstance(value, ApplicationDetails):
+            QMessageBox.warning(
+                self, "Detail aplikasi", "Pemeriksa tidak mengembalikan detail aplikasi yang valid."
+            )
+            return
+        dialog = ApplicationDetailsDialog(value, self)
+        dialog.exec()
+
     def _selected_application(self) -> InstalledApplication | None:
         current = self.table.currentIndex()
         if not current.isValid():
@@ -261,6 +295,9 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         )
         self.remove_button.setEnabled(bool(can_change))
         self.purge_button.setEnabled(bool(can_change))
+        self.details_button.setEnabled(
+            not getattr(self, "_busy", False) and selected is not None
+        )
 
 
     @Slot()
