@@ -30,7 +30,7 @@ Unsupported package formats and user-installed AppImages are deliberately not in
 
 ## Compatibility status
 
-**The only currently CI-validated native package target is Debian 13 (Trixie).** The Debian package workflow builds the `.deb`, installs it in a clean Debian 13 container, checks that the installed module and desktop launcher are present, then purges the package and checks package-owned files are removed.
+**The only currently CI-validated native package target is Debian 13 (Trixie).** The Debian package workflow builds the `.deb`, installs it in a clean Debian 13 container, checks that the installed module and desktop launcher are present, then purges the package and checks package-owned files are removed. The source test job also runs across CPython 3.10–3.13; this validates the Python compatibility layer, not native installation on every distribution.
 
 Ubuntu, Linux Mint, Pop!_OS, and other Debian derivatives are **not yet declared supported targets** for this development `.deb`. Being Debian-based is not sufficient: package names and available Qt/PySide versions can differ between distribution releases. Do not assume this `.deb` is compatible with them until dedicated install tests pass.
 
@@ -74,7 +74,7 @@ python -m pip install -e '.[test]'
 python -m paketscope
 ~~~
 
-Package names and versions may be visible in the UI and exported file. Store exports carefully. Encrypted backups cannot be recovered without the passphrase; use a unique, long passphrase and keep it separate from the backup file.
+Package names and versions may be visible in the UI and exported file. Store exports carefully. Encrypted backups cannot be recovered without the passphrase; use a unique, long passphrase and keep it separate from the backup file. Backup creation and restoration are capped at 64 MiB; oversized or non-regular inputs are rejected before their contents are read into memory.
 
 ## Tests
 
@@ -90,7 +90,7 @@ The test suite covers inventory parsing and UI filtering, command-error handling
 - The only intentional network-capable workflow is the user-triggered Flatpak remote update check. APT update visibility uses locally cached metadata and does not run apt update.
 - Read-only subprocess calls run as the current user with shell=False and timeouts. A selected APT transaction is simulated first; only the specific apt-get operation is delegated via pkexec after an explicit confirmation.
 - Installation is constrained with --no-remove and --no-install-recommends. No arbitrary command field, shell text, automatic cleanup, or background package mutation exists.
-- Encrypted backup contents use AES-GCM authenticated encryption. A random salt and nonce are generated for every backup; scrypt derives the key from the passphrase.
+- Encrypted backup contents use AES-GCM authenticated encryption. A random salt and nonce are generated for every backup; scrypt derives the key from the passphrase. Backup creation and restoration are capped at 64 MiB.
 - The application does not store passwords or passphrases. Plain CSV/JSON exports are intentionally not encrypted; choose the encrypted backup option for portable protected copies.
 - System & Code Lab results stay in the local UI. The source inspector is bounded to at most 2,500 files, 12 directory levels, 2 MiB per file, and 128 MiB of total file data; symlinks, common build/cache folders, common credential-store directories (`.ssh`, `.gnupg`, `.aws`, `.azure`, `.kube`, and similar paths), and filenames that look like credentials or private keys are skipped by default. The rule-based code review hints are deliberately narrow and may produce false positives or miss issues; absence of a finding does not imply safety.
 - Elevated metadata inspection is available only from the trusted installed Debian package path. It uses a root-owned helper with a fixed action and fixed path allowlist; each scan invokes Polkit and asks for authorization. Source/virtualenv mode does not grant administrator access.
