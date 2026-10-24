@@ -117,12 +117,12 @@ def test_whole_root_and_pseudo_filesystems_are_not_scanned(tmp_path):
 def test_python_static_review_flags_dynamic_execution_shell_deserialization_and_network(tmp_path):
     source = tmp_path / "review.py"
     source.write_text(
-        "import subprocess, pickle, requests\\n"
-        "def review(value):\\n"
-        "    eval(value)\\n"
-        "    subprocess.run(value, shell=True)\\n"
-        "    pickle.loads(value)\\n"
-        "    requests.get('https://example.invalid')\\n",
+        "import subprocess, pickle, requests\n"
+        "def review(value):\n"
+        "    eval(value)\n"
+        "    subprocess.run(value, shell=True)\n"
+        "    pickle.loads(value)\n"
+        "    requests.get('https://example.invalid')\n",
         encoding="utf-8",
     )
 
@@ -143,7 +143,7 @@ def test_code_inspector_skips_sensitive_directory_and_rejects_viewer_access(tmp_
     config = private_store / "config"
     config.write_text("aws_access_key_id=not-for-display", encoding="utf-8")
     ordinary = tmp_path / "module.py"
-    ordinary.write_text("def safe():\\n    return True\\n", encoding="utf-8")
+    ordinary.write_text("def safe():\n    return True\n", encoding="utf-8")
 
     report = inspect_code_path(tmp_path)
 
@@ -157,7 +157,7 @@ def test_code_inspector_skips_sensitive_directory_and_rejects_viewer_access(tmp_
 def test_non_python_source_reports_shell_and_dynamic_execution_review_hints(tmp_path):
     source = tmp_path / "sample.js"
     source.write_text(
-        "const value = eval(input);\\nconst options = { shell: true };\\n",
+        "const value = eval(input);\nconst options = { shell: true };\n",
         encoding="utf-8",
     )
 
@@ -171,9 +171,9 @@ def test_non_python_source_reports_shell_and_dynamic_execution_review_hints(tmp_
 def test_python_safe_yaml_loader_does_not_create_unsafe_deserialization_hint(tmp_path):
     source = tmp_path / "safe_yaml.py"
     source.write_text(
-        "import yaml\\n"
-        "def parse(payload):\\n"
-        "    return yaml.load(payload, Loader=yaml.SafeLoader)\\n",
+        "import yaml\n"
+        "def parse(payload):\n"
+        "    return yaml.load(payload, Loader=yaml.SafeLoader)\n",
         encoding="utf-8",
     )
 
