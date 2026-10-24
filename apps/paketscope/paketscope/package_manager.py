@@ -61,7 +61,7 @@ def _parse_control_fields(output: str) -> dict[str, str]:
     """Parse the field subset used by dpkg-query -s."""
     fields: dict[str, str] = {}
     for line in output.splitlines():
-        if line.startswith((" ", "\\t")):
+        if line.startswith(" ") or line.startswith(chr(9)):
             continue
         key, separator, value = line.partition(":")
         if separator:
