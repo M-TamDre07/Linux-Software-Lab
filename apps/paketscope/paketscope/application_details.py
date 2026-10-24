@@ -373,7 +373,26 @@ def inspect_application(application: InstalledApplication) -> ApplicationDetails
         return _apt_details(application)
     if application.source == "Flatpak":
         return _flatpak_details(application)
-    raise ValueError(
-        f"Sumber '{application.source}' belum memiliki pemeriksa detail bawaan. "
-        "Tambahkan adapter detail yang sesuai sebelum mengaktifkan fitur ini untuk sumber tersebut."
+    # Custom read-only inventory providers should still get a useful details
+    # view from their normalized record, even when they do not yet implement a
+    # source-specific inspector. Never guess function or provenance from a name.
+    source = application.source.strip() or "Sumber tidak diketahui"
+    return ApplicationDetails(
+        name=application.name,
+        identifier=application.identifier,
+        version=application.version,
+        manager=source,
+        package_kind="Aplikasi/paket dari sumber ekstensi",
+        origin=application.origin or "Tidak dicatat oleh sumber",
+        origin_note=(
+            "Informasi asal berasal dari metadata yang diberikan sumber ekstensi dan "
+            "belum diverifikasi secara independen oleh PaketScope."
+        ),
+        description=application.description,
+        architecture=application.architecture,
+        installation=application.installation,
+        notes=(
+            "Detail tambahan khusus sumber belum tersedia. Developer dapat menambahkan "
+            "pemeriksa sumber khusus; PaketScope tidak menyimpulkan fungsi hanya dari nama.",
+        ),
     )
