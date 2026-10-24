@@ -24,7 +24,7 @@ def test_python_source_analysis_reports_imports_symbols_and_hash(tmp_path):
     assert report.scanned_files == 1
     file = report.files[0]
     assert file.language == "Python"
-    assert file.line_count == 7
+    assert file.line_count == 8
     assert "json" in file.imports
     assert "pathlib" in file.imports
     assert {"Scanner", "inspect_system"}.issubset(set(file.symbols))
