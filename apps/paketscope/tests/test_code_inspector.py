@@ -133,7 +133,8 @@ def test_python_static_review_flags_dynamic_execution_shell_deserialization_and_
     assert ("subprocess-shell", 4) in findings
     assert ("unsafe-deserialization", 5) in findings
     assert ("network-access", 6) in findings
-    assert "potential" not in " ".join(item.message for item in report.files[0].findings).casefold()
+    assert all(item.line > 0 for item in report.files[0].findings)
+    assert len(report.files[0].findings) <= 80
 
 
 def test_code_inspector_skips_sensitive_directory_and_rejects_viewer_access(tmp_path):
@@ -155,8 +156,29 @@ def test_code_inspector_skips_sensitive_directory_and_rejects_viewer_access(tmp_
 
 def test_non_python_source_reports_shell_and_dynamic_execution_review_hints(tmp_path):
     source = tmp_path / "sample.js"
-    source.write_text("const value = eval(input);\\n// shell = true\\n", encoding="utf-8")
+    source.write_text(
+        "const value = eval(input);\\nconst options = { shell: true };\\n",
+        encoding="utf-8",
+    )
 
     report = inspect_code_path(source)
 
-    assert {item.rule_id for item in report.files[0].findings} == {"dynamic-execution"}
+    assert {item.rule_id for item in report.files[0].findings} == {
+        "dynamic-execution", "shell-execution",
+    }
+
+
+def test_python_safe_yaml_loader_does_not_create_unsafe_deserialization_hint(tmp_path):
+    source = tmp_path / "safe_yaml.py"
+    source.write_text(
+        "import yaml\\n"
+        "def parse(payload):\\n"
+        "    return yaml.load(payload, Loader=yaml.SafeLoader)\\n",
+        encoding="utf-8",
+    )
+
+    report = inspect_code_path(source)
+
+    assert "yaml-deserialization" not in {
+        item.rule_id for item in report.files[0].findings
+    }
