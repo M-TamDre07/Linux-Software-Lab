@@ -69,7 +69,9 @@ unencrypted files.
 Encrypted backups use AES-GCM authenticated encryption with a random per-file
 salt and nonce. A key is derived from the passphrase using scrypt. A weak
 passphrase may still be guessed; a forgotten passphrase cannot be recovered.
-The app does not store the passphrase.
+The app does not store the passphrase. Backup creation and restoration are
+capped at 64 MiB. Restoration opens only regular files and uses a bounded read,
+rejecting oversized inputs before decryption to avoid unbounded memory use.
 
 Exports and decrypted JSON are written locally using owner-only permissions on
 POSIX systems and atomic replacement. These protections do not replace careful
