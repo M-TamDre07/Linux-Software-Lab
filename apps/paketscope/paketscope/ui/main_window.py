@@ -29,6 +29,7 @@ from .workers import Worker
 from .data_actions import DataActionsMixin
 from .inventory_actions import InventoryActionsMixin
 from .package_actions import PackageManagementActionsMixin
+from .inspection_dialog import InspectionDialog
 
 
 class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin):
@@ -45,6 +46,7 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         self.services = PaketScopeService()
         self.worker: Worker | None = None
         self.pending_handler: Callable[[object], None] | None = None
+        self.inspection_dialog: InspectionDialog | None = None
         self.snapshot = InventorySnapshot.create(())
         self.inventory_model = InventoryModel()
         self.proxy = InventoryProxy(self)
@@ -147,6 +149,11 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         self.purge_button.setEnabled(False)
         self.purge_button.clicked.connect(self.purge_selected_apt_package)
         management_row.addWidget(self.purge_button)
+        self.inspection_button = QPushButton("Eksplorasi Sistem & Kode…")
+        self.inspection_button.setObjectName("secondary")
+        self.inspection_button.setToolTip("Inspeksi sistem read-only dan analisis statis folder/file kode lokal.")
+        self.inspection_button.clicked.connect(self.open_inspection_lab)
+        management_row.addWidget(self.inspection_button)
         management_row.addStretch(1)
         layout.addLayout(management_row)
         self.table.selectionModel().currentRowChanged.connect(self._selection_changed)
@@ -254,3 +261,13 @@ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMix
         )
         self.remove_button.setEnabled(bool(can_change))
         self.purge_button.setEnabled(bool(can_change))
+
+
+    @Slot()
+    def open_inspection_lab(self) -> None:
+        """Open the local, read-only system and code inspection tools."""
+        if self.inspection_dialog is None or not self.inspection_dialog.isVisible():
+            self.inspection_dialog = InspectionDialog(self)
+        self.inspection_dialog.show()
+        self.inspection_dialog.raise_()
+        self.inspection_dialog.activateWindow()
