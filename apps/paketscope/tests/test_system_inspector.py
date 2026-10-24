@@ -40,7 +40,7 @@ def test_admin_payload_accepts_only_fixed_metadata_roots():
 
     assert [item["path"] for item in result["entries"]] == ["/etc/os-release"]
     assert result["scope"] == "metadata-only"
-    assert "private key" in result["notice"]
+    assert "baca-file terpisah" in result["notice"]
 
 
 def test_admin_payload_rejects_unknown_schema():
