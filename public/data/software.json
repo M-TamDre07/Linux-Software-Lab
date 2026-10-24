@@ -63,13 +63,15 @@
       "slug": "sorot",
       "name": "Sorot",
       "version": "0.5.0 Beta",
-      "summary": "Teleprompter desktop untuk membaca naskah saat presentasi dan rekaman, dengan overlay, kontrol pemutaran, pengelolaan naskah, dan sistem ekstensi.",
-      "description": "Sorot adalah aplikasi teleprompter desktop untuk Linux. Versi 0.5.0 Beta menyediakan editor naskah, overlay yang dapat diatur, kontrol pemutaran dan jeda, mode durasi, penyimpanan naskah/draf, serta sistem ekstensi untuk tema, preset, tugas, dan fungsi tambahan. Integrasi AI dan penyimpanan cloud bersifat opsional dan belum diverifikasi dengan layanan nyata dalam laporan pengujian. Sorot masih beta: uji compositor Wayland/X11, pemasangan bersih di Debian 13, dan aksesibilitas pembaca layar belum lengkap.",
+      "summary": "Sorot 0.5.0 Beta tersedia sebagai artefak untuk pengujian; belum merupakan rilis stabil.",
+      "description": "Sorot 0.5.0 Beta tersedia sebagai paket Debian (.deb) dan arsip sumber di repository untuk pengujian. Fitur mencakup editor naskah, overlay, kontrol pemutaran/jeda, mode durasi, draf dan snapshot, serta sistem ekstensi. Ketersediaan artefak repository tidak berarti ada GitHub Release bertag atau bahwa Sorot sudah stabil. Pengujian yang tercatat dilakukan di Ubuntu 24.04; instalasi bersih Debian 13, compositor desktop nyata, integrasi AI/cloud nyata, dan aksesibilitas belum seluruhnya diverifikasi. Paket Arch Linux, RPM, Flatpak, dan AppImage belum tersedia/terverifikasi.",
       "category": "Produktivitas",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Linux desktop (uji tercatat: Ubuntu 24.04; Debian 13 belum diverifikasi untuk paket ini)"
+        "Ubuntu 24.04 (pengujian tercatat; .deb tersedia)",
+        "Debian/derivatif: kompatibilitas pemasangan belum diverifikasi penuh",
+        "Arch Linux, Fedora/RPM, Flatpak, AppImage: belum tersedia"
       ],
       "tags": [
         "Python",
@@ -99,9 +101,9 @@
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/prompter-overlay",
       "releaseUrl": "",
       "icon": "type",
-      "iconImage": "/assets/images/prompter-overlay-icon.svg",
-      "previewImage": "/assets/images/prompter-overlay-preview.svg",
-      "previewAlt": "Ilustrasi teleprompter Sorot; bukan tangkapan layar aplikasi yang sudah dirilis.",
+      "iconImage": "/assets/images/sorot-icon.svg",
+      "previewImage": "/assets/images/sorot-preview.svg",
+      "previewAlt": "Ilustrasi konseptual antarmuka teleprompter Sorot; bukan tangkapan layar aplikasi.",
       "updatedAt": "2026-10-24"
     }
   ]

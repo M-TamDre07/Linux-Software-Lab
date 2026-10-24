@@ -5,7 +5,7 @@ Every product maintained by Linux Software Lab has its own directory under `apps
 ## Current projects
 
 - `paketscope/` — native Python/PySide6 desktop application for Linux. The active v3 work lives on the dedicated `feature/paketscope-v3-native` branch until its code and release checks are ready to merge.
-- `prompter-overlay/` — **Sorot 0.5.0 Beta**, a Linux desktop teleprompter. The folder contains beta distribution archives, a Debian package, checksums, test results, and extension documentation. It is not a stable release; see [`prompter-overlay/README.md`](prompter-overlay/README.md). Rebranding/documentation updates must not rewrite the existing package artifacts or application payload.
+- `prompter-overlay/` — **Sorot 0.5.0 Beta**, a Linux desktop teleprompter. Downloadable beta artifacts include a Debian package and source archives; test evidence, extension security notes, and the multi-distro packaging roadmap are documented in that folder. This is an artifact staging directory with a legacy name, not the intended final product slug; rename/migration must preserve artifact hashes and download compatibility.
 
 ## Expected structure for an implemented application
 
