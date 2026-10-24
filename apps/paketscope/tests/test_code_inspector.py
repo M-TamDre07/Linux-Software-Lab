@@ -106,3 +106,9 @@ def test_elf_binary_reports_metadata_without_disassembly(tmp_path):
     assert "ELF64" in item.notes[0]
     assert "x86_64" in item.notes[0]
     assert "dijalankan" in item.notes[1]
+
+
+def test_whole_root_and_pseudo_filesystems_are_not_scanned(tmp_path):
+    for path in ("/", "/proc", "/sys", "/dev", "/run"):
+        with pytest.raises(CodeInspectionError, match="pseudo-filesystem"):
+            inspect_code_path(path)
