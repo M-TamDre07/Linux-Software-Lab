@@ -13,7 +13,7 @@ Search, filtering, and sorting remain in the browser. Search terms are not sent 
 
 The migration supabase/migrations/20261024172127_create_software_catalog.sql defines public.software_catalog with a narrow catalogue schema. Row Level Security is enabled. The anonymous role has SELECT only, and the software_catalog_public_read policy exposes rows where published is true. No public write privileges are granted. Do not add credentials, per-user data, logs, or secrets to this table.
 
-The browser uses only the public publishable key in public/assets/js/supabase-config.js. A publishable key is not an authorization boundary: RLS and SQL grants are the data protection. Never put an sb_secret_ key or legacy service-role key in website assets, HTML, source code, or public environment variables.
+The browser sends the public publishable key in both the required `apikey` header and the `Authorization: Bearer` header using public/assets/js/supabase-config.js. A publishable key is not an authorization boundary: RLS and SQL grants are the data protection. Never put an sb_secret_ key or legacy service-role key in website assets, HTML, source code, or public environment variables.
 
 ## CI credential setup
 
