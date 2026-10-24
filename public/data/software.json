@@ -59,46 +59,50 @@
       "updatedAt": "2026-10-24"
     },
     {
-      "id": "prompter-overlay",
-      "slug": "prompter-overlay",
-      "name": "Prompter Overlay",
-      "version": "Konsep",
-      "summary": "Teleprompter desktop dengan lapisan teks mengambang untuk membaca naskah saat presentasi, merekam video, atau melakukan panggilan.",
-      "description": "Konsep aplikasi produktivitas desktop. Ketersediaan binary, kompatibilitas overlay lintas compositor, dan detail implementasi masih perlu divalidasi sebelum rilis.",
+      "id": "sorot",
+      "slug": "sorot",
+      "name": "Sorot",
+      "version": "0.5.0 Beta",
+      "summary": "Teleprompter desktop untuk membaca naskah saat presentasi dan rekaman, dengan overlay, kontrol pemutaran, pengelolaan naskah, dan sistem ekstensi.",
+      "description": "Sorot adalah aplikasi teleprompter desktop untuk Linux. Versi 0.5.0 Beta menyediakan editor naskah, overlay yang dapat diatur, kontrol pemutaran dan jeda, mode durasi, penyimpanan naskah/draf, serta sistem ekstensi untuk tema, preset, tugas, dan fungsi tambahan. Integrasi AI dan penyimpanan cloud bersifat opsional dan belum diverifikasi dengan layanan nyata dalam laporan pengujian. Sorot masih beta: uji compositor Wayland/X11, pemasangan bersih di Debian 13, dan aksesibilitas pembaca layar belum lengkap.",
       "category": "Produktivitas",
-      "status": "planned",
+      "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Debian 13",
-        "Linux"
+        "Linux desktop (uji tercatat: Ubuntu 24.04; Debian 13 belum diverifikasi untuk paket ini)"
       ],
       "tags": [
         "Python",
         "PySide6",
+        "Teleprompter",
         "Overlay",
         "Naskah",
-        "Produktivitas"
+        "Ekstensi"
       ],
       "keywords": [
-        "teleprompter",
-        "membaca teks",
+        "teleprompter linux",
+        "sorot",
+        "membaca naskah",
         "presentasi",
         "rekaman video",
-        "panggilan video"
+        "overlay teks"
       ],
       "features": [
-        "Naskah yang dapat diatur",
-        "Jendela overlay",
-        "Pengaturan ukuran dan posisi teks"
+        "Editor naskah dengan buka/simpan dan undo",
+        "Overlay teleprompter dengan kontrol pemutaran, jeda, dan pengaturan kecepatan",
+        "Mode durasi dan penanda jeda pada naskah",
+        "Draf, snapshot, serta penyimpanan pengaturan lokal",
+        "Ekstensi deklaratif dan ekstensi kode dengan persetujuan eksplisit",
+        "Integrasi AI dan cloud opsional; layanan nyata belum diverifikasi dalam laporan tes"
       ],
-      "detailUrl": "/software/prompter-overlay.html",
-      "sourceUrl": "",
+      "detailUrl": "/software/sorot.html",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/prompter-overlay",
       "releaseUrl": "",
       "icon": "type",
       "iconImage": "/assets/images/prompter-overlay-icon.svg",
       "previewImage": "/assets/images/prompter-overlay-preview.svg",
-      "previewAlt": "Konsep visual teleprompter mengambang; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-20"
+      "previewAlt": "Ilustrasi teleprompter Sorot; bukan tangkapan layar aplikasi yang sudah dirilis.",
+      "updatedAt": "2026-10-24"
     }
   ]
 }

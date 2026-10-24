@@ -12,7 +12,7 @@ PAGES = (
     "index.html",
     "software/index.html",
     "software/paketscope.html",
-    "software/prompter-overlay.html",
+    "software/sorot.html",
 )
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 

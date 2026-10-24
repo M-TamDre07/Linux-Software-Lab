@@ -25,7 +25,7 @@ Katalog software independen oleh Muhammad Andreatama. Website dibuat dengan HTML
 ├── apps/
 │   ├── README.md                 # Pedoman folder per aplikasi
 │   ├── paketscope/               # Source desktop native; bukan direktori website
-│   └── prompter-overlay/         # Folder proyek kedua; masih tahap perencanaan
+│   └── prompter-overlay/         # Sorot 0.5.0 Beta; paket dan dokumentasi beta
 ├── scripts/                      # Validator katalog dan pemeriksaan website
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
 ├── docs/                         # Arsitektur, struktur software, rilis, deployment
@@ -87,6 +87,10 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan mengklaim kompatibilitas sebelum diuji.
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
+
+## Sorot 0.5.0 Beta
+
+Sorot adalah teleprompter desktop untuk Linux yang sebelumnya tercatat di katalog sebagai Prompter Overlay. Artefak beta dan dokumentasi tersedia di [`apps/prompter-overlay/`](apps/prompter-overlay/README.md). Paket `.deb`, arsip source, checksum SHA-256, laporan pengujian, dan panduan ekstensi tersedia di folder tersebut. Sorot masih beta; laporan pengujian mencatat suite otomatis di Ubuntu 24.04, sementara instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu diuji. Website hanya mendokumentasikan dan menautkan artefak; file paket aplikasi tidak diubah dalam pembaruan rebranding ini.
 
 ## PaketScope 3 (pratinjau pengembangan)
 
