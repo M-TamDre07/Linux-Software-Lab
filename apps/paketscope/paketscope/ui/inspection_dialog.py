@@ -14,7 +14,11 @@ from PySide6.QtWidgets import (
 from ..code_inspector import (
     CodeFileAnalysis, CodeInspectionReport, inspect_code_path, read_inspected_source,
 )
-from ..system_inspector import collect_system_snapshot, run_privileged_metadata_inspection
+from ..system_inspector import (
+    collect_system_snapshot,
+    run_privileged_metadata_inspection,
+    run_privileged_text_file_read,
+)
 from .workers import Worker
 
 
@@ -70,9 +74,10 @@ class InspectionDialog(QDialog):
 
         explanation = QLabel(
             "Pemeriksaan dasar membaca informasi OS, kernel, CPU, RAM, storage, "
-            "mount-level summary, dan susunan nama direktori. Mode administrator hanya "
-            "menambahkan metadata path/izin/ukuran di lokasi sistem yang diizinkan; "
-            "fitur ini tidak membaca isi file atau mengubah konfigurasi."
+            "mount-level summary, layanan systemd, dan susunan direktori. Mode administrator "
+            "dapat melihat metadata pada lokasi sistem yang dibatasi atau membaca satu file "
+            "teks pilihan setelah persetujuan dan otorisasi Polkit. File rahasia dan biner "
+            "ditolak; tidak ada perubahan sistem."
         )
         explanation.setWordWrap(True)
         explanation.setObjectName("body-muted")
@@ -99,6 +104,15 @@ class InspectionDialog(QDialog):
         )
         self.admin_scan_button.clicked.connect(self.scan_protected_metadata)
         controls.addWidget(self.admin_scan_button)
+
+        self.admin_read_button = QPushButton("Baca file sistem…")
+        self.admin_read_button.setObjectName("secondary")
+        self.admin_read_button.setEnabled(False)
+        self.admin_read_button.setToolTip(
+            "Baca satu file teks dari allowlist sistem dengan batas 256 KiB; butuh konfirmasi dan Polkit."
+        )
+        self.admin_read_button.clicked.connect(self.read_system_text_file)
+        controls.addWidget(self.admin_read_button)
         controls.addStretch(1)
         layout.addLayout(controls)
 
@@ -173,10 +187,11 @@ class InspectionDialog(QDialog):
     def _set_busy(self, busy: bool, message: str = "") -> None:
         for button in (
             self.system_scan_button, self.admin_toggle_button, self.admin_scan_button,
-            self.choose_folder_button, self.choose_file_button,
+            self.admin_read_button, self.choose_folder_button, self.choose_file_button,
         ):
             button.setEnabled(not busy)
         self.admin_scan_button.setEnabled(not busy and self.admin_mode_enabled)
+        self.admin_read_button.setEnabled(not busy and self.admin_mode_enabled)
         if message:
             self._busy_message = message
             if self.tabs.currentWidget() is self.system_tab:
@@ -236,16 +251,17 @@ class InspectionDialog(QDialog):
             self.admin_mode_enabled = False
             self.admin_toggle_button.setText("Aktifkan mode Administrator")
             self.admin_scan_button.setEnabled(False)
+            self.admin_read_button.setEnabled(False)
             self.system_status.setText("Mode administrator dimatikan untuk sesi ini.")
             return
 
         message = (
             "Aktifkan mode administrator untuk sesi aplikasi ini?\n\n"
             "• Mode ini tidak menjalankan seluruh aplikasi sebagai root.\n"
-            "• Pemeriksaan tambahan hanya mencantumkan metadata dari /etc, /boot, "
-            "/usr/local, dan /opt sampai kedalaman terbatas.\n"
-            "• Isi file, password, private key, dan direktori rahasia tidak dibaca.\n"
-            "• Setiap pemindaian administrator meminta otorisasi Polkit tersendiri.\n"
+            "• Metadata dibatasi ke direktori sistem tertentu dan jumlah entri.\n"
+            "• Kamu dapat meminta pembacaan satu file teks pilihan (maksimum 256 KiB); "
+            "file rahasia, symlink, dan biner ditolak.\n"
+            "• Setiap pemindaian atau pembacaan file meminta otorisasi Polkit tersendiri.\n"
             "• Tidak ada perubahan sistem atau perintah shell bebas.\n\n"
             "Mode ini hanya tersedia dari paket Debian terpasang yang helper-nya tepercaya."
         )
@@ -259,6 +275,7 @@ class InspectionDialog(QDialog):
         self.admin_mode_enabled = True
         self.admin_toggle_button.setText("Matikan mode Administrator")
         self.admin_scan_button.setEnabled(True)
+        self.admin_read_button.setEnabled(True)
         self.system_status.setText(
             "Mode Administrator aktif untuk sesi ini. Otorisasi Polkit tetap diperlukan setiap kali."
         )
@@ -274,7 +291,7 @@ class InspectionDialog(QDialog):
         response = QMessageBox.warning(
             self, "Setujui pemeriksaan terlindungi",
             "PaketScope akan meminta autentikasi Polkit untuk membaca metadata saja. "
-            "Operasi dibatasi pada path sistem yang sudah ditentukan dan tidak membaca isi file. "
+            "Operasi hanya membaca metadata path, izin, pemilik, dan ukuran; file tidak diubah. "
             "Lanjutkan?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Cancel,
@@ -285,6 +302,58 @@ class InspectionDialog(QDialog):
             "Meminta otorisasi Polkit untuk metadata read-only…",
             run_privileged_metadata_inspection,
             self._admin_metadata_ready,
+        )
+
+    @Slot()
+    def read_system_text_file(self) -> None:
+        if not self.admin_mode_enabled:
+            QMessageBox.information(
+                self, "Mode administrator belum aktif",
+                "Aktifkan mode Administrator secara eksplisit terlebih dahulu.",
+            )
+            return
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Pilih file teks sistem (read-only)", "/etc",
+            "File teks dan konfigurasi (*);;Semua file (*)",
+        )
+        if not path:
+            return
+        response = QMessageBox.warning(
+            self, "Setujui pembacaan file sistem",
+            f"File yang dipilih:\n{path}\n\n"
+            "PaketScope akan meminta autentikasi Polkit untuk membaca satu file teks "
+            "dengan batas 256 KiB dari direktori sistem yang diizinkan. File rahasia, "
+            "symlink, file biner, dan file di luar allowlist ditolak. Tidak ada file "
+            "yang diubah dan kode tidak dijalankan. Lanjutkan?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if response != QMessageBox.StandardButton.Yes:
+            return
+        self._start_task(
+            "Meminta otorisasi Polkit untuk membaca file teks terpilih…",
+            lambda: run_privileged_text_file_read(path),
+            self._system_text_file_ready,
+        )
+
+    def _system_text_file_ready(self, value: object) -> None:
+        if not isinstance(value, dict) or value.get("scope") != "selected-text-file-read-only":
+            QMessageBox.warning(self, "Pembacaan file sistem", "Format hasil tidak valid.")
+            return
+        file_path = str(value.get("path", ""))
+        content = value.get("content")
+        if not isinstance(content, str):
+            QMessageBox.warning(self, "Pembacaan file sistem", "Konten file tidak valid.")
+            return
+        self.system_output.setPlainText(
+            f"FILE SISTEM (READ-ONLY): {file_path}\n"
+            f"Ukuran: {value.get('size_bytes', 0)} byte\n"
+            "Catatan: file tidak diubah; kode tidak dijalankan.\n"
+            "========================================\n\n"
+            + content
+        )
+        self.system_status.setText(
+            f"File teks berhasil dibaca · {file_path} · tidak ada perubahan sistem"
         )
 
     def _admin_metadata_ready(self, value: object) -> None:
