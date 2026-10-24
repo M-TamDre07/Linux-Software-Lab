@@ -28,9 +28,6 @@ def _derive_key(passphrase: str, salt: bytes) -> bytes:
 
 
 def encrypt_backup(records: list[dict[str, Any]], passphrase: str) -> bytes:
-    salt = secrets.token_bytes(SALT_BYTES)
-    nonce = secrets.token_bytes(NONCE_BYTES)
-    key = _derive_key(passphrase, salt)
     plaintext = json.dumps(
         {"format": 1, "application": "PaketScope", "records": records},
         ensure_ascii=False,
@@ -40,6 +37,9 @@ def encrypt_backup(records: list[dict[str, Any]], passphrase: str) -> bytes:
     estimated_size = len(MAGIC) + SALT_BYTES + NONCE_BYTES + len(plaintext) + 16
     if estimated_size > MAX_BACKUP_BYTES:
         raise ValueError("Cadangan melebihi batas maksimum 64 MiB.")
+    salt = secrets.token_bytes(SALT_BYTES)
+    nonce = secrets.token_bytes(NONCE_BYTES)
+    key = _derive_key(passphrase, salt)
     ciphertext = AESGCM(key).encrypt(nonce, plaintext, AAD)
     return MAGIC + salt + nonce + ciphertext
 
