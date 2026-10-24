@@ -12,7 +12,7 @@
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "3.0.0.dev3",
+      "version": "3.0.0.dev4",
       "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
       "description": "PaketScope 3 sedang diuji sebagai aplikasi desktop native berbasis Qt. Pengguna dapat memeriksa jenis, deskripsi fungsi, metadata, dan asal yang diketahui untuk paket APT/Flatpak; asal APT hanya menunjukkan repositori lokal yang saat ini menyediakan versi yang sama, bukan bukti historis instalasi. Perubahan paket APT memerlukan tinjauan dan autentikasi, sementara Flatpak masih read-only. System & Code Lab menyediakan snapshot Linux, viewer source lokal, dan petunjuk analisis statis. Sumber inventaris tambahan dapat dikembangkan melalui kontrak provider eksplisit; plugin pihak ketiga tidak dimuat otomatis.",
       "category": "Pengelolaan aplikasi",
