@@ -75,5 +75,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/software/prompter-overlay.html",
+      "destination": "/software/sorot.html",
+      "permanent": true
+    }
   ]
 }
