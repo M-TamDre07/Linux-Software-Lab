@@ -7,6 +7,7 @@ import platform
 import shutil
 import stat
 import subprocess
+from itertools import islice
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -62,7 +63,7 @@ def _cpu_summary() -> dict[str, Any]:
 def _directory_overview(path: Path, cap: int = 80) -> dict[str, Any]:
     try:
         with os.scandir(path) as iterator:
-            entries = sorted(iterator, key=lambda entry: entry.name.casefold())
+            entries = sorted(islice(iterator, cap + 1), key=lambda entry: entry.name.casefold())
         names = [entry.name for entry in entries[:cap]]
         truncated = len(entries) > cap
         return {"path": str(path), "entries": names, "truncated": truncated}
