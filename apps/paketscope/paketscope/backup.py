@@ -17,6 +17,7 @@ KEY_BYTES = 32
 SCRYPT_N = 2**15
 SCRYPT_R = 8
 SCRYPT_P = 1
+MAX_BACKUP_BYTES = 64 * 1024 * 1024
 
 
 def _derive_key(passphrase: str, salt: bytes) -> bytes:
@@ -36,11 +37,16 @@ def encrypt_backup(records: list[dict[str, Any]], passphrase: str) -> bytes:
         separators=(",", ":"),
         sort_keys=True,
     ).encode("utf-8")
+    estimated_size = len(MAGIC) + SALT_BYTES + NONCE_BYTES + len(plaintext) + 16
+    if estimated_size > MAX_BACKUP_BYTES:
+        raise ValueError("Cadangan melebihi batas maksimum 64 MiB.")
     ciphertext = AESGCM(key).encrypt(nonce, plaintext, AAD)
     return MAGIC + salt + nonce + ciphertext
 
 
 def decrypt_backup(blob: bytes, passphrase: str) -> list[dict[str, Any]]:
+    if len(blob) > MAX_BACKUP_BYTES:
+        raise ValueError("Cadangan melebihi batas maksimum 64 MiB.")
     minimum = len(MAGIC) + SALT_BYTES + NONCE_BYTES + 16
     if not blob.startswith(MAGIC) or len(blob) < minimum:
         raise ValueError("Format cadangan tidak dikenali atau berkas rusak.")
