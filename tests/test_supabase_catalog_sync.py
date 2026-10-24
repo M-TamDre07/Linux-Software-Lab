@@ -1,9 +1,16 @@
+import copy
 import json
 import tempfile
 import unittest
 from pathlib import Path
 
-from scripts.sync_supabase_catalog import load_catalog, to_record
+from scripts.sync_supabase_catalog import (
+    EXPECTED_SUPABASE_URL,
+    catalog_rows_match,
+    load_catalog,
+    to_record,
+    validate_supabase_url,
+)
 
 
 class SupabaseCatalogSyncTests(unittest.TestCase):
@@ -22,6 +29,33 @@ class SupabaseCatalogSyncTests(unittest.TestCase):
         self.assertEqual(record["updated_at"], app["updatedAt"])
         self.assertTrue(record["published"])
         self.assertEqual(record["sort_order"], 1)
+
+    def test_only_the_exact_supabase_project_origin_is_accepted(self):
+        self.assertEqual(validate_supabase_url(EXPECTED_SUPABASE_URL + "/"), EXPECTED_SUPABASE_URL)
+        invalid_urls = [
+            "",
+            "http://ttofugaqwthmvhvntdlc.supabase.co",
+            "https://ttofugaqwthmvhvntdlc.supabase.co.attacker.example",
+            "https://attacker.supabase.co",
+            EXPECTED_SUPABASE_URL + "/path",
+        ]
+        for value in invalid_urls:
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "match the configured"):
+                    validate_supabase_url(value)
+
+    def test_verification_compares_all_catalogue_fields(self):
+        data = load_catalog()
+        rows = [
+            to_record(app, index, "2026-10-25T00:00:00+00:00")
+            for index, app in enumerate(data["software"])
+        ]
+        self.assertTrue(catalog_rows_match(rows, copy.deepcopy(rows)))
+        changed = copy.deepcopy(rows)
+        changed[1]["summary"] = "Unexpected database value"
+        self.assertFalse(catalog_rows_match(rows, changed))
+        self.assertFalse(catalog_rows_match(rows, rows[:1]))
+        self.assertFalse(catalog_rows_match(rows, [{"id": "paketscope"}]))
 
     def test_missing_metadata_is_rejected(self):
         data = load_catalog()
