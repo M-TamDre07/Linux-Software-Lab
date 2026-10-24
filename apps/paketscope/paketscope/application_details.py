@@ -192,7 +192,10 @@ def _read_desktop_launcher(path_text: str) -> DesktopLauncher | None:
         if path.is_symlink():
             return None
         resolved = path.resolve(strict=True)
-        if not any(resolved.is_relative_to(root.resolve(strict=True)) for root in allowed_roots):
+        # A missing optional root (often /usr/local/share/applications) must
+        # not prevent inspection of launchers under an existing allowed root.
+        resolved_roots = tuple(root.resolve() for root in allowed_roots if root.is_dir())
+        if not any(resolved.is_relative_to(root) for root in resolved_roots):
             return None
         info = resolved.stat()
         if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_DESKTOP_FILE_BYTES:
