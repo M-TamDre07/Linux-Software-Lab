@@ -95,7 +95,7 @@ def test_apt_details_displays_package_description_and_current_repo_origin(monkey
     assert details.package_kind == "Aplikasi / utilitas"
     assert details.origin == "https://repo.example.invalid stable/main amd64 Packages"
     assert "A local text editor" in details.description
-    assert "ini bukan bukti historis" in details.origin_note
+    assert "bukan bukti historis" in details.origin_note
     assert "FUNGSI / DESKRIPSI MENURUT METADATA SUMBER" in rendered
     assert "Repositori yang saat ini menyediakan versi terpasang" in rendered
     assert any(call[:2] == ("apt-cache", "policy") for call in calls)
