@@ -72,6 +72,10 @@ sha256sum -c SHA256SUMS
 
 Only run the check with the three matching artifact files present in the same directory.
 
+## Maintained source checks
+
+The supplied release files are checksum-verified and are not rewritten during website maintenance. A small maintenance patch series is stored in [`patches/`](patches/README.md). The repository's **Sorot source quality** workflow extracts the source ZIP into a temporary directory, applies those patches, runs Ruff, mypy, and pytest on Python 3.11–3.13, and performs a reproducible package build without publishing it. See the patch notes before treating any rebuilt artifact as a release.
+
 ## Open-source contributions
 
 Please read [`EXTENSIONS.md`](EXTENSIONS.md) before developing or installing extensions. For source changes, include reproducible steps, focused tests, and documentation updates. The public website catalog is maintained separately under `public/`; website-only rebranding should not rewrite application binaries, the Debian packaging files, or source archives.
