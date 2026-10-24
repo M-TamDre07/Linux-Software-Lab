@@ -17,6 +17,8 @@ def test_system_snapshot_is_read_only_structured_data():
     assert result["kernel"]["release"]
     assert "logical_processors" in result["cpu"]
     assert isinstance(result["disk_usage"], list)
+    assert isinstance(result["mounts"], list)
+    assert "services" in result
     assert "tidak dikirim ke jaringan" in result["notice"]
 
 
@@ -63,3 +65,15 @@ def test_privileged_mode_requires_trusted_installed_helper(tmp_path, monkeypatch
     )
     with pytest.raises(RuntimeError, match="paket Debian terpasang"):
         run_privileged_metadata_inspection()
+
+
+def test_admin_payload_rejects_traversal_paths():
+    result = validate_admin_payload({
+        "schema_version": 1,
+        "entries": [
+            {"path": "/etc/../root/.ssh/id_ed25519", "owner_uid": 0,
+             "group_gid": 0, "size_bytes": 10},
+        ],
+        "diagnostics": [],
+    })
+    assert result["entries"] == []
