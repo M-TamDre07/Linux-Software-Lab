@@ -42,8 +42,8 @@ NEW_RUN_AND_TERMINATE = r'''def _run(
 
     assert process.stdout is not None and process.stderr is not None
     selector = selectors.DefaultSelector()
-    selector.register(process.stdout, selectors.EVENT_READ, "stdout")
-    selector.register(process.stderr, selectors.EVENT_READ, "stderr")
+    selector.register(process.stdout, selectors.EVENT_READ, ("stdout", process.stdout))
+    selector.register(process.stderr, selectors.EVENT_READ, ("stderr", process.stderr))
     stdout_chunks: list[bytes] = []
     stdout_size = 0
     stderr_tail = bytearray()
@@ -63,12 +63,13 @@ NEW_RUN_AND_TERMINATE = r'''def _run(
                 continue
 
             for key, _ in selector.select(timeout=min(_POLL_SECONDS, remaining)):
-                chunk = os.read(key.fileobj.fileno(), 65_536)
+                stream_role, stream = key.data
+                chunk = os.read(stream.fileno(), 65_536)
                 if not chunk:
                     selector.unregister(key.fileobj)
-                    key.fileobj.close()
+                    stream.close()
                     continue
-                if key.data == "stdout":
+                if stream_role == "stdout":
                     stdout_size += len(chunk)
                     if stdout_size > max_output_bytes:
                         raise DriveIntegrationError(
