@@ -276,10 +276,10 @@ class InspectionDialog(QDialog):
             "PaketScope akan meminta autentikasi Polkit untuk membaca metadata saja. "
             "Operasi dibatasi pada path sistem yang sudah ditentukan dan tidak membaca isi file. "
             "Lanjutkan?",
-            QMessageBox.StandardButton.Continue | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             QMessageBox.StandardButton.Cancel,
         )
-        if response != QMessageBox.StandardButton.Continue:
+        if response != QMessageBox.StandardButton.Yes:
             return
         self._start_task(
             "Meminta otorisasi Polkit untuk metadata read-only…",
