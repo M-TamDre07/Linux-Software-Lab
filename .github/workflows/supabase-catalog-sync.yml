@@ -1,0 +1,64 @@
+name: Supabase catalogue sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "public/data/software.json"
+      - "scripts/sync_supabase_catalog.py"
+      - "supabase/migrations/**"
+      - ".github/workflows/supabase-catalog-sync.yml"
+  pull_request:
+    paths:
+      - "public/data/software.json"
+      - "scripts/sync_supabase_catalog.py"
+      - "supabase/migrations/**"
+      - ".github/workflows/supabase-catalog-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-catalog-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Validate source catalogue and sync mapping
+        run: |
+          python scripts/validate_catalog.py
+          python scripts/sync_supabase_catalog.py --check
+          python -m json.tool public/data/software.json > /dev/null
+
+  sync:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: validate
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://ttofugaqwthmvhvntdlc.supabase.co
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Check trusted sync credential
+        id: secret-check
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_SECRET_KEY" ]]; then
+            echo "::warning::Supabase mirror sync was skipped: add the modern sb_secret_ key as the GitHub Actions secret SUPABASE_SECRET_KEY."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Synchronize and verify the catalogue
+        if: steps.secret-check.outputs.configured == 'true'
+        run: python scripts/sync_supabase_catalog.py
