@@ -250,6 +250,8 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
     skipped = 0
     pending: list[tuple[Path, int]] = [(root, 0)] if root.is_dir() else []
     candidates: list[tuple[Path, str]] = []
+    visited_directories = 0
+    visited_entries = 0
     if root.is_file():
         candidates.append((root, root.name))
     else:
