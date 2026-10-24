@@ -89,6 +89,8 @@ def parse_flatpak_output(output: str) -> list[InstalledApplication]:
         if len(columns) < 5:
             continue
         app_id, name, version, branch, origin = columns[:5]
+        if app_id.casefold() in {"application", "application id", "app", "id"}:
+            continue
         description = columns[5] if len(columns) > 5 else ""
         installation = columns[6] if len(columns) > 6 else ""
         architecture = columns[7] if len(columns) > 7 else ""
