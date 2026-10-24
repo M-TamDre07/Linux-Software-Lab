@@ -198,8 +198,43 @@ def collect_system_snapshot() -> dict[str, Any]:
     }
 
 
-def run_privileged_metadata_inspection() -> dict[str, Any]:
-    """Run the fixed, read-only helper after explicit app opt-in and polkit auth."""
+ADMIN_ALLOWED_ROOTS = (
+    "/etc", "/boot", "/usr/local", "/opt", "/var/lib/dpkg", "/var/log",
+    "/usr/share", "/usr/bin", "/usr/sbin", "/usr/lib",
+)
+ADMIN_EXCLUDED_COMPONENTS = frozenset({
+    "private", "ssh", ".ssh", "sudoers.d", "system-connections", "auth.conf.d",
+    "credentials", "credstore", "openvpn", "wireguard",
+})
+ADMIN_EXCLUDED_FILENAMES = frozenset({
+    "shadow", "shadow-", "gshadow", "gshadow-", "passwd-", "master.passwd",
+    "id_rsa", "id_dsa", "id_ecdsa", "id_ed25519", "id_ed25519_sk",
+    "authorized_keys", "known_hosts", "auth.conf", "credentials", "netrc",
+    "htpasswd", "privatekey", "private_key", "server.key",
+})
+ADMIN_EXCLUDED_SUFFIXES = frozenset({
+    ".pem", ".key", ".p12", ".pfx", ".keystore", ".kdbx", ".gpg", ".pgp", ".age",
+})
+MAX_ADMIN_TEXT_FILE_BYTES = 256 * 1024
+
+
+def validate_admin_text_request(raw_path: str) -> str:
+    """Validate the UI's requested path before asking Polkit; the helper rechecks it as root."""
+    candidate = Path(raw_path)
+    if not candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError("Masukkan path absolut tanpa traversal '..'.")
+    if not any(candidate != Path(root) and candidate.is_relative_to(Path(root)) for root in ADMIN_ALLOWED_ROOTS):
+        raise ValueError("File harus berada di direktori sistem yang diizinkan.")
+    if any(part.casefold() in ADMIN_EXCLUDED_COMPONENTS for part in candidate.parts):
+        raise ValueError("Direktori tersebut termasuk area sensitif.")
+    name = candidate.name.casefold()
+    if name in ADMIN_EXCLUDED_FILENAMES or name.startswith(".env") or candidate.suffix.casefold() in ADMIN_EXCLUDED_SUFFIXES:
+        raise ValueError("File tersebut terlihat seperti kredensial atau private key dan tidak dibuka.")
+    return str(candidate)
+
+
+def _trusted_admin_prefix() -> list[str]:
+    """Verify the installed helper and return only the fixed pkexec invocation prefix."""
     try:
         helper = TRUSTED_HELPER.resolve(strict=True)
         info = helper.stat()
@@ -212,7 +247,10 @@ def run_privileged_metadata_inspection() -> dict[str, Any]:
         raise RuntimeError("Helper administrator tidak berada pada lokasi paket sistem yang diizinkan.")
     if info.st_uid != 0 or info.st_mode & 0o022:
         raise RuntimeError("Helper administrator tidak tepercaya: pemilik harus root dan file tidak boleh writable oleh group/others.")
-    for directory in (helper.parent, helper.parent.parent, helper.parent.parent.parent, helper.parent.parent.parent.parent):
+    for directory in (
+        helper.parent, helper.parent.parent,
+        helper.parent.parent.parent, helper.parent.parent.parent.parent,
+    ):
         try:
             directory_info = directory.stat()
         except OSError as exc:
@@ -224,7 +262,11 @@ def run_privileged_metadata_inspection() -> dict[str, Any]:
     python = Path("/usr/bin/python3")
     if not executable.is_file() or not python.is_file():
         raise RuntimeError("pkexec atau /usr/bin/python3 tidak tersedia.")
-    argv = [str(executable), str(python), "-I", str(helper), "--metadata"]
+    return [str(executable), str(python), "-I", str(helper)]
+
+
+def _run_admin_request(action_args: list[str]) -> dict[str, Any]:
+    argv = _trusted_admin_prefix() + action_args
     try:
         completed = subprocess.run(
             argv, capture_output=True, text=True, encoding="utf-8", errors="replace",
@@ -234,7 +276,7 @@ def run_privileged_metadata_inspection() -> dict[str, Any]:
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError("Inspeksi administrator melewati batas waktu 45 detik.") from exc
     if completed.returncode != 0:
-        if completed.returncode == 126:
+        if completed.returncode in (126, 127):
             raise RuntimeError("Permintaan izin dibatalkan atau ditolak melalui Polkit.")
         detail = completed.stderr.strip()[-300:]
         raise RuntimeError("Inspeksi administrator gagal melalui Polkit." + (f" Detail: {detail}" if detail else ""))
@@ -244,7 +286,39 @@ def run_privileged_metadata_inspection() -> dict[str, Any]:
         payload = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
         raise RuntimeError("Helper administrator mengembalikan hasil yang tidak valid.") from exc
-    return validate_admin_payload(payload)
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+        raise RuntimeError("Versi format inspeksi administrator tidak dikenal.")
+    return payload
+
+
+def run_privileged_metadata_inspection() -> dict[str, Any]:
+    """Run the fixed metadata collection after explicit app opt-in and Polkit authorization."""
+    return validate_admin_payload(_run_admin_request(["--metadata"]))
+
+
+def run_privileged_text_file_read(raw_path: str) -> dict[str, Any]:
+    """Read one selected text/config file after consent and a separate Polkit authorization."""
+    path = validate_admin_text_request(raw_path)
+    payload = _run_admin_request(["--read-text", path])
+    if payload.get("scope") != "selected-text-file-read-only" or payload.get("path") != path:
+        raise RuntimeError("Hasil pembacaan file sistem tidak cocok dengan path yang diminta.")
+    content = payload.get("content")
+    try:
+        size_bytes = int(payload.get("size_bytes", -1))
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError("Ukuran file pada hasil administrator tidak valid.") from exc
+    if not isinstance(content, str) or size_bytes < 0 or size_bytes > MAX_ADMIN_TEXT_FILE_BYTES:
+        raise RuntimeError("Konten file administrator tidak valid atau melewati batas ukuran.")
+    if len(content.encode("utf-8")) > MAX_ADMIN_TEXT_FILE_BYTES:
+        raise RuntimeError("Konten file administrator melewati batas ukuran.")
+    return {
+        "schema_version": 1,
+        "scope": "selected-text-file-read-only",
+        "path": path,
+        "size_bytes": size_bytes,
+        "content": content,
+        "notice": "Dibaca saja; kode tidak dijalankan dan file tidak diubah. Maksimum 256 KiB.",
+    }
 
 
 def validate_admin_payload(payload: object) -> dict[str, Any]:
@@ -254,7 +328,7 @@ def validate_admin_payload(payload: object) -> dict[str, Any]:
     entries = payload.get("entries")
     if not isinstance(entries, list) or len(entries) > 3000:
         raise RuntimeError("Daftar metadata administrator tidak valid.")
-    allowed_roots = ("/etc", "/boot", "/usr/local", "/opt")
+    allowed_roots = ADMIN_ALLOWED_ROOTS
     normalized: list[dict[str, Any]] = []
     for item in entries:
         if not isinstance(item, dict):
@@ -283,5 +357,5 @@ def validate_admin_payload(payload: object) -> dict[str, Any]:
         "entries": normalized,
         "diagnostics": [str(item)[:300] for item in payload.get("diagnostics", [])[:100]]
         if isinstance(payload.get("diagnostics", []), list) else [],
-        "notice": "Metadata sistem saja: path, tipe, izin, UID/GID, ukuran. Isi file, kredensial, dan private key tidak dibaca.",
+        "notice": "Metadata path, tipe, izin, UID/GID, dan ukuran saja. Gunakan aksi baca-file terpisah untuk file teks yang diizinkan.",
     }
