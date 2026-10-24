@@ -41,6 +41,20 @@ class BrandAssetTests(unittest.TestCase):
         self.assertIn("/assets/images/home-icon.svg", catalog)
         self.assertIn('href="/"', catalog)
 
+    def test_sorot_brand_assets_use_the_current_product_name(self):
+        icon = PUBLIC / "assets/images/sorot-icon.svg"
+        preview = PUBLIC / "assets/images/sorot-preview.svg"
+        self.assertTrue(icon.is_file())
+        self.assertTrue(preview.is_file())
+        ET.parse(icon)
+        ET.parse(preview)
+        self.assertIn('<title id="title">Sorot</title>', icon.read_text(encoding="utf-8"))
+        self.assertIn("SOROT", preview.read_text(encoding="utf-8"))
+        catalog = json.loads((PUBLIC / "data/software.json").read_text(encoding="utf-8"))
+        sorot = next(item for item in catalog["software"] if item["id"] == "sorot")
+        self.assertEqual(sorot["sourceUrl"], "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot")
+        self.assertEqual(sorot["iconImage"], "/assets/images/sorot-icon.svg")
+
     def test_public_contribution_route_does_not_require_personal_contact_details(self):
         homepage = (PUBLIC / "index.html").read_text(encoding="utf-8")
         self.assertIn('id="kontribusi"', homepage)

@@ -53,3 +53,8 @@ Official references:
 ## Static output and privacy
 
 `vercel.json` publishes only `public/`. It does not publish application source under `apps/`, test fixtures, repository scripts, or maintainer documents as site files. The site requests its static catalogue JSON from the same origin; it has no backend search API and does not transmit search terms to a third party.
+
+
+## Supabase catalogue mirror
+
+The Vercel project remains a static deployment from the repository root with output directory public/. Its Content Security Policy permits connections only to the configured Supabase project in addition to same-origin requests. The browser uses the publishable key and reads only rows allowed by Row Level Security; it never receives the CI secret key. Supabase serves a read-only mirror of public/data/software.json, while GitHub remains the source of truth. If the mirror is unavailable, the website falls back to the committed JSON catalogue. See docs/SUPABASE_INTEGRATION.md for secret setup, synchronization, and access policy details.

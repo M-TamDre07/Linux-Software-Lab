@@ -8,8 +8,8 @@ The following assets are original Linux Software Lab project artwork maintained 
 - `public/assets/images/linux-software-lab-social.svg` — editorial social-preview illustration.
 - `public/assets/images/paketscope-icon.svg` — PaketScope product icon.
 - `public/assets/images/paketscope-preview.svg` — conceptual PaketScope interface artwork.
-- `public/assets/images/prompter-overlay-icon.svg` — Prompter Overlay concept icon.
-- `public/assets/images/prompter-overlay-preview.svg` — conceptual teleprompter artwork.
+- `public/assets/images/sorot-icon.svg` — Sorot product icon.
+- `public/assets/images/sorot-preview.svg` — conceptual teleprompter artwork.
 
 These original SVGs are project artwork, not screenshots from a released binary and not third-party icon packs. The product preview illustrations must continue to be labelled as concepts until replaced by genuine captures from tested builds.
 

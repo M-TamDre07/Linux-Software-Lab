@@ -1,0 +1,17 @@
+--- src/sorot/services/platform_info.py
++++ src/sorot/services/platform_info.py
+@@ -53,6 +53,15 @@
+     missing; Qt then aborts at startup. Loading it first lets us pick another
+     backend instead.
+     """
++    # A filename ending in .so is not proof that this is a native Qt plugin.
++    # Reject obviously invalid files even when PySide6 is unavailable and we
++    # cannot ask QLibrary to resolve the library and its runtime dependencies.
++    try:
++        with path.open("rb") as stream:
++            if stream.read(4) != b"\x7fELF":
++                return False
++    except OSError:
++        return False
+     try:
+         from PySide6.QtCore import QLibrary
