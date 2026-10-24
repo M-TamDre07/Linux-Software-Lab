@@ -398,7 +398,11 @@ const fetchSupabaseCatalog = async () => {
     order: 'sort_order.asc,name.asc'
   }).toString();
   const response = await fetch(endpoint.toString(), {
-    headers: { apikey: config.publishableKey, Accept: 'application/json' }
+    headers: {
+      apikey: config.publishableKey,
+      Authorization: 'Bearer ' + config.publishableKey,
+      Accept: 'application/json'
+    }
   });
   if (!response.ok) throw new Error('Supabase catalogue request failed (HTTP ' + response.status + ').');
   const rows = await response.json();
