@@ -184,17 +184,20 @@ def _read_desktop_launcher(path_text: str) -> DesktopLauncher | None:
     """Read only bounded .desktop metadata from standard system application dirs."""
     path = Path(path_text)
     allowed_roots = (Path("/usr/share/applications"), Path("/usr/local/share/applications"))
-    if not path.is_absolute() or path.suffix.casefold() != ".desktop":
+    if not path.is_absolute() or ".." in path.parts or path.suffix.casefold() != ".desktop":
         return None
     if not any(path.is_relative_to(root) and path != root for root in allowed_roots):
         return None
     try:
         if path.is_symlink():
             return None
-        info = path.stat()
+        resolved = path.resolve(strict=True)
+        if not any(resolved.is_relative_to(root.resolve(strict=True)) for root in allowed_roots):
+            return None
+        info = resolved.stat()
         if not stat.S_ISREG(info.st_mode) or info.st_size > MAX_DESKTOP_FILE_BYTES:
             return None
-        text = path.read_text(encoding="utf-8-sig")
+        text = resolved.read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError):
         return None
     parser = configparser.ConfigParser(interpolation=None, strict=False)
@@ -246,7 +249,7 @@ def _apt_package_kind(fields: dict[str, str], launchers: tuple[DesktopLauncher, 
         return "Aplikasi desktop (file .desktop ditemukan)"
     if section in {"admin", "base", "kernel", "sysutils"}:
         return "Utilitas atau komponen sistem"
-    if section in {"web", "net", "graphics", "sound", "video", "games", "utils"}:
+    if section in {"editors", "web", "net", "graphics", "sound", "video", "games", "utils"}:
         return "Aplikasi / utilitas"
     return "Paket perangkat lunak (lihat deskripsi sumber)"
 
