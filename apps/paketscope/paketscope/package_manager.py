@@ -50,6 +50,60 @@ def _matches_requested_package(requested: str, actual: str) -> bool:
     return ":" not in requested and actual.split(":", 1)[0] == requested
 
 
+PROTECTED_PACKAGE_NAMES = frozenset({
+    "apt", "base-files", "base-passwd", "bash", "coreutils", "dpkg",
+    "init", "init-system-helpers", "libc6", "polkit", "python3",
+    "python3-minimal", "sudo", "systemd", "systemd-sysv",
+})
+
+
+def _parse_control_fields(output: str) -> dict[str, str]:
+    """Parse the field subset used by dpkg-query -s."""
+    fields: dict[str, str] = {}
+    for line in output.splitlines():
+        if line.startswith((" ", "\\t")):
+            continue
+        key, separator, value = line.partition(":")
+        if separator:
+            fields[key.strip()] = value.strip()
+    return fields
+
+
+def _ensure_removal_is_safe(package_name: str) -> None:
+    """Fail closed if local dpkg metadata marks the target as system-critical."""
+    base_name = package_name.split(":", 1)[0]
+    if base_name in PROTECTED_PACKAGE_NAMES:
+        raise PackageOperationError(
+            f"Paket '{base_name}' dilindungi karena merupakan komponen dasar sistem."
+        )
+    try:
+        result = run_command(["dpkg-query", "-s", package_name], timeout=15.0)
+    except (CommandUnavailable, CommandTimedOut) as exc:
+        raise PackageOperationError(
+            "Tidak dapat memverifikasi prioritas paket; penghapusan dibatalkan demi keamanan."
+        ) from exc
+    if result.returncode != 0:
+        raise PackageOperationError(
+            "Metadata dpkg target tidak dapat diverifikasi; penghapusan dibatalkan."
+        )
+    fields = _parse_control_fields(result.stdout)
+    if fields.get("Status", "").casefold() != "install ok installed":
+        raise PackageOperationError("Paket bukan lagi paket terpasang; pindai ulang inventaris.")
+    priority = fields.get("Priority", "").casefold()
+    if not priority:
+        raise PackageOperationError(
+            "Prioritas paket tidak diketahui; penghapusan dibatalkan demi keamanan."
+        )
+    if fields.get("Essential", "").casefold() == "yes" or fields.get("Protected", "").casefold() == "yes":
+        raise PackageOperationError(
+            "Paket ditandai Essential/Protected oleh metadata sistem dan tidak dapat dihapus melalui PaketScope."
+        )
+    if priority in {"required", "important"}:
+        raise PackageOperationError(
+            f"Paket memiliki prioritas sistem '{priority}' dan dilindungi dari remove/purge melalui PaketScope."
+        )
+
+
 def search_apt_packages(query: str, limit: int = 60) -> tuple[AptSearchResult, ...]:
     """Search the local APT package index; no network refresh is triggered."""
     if not isinstance(query, str):
@@ -122,10 +176,21 @@ def preview_apt_action(action: str, package_name: str) -> AptTransactionPreview:
             "APT tidak merencanakan pemasangan untuk paket itu. Paket mungkin sudah terpasang "
             "atau tidak tersedia pada indeks lokal."
         )
-    if action in {"remove", "purge"} and not any(
-        _matches_requested_package(package_name, item) for item in (remove + purge)
-    ):
-        raise PackageOperationError("APT tidak merencanakan penghapusan paket yang dipilih.")
+    if action in {"remove", "purge"}:
+        changed_packages = tuple(dict.fromkeys(remove + purge))
+        if not any(_matches_requested_package(package_name, item) for item in changed_packages):
+            raise PackageOperationError("APT tidak merencanakan penghapusan paket yang dipilih.")
+        other_packages = tuple(
+            item for item in changed_packages
+            if not _matches_requested_package(package_name, item)
+        )
+        if other_packages:
+            sample = ", ".join(other_packages[:5])
+            raise PackageOperationError(
+                "Transaksi remove/purge berisiko ikut menghapus paket lain; ditolak secara otomatis. "
+                f"Contoh paket lain: {sample}."
+            )
+        _ensure_removal_is_safe(package_name)
     if not (install or remove or purge):
         raise PackageOperationError("Simulasi APT tidak menunjukkan perubahan; operasi dibatalkan.")
 
@@ -139,15 +204,33 @@ def preview_apt_action(action: str, package_name: str) -> AptTransactionPreview:
     )
 
 
-def apply_apt_action(action: str, package_name: str) -> CommandResult:
-    """Execute an action only after explicit GUI confirmation.
+def apply_apt_action(
+    action: str,
+    package_name: str,
+    approved_preview: AptTransactionPreview | None = None,
+) -> CommandResult:
+    """Execute a fresh, still-matching transaction through Polkit.
 
-    pkexec provides the desktop's polkit authentication prompt. The application
-    itself is never run as root and does not use sudo or a shell.
+    Re-simulation closes the gap between the plan displayed in the UI and the
+    moment privilege is requested. If the plan differs, the operation must be
+    reviewed and confirmed again.
     """
     if action not in ACTIONS:
         raise PackageOperationError("Jenis operasi paket tidak didukung.")
     package_name = validate_apt_package_name(package_name)
+    current_preview = preview_apt_action(action, package_name)
+    if approved_preview is not None:
+        if (
+            approved_preview.action != action
+            or approved_preview.package_name != package_name
+            or approved_preview.install != current_preview.install
+            or approved_preview.remove != current_preview.remove
+            or approved_preview.purge != current_preview.purge
+        ):
+            raise PackageOperationError(
+                "Rencana APT berubah sejak ditinjau. Tidak ada perubahan dilakukan; "
+                "pindai ulang dan tinjau rencana terbaru."
+            )
     argv = [
         "pkexec", "/usr/bin/env", "DEBIAN_FRONTEND=noninteractive",
         "/usr/bin/apt-get", "--assume-yes", "-o", "Dpkg::Use-Pty=0",
