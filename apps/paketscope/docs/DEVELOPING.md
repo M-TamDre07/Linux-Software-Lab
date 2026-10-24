@@ -40,6 +40,8 @@ paketscope/
   services.py        Application use cases and local data workflows
   commands.py        Bounded subprocess execution helper
   collectors.py      Read-only APT/dpkg and Flatpak inventory adapters
+  providers.py       Explicit, read-only inventory-provider contract
+  application_details.py Source-attributed package/app details and provenance
   updates.py         User-triggered update checks
   package_manager.py APT search, transaction simulation and guarded execution
   backup.py          Encrypted backup format and cryptographic operations
@@ -48,6 +50,7 @@ paketscope/
     main_window.py  Window layout, Qt setup, and task coordination
     package_actions.py APT search, preview, and confirmation dialogs
     inventory_actions.py Inventory refresh, update checks, diagnostics
+    application_details_dialog.py Read-only app identity and source dialog
     data_actions.py  CSV export, encrypted backup, and restore dialogs
     theme.py         Table headings and Qt stylesheet
     models.py        Qt inventory table and search/filter model
@@ -82,9 +85,21 @@ paths.
 - **Inventory/parser change:** update a pure parser or focused collector, add tests
   for valid, empty, malformed, and error output, then update the UI only if the
   visible behavior actually changes.
-- **New package-manager backend:** introduce a separate adapter with its own
-  command validation, inventory parser, transaction-preview behavior, and tests.
-  Do not make Debian APT assumptions the responsibility of the entire UI.
+- **New inventory source:** implement `InventoryProvider` from
+  `providers.py`, return a `ProviderResult` of normalized records/diagnostics,
+  and explicitly register it with `DEFAULT_PROVIDERS` or inject it into
+  `PaketScopeService(inventory_providers=...)`. Source filters are populated from
+  the sources returned. Arbitrary third-party modules are not auto-loaded.
+- **New package-manager mutation backend:** treat this as a separate security
+  feature, not just an inventory provider. It needs strict identifier validation,
+  a simulation/preview, explicit approval, a least-privilege authorization
+  boundary, protection against collateral/system-critical removals, and tests
+  for plan changes and cancellation. Do not make Debian APT assumptions the
+  responsibility of the entire UI.
+- **Application details or provenance:** show source-attributed metadata. For
+  APT, distinguish a repository currently offering the installed version from
+  historical install origin; never infer a provenance claim from a package name.
+  Parse desktop files as data, never execute their `Exec` fields.
 - **UI change:** use descriptive control names, accessible labels/tooltips, and
   explicit busy, empty, failure, and cancellation states. Keep long-running reads
   off the GUI thread.
