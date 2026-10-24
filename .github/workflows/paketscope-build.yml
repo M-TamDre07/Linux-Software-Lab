@@ -60,9 +60,10 @@ jobs:
         run: |
           set -euo pipefail
           archive="$RUNNER_TEMP/paketscope-source-test.tar.gz"
-          git archive --format=tar.gz --prefix="paketscope-test/" HEAD:apps/paketscope > "$archive"
+          git -C "$GITHUB_WORKSPACE" archive --format=tar.gz --prefix="paketscope-test/" HEAD:apps/paketscope > "$archive"
           test -s "$archive"
           archive_contents="$(tar -tzf "$archive")"
+          printf '%s\n' "$archive_contents" | head -40
           for relative in \
             pyproject.toml \
             README.md \
@@ -72,11 +73,16 @@ jobs:
             paketscope/ui/inspection_dialog.py \
             tests/test_code_inspector.py \
             tests/test_system_inspector.py; do
-            printf '%s\n' "$archive_contents" | awk -v suffix="/$relative" \
-              'length($0) >= length(suffix) && substr($0, length($0) - length(suffix) + 1) == suffix { found = 1 } END { exit !found }' || {
+            found=false
+            while IFS= read -r archive_path; do
+              case "$archive_path" in
+                */"$relative") found=true; break ;;
+              esac
+            done <<< "$archive_contents"
+            if [[ "$found" != true ]]; then
               echo "Source archive is missing required file: $relative"
               exit 1
-            }
+            fi
           done
       - name: Run unit tests (headless Qt)
         env:
