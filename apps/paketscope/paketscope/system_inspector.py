@@ -260,7 +260,7 @@ def validate_admin_payload(payload: object) -> dict[str, Any]:
         if not isinstance(item, dict):
             continue
         path = item.get("path")
-        if not isinstance(path, str) or not any(path == root or path.startswith(root + "/") for root in allowed_roots):
+        if not isinstance(path, str) or ".." in Path(path).parts or not any(path == root or path.startswith(root + "/") for root in allowed_roots):
             continue
         try:
             owner_uid = int(item.get("owner_uid", -1))
