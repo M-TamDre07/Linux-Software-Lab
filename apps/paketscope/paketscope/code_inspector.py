@@ -263,7 +263,8 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
             visited_directories += 1
             try:
                 with os.scandir(current) as iterator:
-                    entries = sorted(iterator, key=lambda entry: entry.name.casefold())
+                    remaining = max(1, MAX_ENTRIES - visited_entries + 1)
+                    entries = sorted(islice(iterator, remaining), key=lambda entry: entry.name.casefold())
             except OSError as exc:
                 skipped += 1
                 if len(diagnostics) < MAX_DIAGNOSTICS:
