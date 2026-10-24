@@ -201,13 +201,13 @@ jobs:
           path: dist/
       - name: Verify tag, prepare source archive, generate SHA-256, and write release notes
         env:
-          RELEASE_TAG: ${ github.ref_name }
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
           package="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
           test -n "$package"
           deb_version="$(dpkg-deb -f "$package" Version)"
-          expected_tag="paketscope-v$(printf '%s' "$deb_version" | sed 's/~/\\-/g')"
+          expected_tag="paketscope-v$(printf '%s' "$deb_version" | tr '~' '-')"
           if [[ "$RELEASE_TAG" != "$expected_tag" ]]; then
             echo "Tag mismatch: expected $expected_tag for Debian package version $deb_version, got $RELEASE_TAG"
             exit 1
@@ -229,7 +229,7 @@ jobs:
           EOF
       - name: Publish GitHub prerelease
         env:
-          GH_TOKEN: ${ github.token }
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           version="$(dpkg-deb -f dist/*.deb Version)"
