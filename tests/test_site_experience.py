@@ -57,7 +57,10 @@ class PageAudit(HTMLParser):
         if tag == "a" and "skip-link" in (values.get("class", "") or "").split():
             self.skip_links.append(values.get("href", "") or "")
         if tag == "script" and not values.get("src"):
-            self.inline_scripts += 1
+            script_type = (values.get("type") or "").split(";", 1)[0].strip().casefold()
+            # application/ld+json is a non-executable data block, not inline JavaScript.
+            if script_type != "application/ld+json":
+                self.inline_scripts += 1
         if "style" in values:
             self.inline_styles += 1
         self.inline_event_handlers.extend(
