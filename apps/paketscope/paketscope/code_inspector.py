@@ -8,6 +8,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import os
+from itertools import islice
 import re
 import stat
 import struct
