@@ -78,8 +78,19 @@ class DeploymentConfigTests(unittest.TestCase):
                 self.assertNotRegex(source, r"<style\b", "CSP should not need inline style blocks")
                 for match in re.finditer(r"<script\b([^>]*)>(.*?)</script\s*>", source, flags=re.IGNORECASE | re.DOTALL):
                     attributes, body = match.groups()
-                    if not re.search(r"\bsrc\s*=", attributes, flags=re.IGNORECASE):
-                        self.assertFalse(body.strip(), f"Inline script found in {path.relative_to(public)}")
+                    has_src = bool(re.search(r"\bsrc\s*=", attributes, flags=re.IGNORECASE))
+                    is_json_ld = bool(re.search(
+                        r"\btype\s*=\s*(['"])application/ld\+json\1",
+                        attributes,
+                        flags=re.IGNORECASE,
+                    ))
+                    if is_json_ld:
+                        try:
+                            json.loads(body.strip())
+                        except json.JSONDecodeError as exc:
+                            self.fail(f"Invalid JSON-LD in {path.relative_to(public)}: {exc}")
+                    elif not has_src:
+                        self.assertFalse(body.strip(), f"Executable inline script found in {path.relative_to(public)}")
 
     def test_static_site_does_not_ship_php_source_files(self):
         public = REPO_ROOT / "public"
