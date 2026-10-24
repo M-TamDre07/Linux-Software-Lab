@@ -182,3 +182,15 @@ def test_python_safe_yaml_loader_does_not_create_unsafe_deserialization_hint(tmp
     assert "yaml-deserialization" not in {
         item.rule_id for item in report.files[0].findings
     }
+
+
+def test_folder_scan_enforces_total_bytes_budget(tmp_path, monkeypatch):
+    (tmp_path / "a.py").write_text("def first(): return 1\\n", encoding="utf-8")
+    (tmp_path / "b.py").write_text("def second(): return 2\\n", encoding="utf-8")
+    monkeypatch.setattr(code_inspector, "MAX_TOTAL_BYTES", 24)
+
+    report = inspect_code_path(tmp_path)
+
+    assert report.scanned_files == 1
+    assert report.skipped_files == 1
+    assert any("Batas data total" in note for note in report.diagnostics)
