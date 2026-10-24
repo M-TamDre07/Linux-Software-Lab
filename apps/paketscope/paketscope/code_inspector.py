@@ -18,6 +18,7 @@ from pathlib import Path
 
 MAX_FILES = 2500
 MAX_FILE_BYTES = 2 * 1024 * 1024
+MAX_TOTAL_BYTES = 128 * 1024 * 1024
 MAX_DEPTH = 12
 MAX_DIRECTORIES = 10000
 MAX_ENTRIES = 20000
@@ -31,8 +32,8 @@ IGNORED_DIRS = frozenset({
 # Avoid traversing or previewing common private credential stores even when the
 # selected file itself has an innocuous name such as "config" or "settings".
 SENSITIVE_DIRS = frozenset({
-    ".ssh", ".gnupg", ".aws", ".azure", ".kube", ".docker",
-    "private", "secrets", "credentials", "credential", "auth",
+    ".ssh", ".gnupg", ".aws", ".azure", ".kube", ".docker", ".pki",
+    "private", "secrets", "credentials", "credential",
     "system-connections", "sudoers.d", "credstore",
 })
 SECRET_NAMES = frozenset({
@@ -444,14 +445,31 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
             f"{MAX_ENTRIES} entri); sebagian isi folder dilewati."
         )
 
+    total_bytes = 0
+    total_limit_reported = False
     for path, relative in candidates[:MAX_FILES]:
         try:
+            estimated_size = path.stat().st_size
+            if estimated_size > MAX_FILE_BYTES:
+                raise CodeInspectionError(
+                    f"File melebihi batas {MAX_FILE_BYTES // 1024 // 1024} MiB."
+                )
+            if total_bytes + estimated_size > MAX_TOTAL_BYTES:
+                skipped += 1
+                if not total_limit_reported and len(diagnostics) < MAX_DIAGNOSTICS:
+                    diagnostics.append(
+                        f"Batas data total {MAX_TOTAL_BYTES // (1024 * 1024)} MiB tercapai; "
+                        "file berikutnya yang tidak muat dilewati."
+                    )
+                    total_limit_reported = True
+                continue
             analysis = _analyze_regular_file(path, relative)
         except (OSError, CodeInspectionError) as exc:
             skipped += 1
             if len(diagnostics) < MAX_DIAGNOSTICS:
                 diagnostics.append(f"{relative}: dilewati ({exc}).")
             continue
+        total_bytes += analysis.size_bytes
         files.append(analysis)
     counts: dict[str, int] = {}
     for item in files:
