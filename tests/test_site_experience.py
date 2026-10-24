@@ -122,11 +122,11 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn('id="install-status"', source)
         self.assertIn("Belum tersedia untuk instalasi publik", source)
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
-        version_line = next(line for line in manifest.splitlines() if line.startswith("version = "))
-        app_version = version_line.split('"')[1]
+        app_version = next(line for line in manifest.splitlines() if line.startswith("version = ")).split('"')[1]
         self.assertIn(app_version, source)
         self.assertNotIn("apt install paketscope", source.lower())
         self.assertNotIn("curl | sudo", source.lower())
+
 
     def test_home_canonical_uses_verified_production_domain(self) -> None:
         _, home = self.parse_page("index.html")
@@ -143,78 +143,9 @@ class WebsiteExperienceTests(unittest.TestCase):
         app = next(row for row in data["software"] if row["id"] == "paketscope")
         page, _ = self.parse_page("software/paketscope.html")
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
-        version_line = next(line for line in manifest.splitlines() if line.startswith("version = "))
-        app_version = version_line.split('"')[1]
+        app_version = next(line for line in manifest.splitlines() if line.startswith("version = ")).split('"')[1]
         self.assertEqual(app["version"], app_version)
         self.assertIn(app_version, page)
-        self.assertIn("PaketScope 3", page)
-        self.assertEqual(app["status"], "testing")
-        self.assertEqual(app["releaseUrl"], "")
-
-if __name__ == "__main__":
-    unittest.main()
-, manifest)
-        self.assertIsNotNone(version_match, "PaketScope version must be declared in pyproject.toml")
-        self.assertIn(version_match.group(1), source)
-        self.assertNotIn("apt install paketscope", source.lower())
-        self.assertNotIn("curl | sudo", source.lower())
-
-
-    def test_home_canonical_uses_verified_production_domain(self) -> None:
-        _, home = self.parse_page("index.html")
-        expected = "https://linux-software-lab.vercel.app/"
-        self.assertEqual(home.canonicals, [expected])
-        sitemap = (PUBLIC / "sitemap.xml").read_text(encoding="utf-8")
-        robots = (PUBLIC / "robots.txt").read_text(encoding="utf-8")
-        self.assertIn(expected, sitemap)
-        self.assertIn("Sitemap: https://linux-software-lab.vercel.app/sitemap.xml", robots)
-        self.assertNotIn("muhammadandrea.vercel.app", sitemap + robots)
-
-    def test_catalogue_and_product_page_agree_on_paketscope_version(self) -> None:
-        data = json.loads((PUBLIC / "data" / "software.json").read_text(encoding="utf-8"))
-        app = next(row for row in data["software"] if row["id"] == "paketscope")
-        page, _ = self.parse_page("software/paketscope.html")
-        self.assertEqual(app["version"], "3.0.0.dev2")
-        self.assertIn("PaketScope 3", page)
-        self.assertEqual(app["status"], "testing")
-        self.assertEqual(app["releaseUrl"], "")
-
-
-if __name__ == "__main__":
-    unittest.main()
-, manifest)
-        self.assertIsNotNone(version_match, "PaketScope version must be declared in pyproject.toml")
-        self.assertEqual(app["version"], version_match.group(1))
-        self.assertIn(version_match.group(1), page)
-        self.assertIn("PaketScope 3", page)
-        self.assertEqual(app["status"], "testing")
-        self.assertEqual(app["releaseUrl"], "")
-
-
-if __name__ == "__main__":
-    unittest.main()
-, manifest)
-        self.assertIsNotNone(version_match, "PaketScope version must be declared in pyproject.toml")
-        self.assertIn(version_match.group(1), source)
-        self.assertNotIn("apt install paketscope", source.lower())
-        self.assertNotIn("curl | sudo", source.lower())
-
-
-    def test_home_canonical_uses_verified_production_domain(self) -> None:
-        _, home = self.parse_page("index.html")
-        expected = "https://linux-software-lab.vercel.app/"
-        self.assertEqual(home.canonicals, [expected])
-        sitemap = (PUBLIC / "sitemap.xml").read_text(encoding="utf-8")
-        robots = (PUBLIC / "robots.txt").read_text(encoding="utf-8")
-        self.assertIn(expected, sitemap)
-        self.assertIn("Sitemap: https://linux-software-lab.vercel.app/sitemap.xml", robots)
-        self.assertNotIn("muhammadandrea.vercel.app", sitemap + robots)
-
-    def test_catalogue_and_product_page_agree_on_paketscope_version(self) -> None:
-        data = json.loads((PUBLIC / "data" / "software.json").read_text(encoding="utf-8"))
-        app = next(row for row in data["software"] if row["id"] == "paketscope")
-        page, _ = self.parse_page("software/paketscope.html")
-        self.assertEqual(app["version"], "3.0.0.dev2")
         self.assertIn("PaketScope 3", page)
         self.assertEqual(app["status"], "testing")
         self.assertEqual(app["releaseUrl"], "")
