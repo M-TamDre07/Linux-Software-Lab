@@ -382,12 +382,68 @@ const fillCatalogControls = () => {
 const year = $('#year');
 if (year) year.textContent = String(new Date().getFullYear());
 
+const fetchStaticCatalog = async () => {
+  const response = await fetch('/data/software.json', { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Katalog statis tidak dapat dimuat (HTTP ' + response.status + ').');
+  return response.json();
+};
+
+const fetchSupabaseCatalog = async () => {
+  const config = window.LSL_SUPABASE_CONFIG;
+  if (!config || !config.url || !config.publishableKey) throw new Error('Supabase browser config is missing.');
+  const endpoint = new URL('/rest/v1/software_catalog', config.url);
+  endpoint.search = new URLSearchParams({
+    select: 'id,slug,name,version,summary,description,category,status,type,platforms,tags,keywords,features,detail_url,source_url,release_url,icon,icon_image,preview_image,preview_alt,updated_at,sort_order',
+    published: 'eq.true',
+    order: 'sort_order.asc,name.asc'
+  }).toString();
+  const response = await fetch(endpoint.toString(), {
+    headers: { apikey: config.publishableKey, Accept: 'application/json' }
+  });
+  if (!response.ok) throw new Error('Supabase catalogue request failed (HTTP ' + response.status + ').');
+  const rows = await response.json();
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error('Supabase catalogue is empty or malformed.');
+  const mapped = rows.map(row => ({
+    id: row.id, slug: row.slug, name: row.name, version: row.version,
+    summary: row.summary, description: row.description, category: row.category,
+    status: row.status, type: row.type,
+    platforms: Array.isArray(row.platforms) ? row.platforms : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    keywords: Array.isArray(row.keywords) ? row.keywords : [],
+    features: Array.isArray(row.features) ? row.features : [],
+    detailUrl: row.detail_url, sourceUrl: row.source_url, releaseUrl: row.release_url,
+    icon: row.icon, iconImage: row.icon_image, previewImage: row.preview_image,
+    previewAlt: row.preview_alt,
+    updatedAt: typeof row.updated_at === 'string' ? row.updated_at.slice(0, 10) : ''
+  }));
+  if (mapped.some(app => !app.id || !app.name || !app.detailUrl || !app.iconImage || !app.previewImage)) {
+    throw new Error('Supabase catalogue contains incomplete records.');
+  }
+  const latestDate = mapped.map(app => app.updatedAt).filter(Boolean).sort().pop() || '';
+  return {
+    schemaVersion: 2,
+    catalog: {
+      name: 'Linux Software Lab',
+      description: 'Katalog software desktop independen untuk Debian dan keluarga Linux.',
+      searchMode: 'client-side',
+      pageSize: pageSize,
+      updatedAt: latestDate
+    },
+    software: mapped
+  };
+};
+
 if (grid) {
-  fetch('/data/software.json', { headers: { Accept: 'application/json' } })
-    .then(response => {
-      if (!response.ok) throw new Error('Katalog tidak dapat dimuat (HTTP ' + response.status + ').');
-      return response.json();
-    })
+  const loadCatalog = async () => {
+    try {
+      return await fetchSupabaseCatalog();
+    } catch (_) {
+      // Preserve resilience: use the committed static catalogue when the API is unavailable.
+      console.warn('[Linux Software Lab] Supabase catalogue unavailable; using static JSON fallback.');
+      return await fetchStaticCatalog();
+    }
+  };
+  loadCatalog()
     .then(data => {
       if (!data || data.schemaVersion !== 2 || !Array.isArray(data.software)) {
         throw new Error('Struktur katalog tidak sesuai dengan versi skema yang didukung.');
