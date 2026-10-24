@@ -122,10 +122,11 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn('id="install-status"', source)
         self.assertIn("Belum tersedia untuk instalasi publik", source)
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
-        version_match = re.search(r'(?m)^version\s*=\s*"([^"]+)"
+        version_line = next(line for line in manifest.splitlines() if line.startswith("version = "))
+        app_version = version_line.split('"')[1]
+        self.assertIn(app_version, source)
         self.assertNotIn("apt install paketscope", source.lower())
         self.assertNotIn("curl | sudo", source.lower())
-
 
     def test_home_canonical_uses_verified_production_domain(self) -> None:
         _, home = self.parse_page("index.html")
@@ -142,10 +143,13 @@ class WebsiteExperienceTests(unittest.TestCase):
         app = next(row for row in data["software"] if row["id"] == "paketscope")
         page, _ = self.parse_page("software/paketscope.html")
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
-        version_match = re.search(r'(?m)^version\s*=\s*"([^"]+)"
+        version_line = next(line for line in manifest.splitlines() if line.startswith("version = "))
+        app_version = version_line.split('"')[1]
+        self.assertEqual(app["version"], app_version)
+        self.assertIn(app_version, page)
+        self.assertIn("PaketScope 3", page)
         self.assertEqual(app["status"], "testing")
         self.assertEqual(app["releaseUrl"], "")
-
 
 if __name__ == "__main__":
     unittest.main()
