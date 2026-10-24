@@ -130,11 +130,12 @@ def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     def fake_run(argv, timeout):
         calls.append((argv, timeout))
         if argv[0] == "apt-get" and "--simulate" in argv:
-            return result(argv, "Inst firefox (1.0 repo [amd64])\n")
+            return result(argv, "Inst firefox (1.0 repo [amd64])\\n")
         return result(argv, "done")
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
-    apply_apt_action("install", "firefox")
+    approved = preview_apt_action("install", "firefox")
+    apply_apt_action("install", "firefox", approved_preview=approved)
 
     argv, timeout = calls[-1]
     assert argv[0] == "pkexec"
@@ -143,8 +144,7 @@ def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     assert "--no-remove" in argv
     assert timeout == 900.0
     assert not any("shell" in part.lower() for part in argv)
-    assert len(calls) == 2
-
+    assert len(calls) == 3
 def test_apply_rejects_invalid_package_before_running_command(monkeypatch):
     def fail_if_called(*args, **kwargs):
         pytest.fail("run_command must not be reached")
@@ -243,3 +243,12 @@ def test_remove_refuses_unknown_priority_metadata(monkeypatch):
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
     with pytest.raises(PackageOperationError, match="Prioritas paket tidak diketahui"):
         preview_apt_action("remove", "sample-app")
+
+
+def test_apply_requires_a_preview_that_was_approved_in_the_ui(monkeypatch):
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("No command should run without a reviewed preview.")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fail_if_called)
+    with pytest.raises(PackageOperationError, match="rencana yang telah ditinjau"):
+        apply_apt_action("install", "firefox")
