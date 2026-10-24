@@ -243,6 +243,8 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
         raise CodeInspectionError(f"Path tidak dapat diakses: {exc}") from exc
     if is_sensitive_path(root):
         raise CodeInspectionError("File berpotensi berisi kredensial/rahasia tidak diperiksa oleh default.")
+    if root in {Path("/"), Path("/proc"), Path("/sys"), Path("/dev"), Path("/run")}:
+        raise CodeInspectionError("Pilih folder project atau direktori tertentu; root dan pseudo-filesystem tidak dipindai sebagai satu folder.")
     if not root.is_file() and not root.is_dir():
         raise CodeInspectionError("Pilih satu file atau folder lokal.")
 
