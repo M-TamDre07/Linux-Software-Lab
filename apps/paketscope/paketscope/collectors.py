@@ -40,7 +40,7 @@ class FlatpakProvider:
     def collect(self) -> ProviderResult:
         extended = [
             "flatpak", "list", "--app",
-            "--columns=application,name,description,version,branch,origin",
+            "--columns=application,name,version,branch,origin,description",
         ]
         try:
             result = run_command(extended, timeout=25.0)
