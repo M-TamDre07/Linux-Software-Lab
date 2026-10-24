@@ -240,21 +240,13 @@ class InspectionDialog(QDialog):
             return
 
         message = (
-            "Aktifkan mode administrator untuk sesi aplikasi ini?
-
-"
-            "• Mode ini tidak menjalankan seluruh aplikasi sebagai root.
-"
+            "Aktifkan mode administrator untuk sesi aplikasi ini?\n\n"
+            "• Mode ini tidak menjalankan seluruh aplikasi sebagai root.\n"
             "• Pemeriksaan tambahan hanya mencantumkan metadata dari /etc, /boot, "
-            "/usr/local, dan /opt sampai kedalaman terbatas.
-"
-            "• Isi file, password, private key, dan direktori rahasia tidak dibaca.
-"
-            "• Setiap pemindaian administrator meminta otorisasi Polkit tersendiri.
-"
-            "• Tidak ada perubahan sistem atau perintah shell bebas.
-
-"
+            "/usr/local, dan /opt sampai kedalaman terbatas.\n"
+            "• Isi file, password, private key, dan direktori rahasia tidak dibaca.\n"
+            "• Setiap pemindaian administrator meminta otorisasi Polkit tersendiri.\n"
+            "• Tidak ada perubahan sistem atau perintah shell bebas.\n\n"
             "Mode ini hanya tersedia dari paket Debian terpasang yang helper-nya tepercaya."
         )
         response = QMessageBox.warning(
