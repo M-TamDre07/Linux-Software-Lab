@@ -23,6 +23,9 @@ class LinkParser(HTMLParser):
         self.ids: list[tuple[str, int]] = []
         self.policy_violations: list[tuple[int, str]] = []
         self._inline_script = False
+        self._script_type = ""
+        self._script_line = 0
+        self._script_data: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attributes = {key.lower(): value for key, value in attrs}
@@ -39,12 +42,27 @@ class LinkParser(HTMLParser):
                     self.links.append((lowered, line, value))
         if tag.lower() == "script":
             self._inline_script = not bool(attributes.get("src"))
-            if self._inline_script:
+            self._script_type = (attributes.get("type") or "").split(";", 1)[0].strip().casefold()
+            self._script_line = line
+            self._script_data = []
+            # JSON-LD is a non-executable data block, not inline JavaScript.
+            if self._inline_script and self._script_type != "application/ld+json":
                 self.policy_violations.append((line, "inline script violates script-src 'self' policy"))
+
+    def handle_data(self, data: str) -> None:
+        if self._inline_script and self._script_type == "application/ld+json":
+            self._script_data.append(data)
 
     def handle_endtag(self, tag: str) -> None:
         if tag.lower() == "script":
+            if self._inline_script and self._script_type == "application/ld+json":
+                try:
+                    json.loads("".join(self._script_data))
+                except json.JSONDecodeError:
+                    self.policy_violations.append((self._script_line, "inline JSON-LD must contain valid JSON data"))
             self._inline_script = False
+            self._script_type = ""
+            self._script_data = []
 
 
 class CanonicalParser(HTMLParser):
