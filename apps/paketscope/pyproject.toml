@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "paketscope"
-version = "3.0.0.dev3"
+version = "3.0.0.dev4"
 description = "Native local-first package inventory for Debian-family desktops"
 readme = "README.md"
 requires-python = ">=3.10"
