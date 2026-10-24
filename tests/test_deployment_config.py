@@ -80,7 +80,7 @@ class DeploymentConfigTests(unittest.TestCase):
                     attributes, body = match.groups()
                     has_src = bool(re.search(r"\bsrc\s*=", attributes, flags=re.IGNORECASE))
                     is_json_ld = bool(re.search(
-                        r"\btype\s*=\s*(['"])application/ld\+json\1",
+                        r"""\btype\s*=\s*(['"])application/ld\+json\1""",
                         attributes,
                         flags=re.IGNORECASE,
                     ))
