@@ -112,3 +112,51 @@ def test_whole_root_and_pseudo_filesystems_are_not_scanned(tmp_path):
     for path in ("/", "/proc", "/sys", "/dev", "/run"):
         with pytest.raises(CodeInspectionError, match="pseudo-filesystem"):
             inspect_code_path(path)
+
+
+def test_python_static_review_flags_dynamic_execution_shell_deserialization_and_network(tmp_path):
+    source = tmp_path / "review.py"
+    source.write_text(
+        "import subprocess, pickle, requests\\n"
+        "def review(value):\\n"
+        "    eval(value)\\n"
+        "    subprocess.run(value, shell=True)\\n"
+        "    pickle.loads(value)\\n"
+        "    requests.get('https://example.invalid')\\n",
+        encoding="utf-8",
+    )
+
+    report = inspect_code_path(source)
+    findings = {(item.rule_id, item.line) for item in report.files[0].findings}
+
+    assert ("dynamic-execution", 3) in findings
+    assert ("subprocess-shell", 4) in findings
+    assert ("unsafe-deserialization", 5) in findings
+    assert ("network-access", 6) in findings
+    assert "potential" not in " ".join(item.message for item in report.files[0].findings).casefold()
+
+
+def test_code_inspector_skips_sensitive_directory_and_rejects_viewer_access(tmp_path):
+    private_store = tmp_path / ".aws"
+    private_store.mkdir()
+    config = private_store / "config"
+    config.write_text("aws_access_key_id=not-for-display", encoding="utf-8")
+    ordinary = tmp_path / "module.py"
+    ordinary.write_text("def safe():\\n    return True\\n", encoding="utf-8")
+
+    report = inspect_code_path(tmp_path)
+
+    assert {item.path for item in report.files} == {"module.py"}
+    with pytest.raises(CodeInspectionError, match="rahasia|lokasi"):
+        inspect_code_path(config)
+    with pytest.raises(CodeInspectionError, match="rahasia|lokasi"):
+        read_inspected_source(config)
+
+
+def test_non_python_source_reports_shell_and_dynamic_execution_review_hints(tmp_path):
+    source = tmp_path / "sample.js"
+    source.write_text("const value = eval(input);\\n// shell = true\\n", encoding="utf-8")
+
+    report = inspect_code_path(source)
+
+    assert {item.rule_id for item in report.files[0].findings} == {"dynamic-execution"}
