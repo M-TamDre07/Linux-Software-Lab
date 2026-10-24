@@ -404,9 +404,10 @@ class InspectionDialog(QDialog):
         language_summary = ", ".join(
             f"{name}: {count}" for name, count in value.languages[:8]
         ) or "tidak ada file kode yang dikenali"
+        finding_count = sum(len(item.findings) for item in value.files)
         self.code_status.setText(
             f"{value.root} · {value.scanned_files} file dianalisis · "
-            f"{value.skipped_files} dilewati · {language_summary}"
+            f"{value.skipped_files} dilewati · {finding_count} pola untuk ditinjau · {language_summary}"
         )
         if value.diagnostics:
             self.code_status.setToolTip("\n".join(value.diagnostics[:20]))
@@ -445,6 +446,12 @@ class InspectionDialog(QDialog):
             "",
             "Fungsi/kelas/simbol yang terdeteksi:",
             *([f"  • {name}" for name in item.symbols] or ["  (tidak terdeteksi / bukan source teks)"]),
+            "",
+            "Pola statis untuk ditinjau (bukan vonis kerentanan):",
+            *([
+                f"  • Baris {finding.line} [{finding.rule_id}] {finding.message}"
+                for finding in item.findings
+            ] or ["  • Tidak ada pola yang cocok dengan aturan terbatas ini. Ini bukan bukti bahwa kode bebas kerentanan."]),
             "",
             "Catatan:",
             *[f"  • {note}" for note in item.notes],
