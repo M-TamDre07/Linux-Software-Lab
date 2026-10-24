@@ -84,13 +84,17 @@ def test_install_preview_refuses_remove_side_effects(monkeypatch):
 
 def test_purge_preview_recognizes_purg_records(monkeypatch):
     def fake_run(argv, timeout):
+        if argv[0] == "dpkg-query":
+            return result(argv, (
+                "Package: sample-app\\nStatus: install ok installed\\n"
+                "Priority: optional\\nEssential: no\\n"
+            ))
         assert "purge" in argv
-        return result(argv, "Purg sample-app [1.0]\n")
+        return result(argv, "Purg sample-app [1.0]\\n")
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
     plan = preview_apt_action("purge", "sample-app")
     assert plan.purge == ("sample-app",)
-
 
 def test_preview_rejects_unknown_action_before_running_command(monkeypatch):
     def fail_if_called(*args, **kwargs):
@@ -121,23 +125,25 @@ def test_remove_preview_requires_the_requested_package(monkeypatch):
 
 
 def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
-    seen = {}
+    calls = []
 
     def fake_run(argv, timeout):
-        seen["argv"] = argv
-        seen["timeout"] = timeout
+        calls.append((argv, timeout))
+        if argv[0] == "apt-get" and "--simulate" in argv:
+            return result(argv, "Inst firefox (1.0 repo [amd64])\\n")
         return result(argv, "done")
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
     apply_apt_action("install", "firefox")
 
-    assert seen["argv"][0] == "pkexec"
-    assert seen["argv"][1] == "/usr/bin/env"
-    assert "/usr/bin/apt-get" in seen["argv"]
-    assert "--no-remove" in seen["argv"]
-    assert seen["timeout"] == 900.0
-    assert not any("shell" in part.lower() for part in seen["argv"])
-
+    argv, timeout = calls[-1]
+    assert argv[0] == "pkexec"
+    assert argv[1] == "/usr/bin/env"
+    assert "/usr/bin/apt-get" in argv
+    assert "--no-remove" in argv
+    assert timeout == 900.0
+    assert not any("shell" in part.lower() for part in argv)
+    assert len(calls) == 2
 
 def test_apply_rejects_invalid_package_before_running_command(monkeypatch):
     def fail_if_called(*args, **kwargs):
@@ -150,3 +156,90 @@ def test_apply_rejects_invalid_package_before_running_command(monkeypatch):
 
 def test_app_version_matches_development_package_version():
     assert __version__ == "3.0.0.dev3"
+
+
+
+def test_removal_refuses_essential_package(monkeypatch):
+    def fake_run(argv, timeout):
+        if argv[0] == "apt-get":
+            return result(argv, "Remv sample-app [1.0]\\n")
+        return result(argv, (
+            "Package: sample-app\\nStatus: install ok installed\\n"
+            "Priority: optional\\nEssential: yes\\n"
+        ))
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="Essential/Protected"):
+        preview_apt_action("remove", "sample-app")
+
+
+def test_removal_refuses_required_or_important_priority(monkeypatch):
+    def fake_run(argv, timeout):
+        if argv[0] == "apt-get":
+            return result(argv, "Remv sample-app [1.0]\\n")
+        return result(argv, (
+            "Package: sample-app\\nStatus: install ok installed\\n"
+            "Priority: required\\nEssential: no\\n"
+        ))
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="prioritas sistem"):
+        preview_apt_action("purge", "sample-app")
+
+
+def test_removal_refuses_critical_core_package_before_metadata_query(monkeypatch):
+    calls = []
+
+    def fake_run(argv, timeout):
+        calls.append(argv)
+        return result(argv, "Remv libc6 [2.0]\\n")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="komponen dasar sistem"):
+        preview_apt_action("remove", "libc6")
+    assert len(calls) == 1
+
+
+def test_removal_refuses_transactions_that_remove_another_package(monkeypatch):
+    calls = []
+
+    def fake_run(argv, timeout):
+        calls.append(argv)
+        return result(argv, "Remv sample-app [1.0]\\nRemv other-app [1.0]\\n")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="paket lain"):
+        preview_apt_action("remove", "sample-app")
+    assert len(calls) == 1
+
+
+def test_apply_rejects_a_plan_that_changed_after_user_approval(monkeypatch):
+    calls = []
+
+    def fake_run(argv, timeout):
+        calls.append(argv)
+        if argv[0] == "apt-get" and "--simulate" in argv:
+            if len(calls) == 1:
+                return result(argv, "Inst firefox (1.0 repo [amd64])\\n")
+            return result(argv, (
+                "Inst firefox (1.0 repo [amd64])\\n"
+                "Inst extra-dependency (1.0 repo [amd64])\\n"
+            ))
+        pytest.fail("privileged mutation must not run when the reviewed plan changed")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    approved = preview_apt_action("install", "firefox")
+    with pytest.raises(PackageOperationError, match="Rencana APT berubah"):
+        apply_apt_action("install", "firefox", approved_preview=approved)
+    assert len(calls) == 2
+
+
+def test_remove_refuses_unknown_priority_metadata(monkeypatch):
+    def fake_run(argv, timeout):
+        if argv[0] == "apt-get":
+            return result(argv, "Remv sample-app [1.0]\\n")
+        return result(argv, "Package: sample-app\\nStatus: install ok installed\\n")
+
+    monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
+    with pytest.raises(PackageOperationError, match="Prioritas paket tidak diketahui"):
+        preview_apt_action("remove", "sample-app")
