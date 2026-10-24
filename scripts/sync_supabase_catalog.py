@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = ROOT / "public" / "data" / "software.json"
@@ -23,6 +23,54 @@ REQUIRED_FIELDS = {
     "previewImage", "previewAlt", "updatedAt",
 }
 SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+EXPECTED_SUPABASE_URL = "https://ttofugaqwthmvhvntdlc.supabase.co"
+VERIFY_COLUMNS = (
+    "id", "slug", "name", "version", "summary", "description", "category",
+    "status", "type", "platforms", "tags", "keywords", "features",
+    "detail_url", "source_url", "release_url", "icon", "icon_image",
+    "preview_image", "preview_alt", "updated_at", "sort_order", "published",
+)
+
+
+class _NoRedirect(HTTPRedirectHandler):
+    """Do not forward database credentials to redirected hosts."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_HTTP_OPENER = build_opener(_NoRedirect())
+
+
+def validate_supabase_url(value: str) -> str:
+    """Restrict credentials to the exact configured project's HTTPS origin."""
+    normalized = value.strip().rstrip("/")
+    if normalized != EXPECTED_SUPABASE_URL:
+        raise ValueError("SUPABASE_URL must match the configured Linux Software Lab project exactly.")
+    return normalized
+
+
+def catalog_rows_match(expected_rows: list[dict[str, Any]], actual_rows: Any) -> bool:
+    """Compare all published catalogue fields, not just record IDs."""
+    if not isinstance(actual_rows, list) or len(expected_rows) != len(actual_rows):
+        return False
+
+    def project(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]] | None:
+        projected: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                return None
+            identifier = row.get("id")
+            if not isinstance(identifier, str) or identifier in projected:
+                return None
+            if any(column not in row for column in VERIFY_COLUMNS):
+                return None
+            projected[identifier] = {column: row[column] for column in VERIFY_COLUMNS}
+        return projected
+
+    expected = project(expected_rows)
+    actual = project(actual_rows)
+    return expected is not None and actual is not None and expected == actual
 
 
 def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Any]:
@@ -89,7 +137,7 @@ def request_json(url: str, key: str, *, method: str = "GET",
         headers["Prefer"] = prefer
     request = Request(url, data=body, headers=headers, method=method)
     try:
-        with urlopen(request, timeout=25) as response:
+        with _HTTP_OPENER.open(request, timeout=25) as response:
             content = response.read()
             if not content:
                 return None
@@ -104,10 +152,8 @@ def request_json(url: str, key: str, *, method: str = "GET",
 
 def sync_catalog() -> int:
     data = load_catalog()
-    base_url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+    base_url = validate_supabase_url(os.environ.get("SUPABASE_URL", ""))
     secret_key = os.environ.get("SUPABASE_SECRET_KEY", "").strip()
-    if not base_url.startswith("https://") or ".supabase.co" not in base_url:
-        raise ValueError("SUPABASE_URL must be the HTTPS URL of the intended Supabase project.")
     if not secret_key.startswith("sb_secret_"):
         raise ValueError("SUPABASE_SECRET_KEY must be a modern sb_secret_ key stored in the CI secret store.")
     synced_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -123,9 +169,14 @@ def sync_catalog() -> int:
                  payload={"published": False, "synced_at": synced_at},
                  prefer="return=minimal")
 
-    verified = request_json(endpoint + "?select=id&published=eq.true&order=sort_order.asc", secret_key)
-    if not isinstance(verified, list) or {row.get("id") for row in verified} != {row["id"] for row in rows}:
-        raise RuntimeError("Post-sync verification did not match the canonical catalogue ids.")
+    verify_query = urlencode({
+        "select": ",".join(VERIFY_COLUMNS),
+        "published": "eq.true",
+        "order": "sort_order.asc",
+    })
+    verified = request_json(endpoint + "?" + verify_query, secret_key)
+    if not catalog_rows_match(rows, verified):
+        raise RuntimeError("Post-sync verification detected missing or mismatched catalogue fields.")
     return len(rows)
 
 
