@@ -66,7 +66,6 @@ class InventoryProxy(QSortFilterProxyModel):
             return True
         values = [str(model.index(source_row, col, source_parent).data() or "") for col in range(model.columnCount())]
         if self.source_filter != "Semua sumber":
-            selected = "flatpak" if self.source_filter == "Flatpak" else "apt / dpkg"
-            if selected not in values[2].casefold():
+            if self.source_filter.casefold() != values[2].casefold():
                 return False
         return not self.query or any(self.query in value.casefold() for value in values)
