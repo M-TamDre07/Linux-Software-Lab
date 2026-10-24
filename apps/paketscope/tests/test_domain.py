@@ -39,8 +39,8 @@ def test_snapshot_sorts_consistently_and_records_diagnostics():
 
 def test_parse_dpkg_keeps_package_classification_and_architecture():
     output = (
-        "libc6:amd64\\t2.36\\tinstalled\\tlibs\\trequired\\tyes\\tamd64\\n"
-        "sample-app\\t1.0\\tinstalled\\tutils\\toptional\\tno\\tall\\n"
+        "libc6:amd64\t2.36\tinstalled\tlibs\trequired\tyes\tamd64\n"
+        "sample-app\t1.0\tinstalled\tutils\toptional\tno\tall\n"
     )
     rows = parse_dpkg_output(output)
 
@@ -54,8 +54,8 @@ def test_parse_dpkg_keeps_package_classification_and_architecture():
 
 def test_parse_flatpak_extended_metadata_and_skip_header_row():
     output = (
-        "Application ID\\tName\\tVersion\\tBranch\\tOrigin\\tDescription\\n"
-        "org.example.Editor\\tExample Editor\\t1.2\\tstable\\tflathub\\tA local text editor\\n"
+        "Application ID\tName\tVersion\tBranch\tOrigin\tDescription\n"
+        "org.example.Editor\tExample Editor\t1.2\tstable\tflathub\tA local text editor\n"
     )
     rows = parse_flatpak_output(output)
 
