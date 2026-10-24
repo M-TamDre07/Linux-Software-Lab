@@ -1,6 +1,6 @@
 # Linux Software Lab
 
-Katalog software independen oleh Muhammad Andreatama. Website dibuat dengan HTML, CSS, JavaScript, dan JSON statis agar ringan, mudah dirawat, serta bisa menampung banyak aplikasi tanpa database pada tahap awal.
+Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, CSS, JavaScript, dan JSON sebagai sumber data utama. Supabase menyimpan mirror katalog baca-saja yang disinkronkan dari GitHub; Vercel melayani website statis dengan fallback ke JSON lokal agar tetap berfungsi saat backend bermasalah.
 
 ## Struktur repository
 
