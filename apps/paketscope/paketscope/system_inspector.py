@@ -93,6 +93,68 @@ def _disk_overview(paths: tuple[Path, ...]) -> list[dict[str, Any]]:
     return output
 
 
+
+def _read_mounts(cap: int = 120) -> list[dict[str, Any]]:
+    """Read mount-point metadata without exposing remote source hostnames."""
+    mounts: list[dict[str, Any]] = []
+    try:
+        lines = Path("/proc/self/mounts").read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return mounts
+    for line in lines:
+        columns = line.split()
+        if len(columns) < 4:
+            continue
+        mountpoint = columns[1].replace("\\040", " ").replace("\\011", "\t").replace("\\134", "\\")
+        filesystem = columns[2]
+        options = columns[3].split(",")
+        mounts.append({
+            "mountpoint": mountpoint[:320],
+            "filesystem": filesystem[:80],
+            "read_only": "ro" in options,
+        })
+        if len(mounts) >= cap:
+            break
+    return mounts
+
+
+def _services_summary(cap: int = 80) -> dict[str, Any]:
+    """List systemd service state using a fixed, read-only command."""
+    systemctl = shutil.which("systemctl")
+    if not systemctl:
+        return {"available": False, "services": [], "notice": "systemctl tidak tersedia."}
+    try:
+        completed = subprocess.run(
+            [systemctl, "list-units", "--type=service", "--all", "--no-legend", "--no-pager"],
+            check=False, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=12, shell=False,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return {"available": False, "services": [], "notice": "Status layanan tidak dapat dibaca."}
+    if completed.returncode != 0:
+        return {"available": False, "services": [], "notice": "systemctl mengembalikan galat atau sistem tidak memakai systemd."}
+    services: list[dict[str, str]] = []
+    for line in completed.stdout.splitlines():
+        parts = line.split(None, 4)
+        if len(parts) < 4:
+            continue
+        services.append({
+            "unit": parts[0][:180],
+            "load": parts[1][:32],
+            "active": parts[2][:32],
+            "sub": parts[3][:32],
+            "description": parts[4][:200] if len(parts) > 4 else "",
+        })
+        if len(services) >= cap:
+            break
+    return {
+        "available": True,
+        "services": services,
+        "truncated": len(services) >= cap,
+        "notice": "Daftar layanan read-only; tidak ada layanan yang diaktifkan, dihentikan, atau diubah.",
+    }
+
 def collect_system_snapshot() -> dict[str, Any]:
     """Collect an unprivileged snapshot; no commands or files are modified."""
     uname = platform.uname()
@@ -127,6 +189,8 @@ def collect_system_snapshot() -> dict[str, Any]:
         "cpu": _cpu_summary(),
         "memory_mib": _read_memory(),
         "disk_usage": disks,
+        "mounts": _read_mounts(),
+        "services": _services_summary(),
         "load_average_1_5_15": load_average,
         "kernel_modules": {"count": module_count, "sample": module_names},
         "filesystem_layout": [_directory_overview(path) for path in existing_directories],
