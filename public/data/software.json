@@ -19,8 +19,7 @@
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Debian 13",
-        "Linux"
+        "Debian 13 (Trixie)"
       ],
       "tags": [
         "Python",
