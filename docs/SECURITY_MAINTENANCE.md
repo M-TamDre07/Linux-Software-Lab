@@ -29,6 +29,15 @@ This is an operational checklist, not a claim that the project has passed an ind
 - CodeQL analyzes the JavaScript website and Python desktop application on pushes, pull requests, and a weekly schedule.
 - The Debian 13 packaging job refreshes repository metadata, then builds, installs, smoke-tests, and purges the development package in a clean container.
 
+## PaketScope System & Code Lab
+
+- The ordinary system snapshot uses local read-only APIs and a fixed systemctl list-units command. It exposes only summary fields and bounded samples; it does not change services, mounts, or files.
+- The Code Inspector only processes the local file/folder explicitly chosen by the user. It never executes inspected code or uploads source. It applies file, directory, depth, and byte caps, does not follow symlinks, skips common build/cache trees, and skips conventional credential/key filenames. No heuristic can identify every possible secret; users should select projects they are authorized to inspect.
+- The source viewer displays text only in a read-only Qt widget. Binary inspection currently identifies ELF class/architecture and a bounded SHA-256 hash; it does not claim to decompile binaries or reproduce a full reverse-engineering suite.
+- Administrator inspection is optional and session-only. The user must enable it in the UI, confirm each metadata scan, and complete a Polkit authorization. It invokes only a fixed action in a root-owned helper installed at /usr/lib/python3/dist-packages/paketscope/admin_helper.py.
+- The privileged helper accepts no user-supplied filesystem path or shell command. It lists metadata only under /etc, /boot, /usr/local, and /opt, with depth/entry limits; common sensitive paths and key filenames are excluded. It does not read file contents or make changes.
+- The helper intentionally refuses to run from a source checkout or virtual environment. Do not start the main GUI with sudo or as root to get more access. The current trusted helper path and .deb behavior still require live Debian 13 desktop validation before a stable release.
+
 ## Incident applicability
 
 - The PHP advisories CVE-2026-109618 and CVE-2026-109619 require remediation of vulnerable PHP runtimes or products that bundle PHP. The current repository has no PHP application or PHP dependency manifest. Do not make an arbitrary PHP version change to the Python desktop application; confirm the hosting/runtime inventory if the deployment architecture changes.

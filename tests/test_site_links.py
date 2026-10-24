@@ -72,6 +72,25 @@ class SiteLinksTests(unittest.TestCase):
         self.assertTrue(any("inline event handler 'onclick'" in error for error in errors))
         self.assertTrue(any("inline script violates" in error for error in errors))
 
+    def test_json_ld_data_block_is_allowed_and_validated(self):
+        (self.root / "software" / "demo.html").write_text(
+            '<html><head><link rel="canonical" href="https://example.test/software/demo.html">'
+            '<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication"}</script>'
+            '</head><body></body></html>',
+            encoding="utf-8",
+        )
+        self.assertEqual(find_broken_links(self.root), [])
+
+    def test_malformed_json_ld_data_block_is_rejected(self):
+        (self.root / "software" / "demo.html").write_text(
+            '<html><head><link rel="canonical" href="https://example.test/software/demo.html">'
+            '<script type="application/ld+json">{"@type":}</script>'
+            '</head><body></body></html>',
+            encoding="utf-8",
+        )
+        errors = find_broken_links(self.root)
+        self.assertTrue(any("valid JSON data" in error for error in errors))
+
     def test_local_links_and_assets_pass(self):
         self.assertEqual(find_broken_links(self.root), [])
 

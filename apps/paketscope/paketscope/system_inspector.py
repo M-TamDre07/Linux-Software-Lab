@@ -1,0 +1,361 @@
+"""Bounded local system inspection and opt-in polkit metadata inspection."""
+from __future__ import annotations
+
+import json
+import os
+import platform
+import shutil
+import stat
+import subprocess
+from itertools import islice
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+MAX_ADMIN_OUTPUT = 2 * 1024 * 1024
+TRUSTED_HELPER = Path("/usr/lib/python3/dist-packages/paketscope/admin_helper.py")
+
+
+def _read_os_release() -> dict[str, str]:
+    values: dict[str, str] = {}
+    try:
+        for line in Path("/etc/os-release").read_text(encoding="utf-8", errors="replace").splitlines():
+            key, sep, value = line.partition("=")
+            if not sep or key not in {"NAME", "ID", "ID_LIKE", "VERSION_ID", "PRETTY_NAME"}:
+                continue
+            values[key] = value.strip().strip('"').strip("'")
+    except OSError:
+        values["PRETTY_NAME"] = "Tidak dapat membaca /etc/os-release"
+    return values
+
+
+def _read_memory() -> dict[str, int]:
+    values: dict[str, int] = {}
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="ascii", errors="replace").splitlines():
+            key, _, rest = line.partition(":")
+            if key not in {"MemTotal", "MemAvailable", "SwapTotal", "SwapFree"}:
+                continue
+            number = rest.strip().split()[0]
+            values[key] = int(number) // 1024
+    except (OSError, ValueError, IndexError):
+        pass
+    return values
+
+
+def _cpu_summary() -> dict[str, Any]:
+    result: dict[str, Any] = {
+        "logical_processors": os.cpu_count() or 0,
+        "architecture": platform.machine() or "unknown",
+        "model": "Tidak tersedia",
+    }
+    try:
+        for line in Path("/proc/cpuinfo").read_text(encoding="utf-8", errors="replace").splitlines():
+            key, sep, value = line.partition(":")
+            if sep and key.strip() in {"model name", "Hardware", "Processor"}:
+                result["model"] = value.strip()[:180]
+                break
+    except OSError:
+        pass
+    return result
+
+
+def _directory_overview(path: Path, cap: int = 80) -> dict[str, Any]:
+    try:
+        with os.scandir(path) as iterator:
+            entries = sorted(islice(iterator, cap + 1), key=lambda entry: entry.name.casefold())
+        names = [entry.name for entry in entries[:cap]]
+        truncated = len(entries) > cap
+        return {"path": str(path), "entries": names, "truncated": truncated}
+    except OSError as exc:
+        return {"path": str(path), "entries": [], "error": exc.strerror or "Tidak dapat dibaca"}
+
+
+def _disk_overview(paths: tuple[Path, ...]) -> list[dict[str, Any]]:
+    output: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for path in paths:
+        try:
+            resolved = str(path.resolve(strict=True))
+            if resolved in seen:
+                continue
+            seen.add(resolved)
+            usage = shutil.disk_usage(path)
+        except (OSError, RuntimeError):
+            continue
+        output.append({
+            "path": str(path),
+            "total_gib": round(usage.total / (1024 ** 3), 2),
+            "used_gib": round(usage.used / (1024 ** 3), 2),
+            "free_gib": round(usage.free / (1024 ** 3), 2),
+            "used_percent": round((usage.used / usage.total) * 100, 1) if usage.total else 0.0,
+        })
+    return output
+
+
+
+def _read_mounts(cap: int = 120) -> list[dict[str, Any]]:
+    """Read mount-point metadata without exposing remote source hostnames."""
+    mounts: list[dict[str, Any]] = []
+    try:
+        lines = Path("/proc/self/mounts").read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return mounts
+    for line in lines:
+        columns = line.split()
+        if len(columns) < 4:
+            continue
+        mountpoint = columns[1].replace("\\040", " ").replace("\\011", "\t").replace("\\134", "\\")
+        filesystem = columns[2]
+        options = columns[3].split(",")
+        mounts.append({
+            "mountpoint": mountpoint[:320],
+            "filesystem": filesystem[:80],
+            "read_only": "ro" in options,
+        })
+        if len(mounts) >= cap:
+            break
+    return mounts
+
+
+def _services_summary(cap: int = 80) -> dict[str, Any]:
+    """List systemd service state using a fixed, read-only command."""
+    systemctl = shutil.which("systemctl")
+    if not systemctl:
+        return {"available": False, "services": [], "notice": "systemctl tidak tersedia."}
+    try:
+        completed = subprocess.run(
+            [systemctl, "list-units", "--type=service", "--all", "--no-legend", "--no-pager"],
+            check=False, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=12, shell=False,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return {"available": False, "services": [], "notice": "Status layanan tidak dapat dibaca."}
+    if completed.returncode != 0:
+        return {"available": False, "services": [], "notice": "systemctl mengembalikan galat atau sistem tidak memakai systemd."}
+    services: list[dict[str, str]] = []
+    for line in completed.stdout.splitlines():
+        parts = line.split(None, 4)
+        if len(parts) < 4:
+            continue
+        services.append({
+            "unit": parts[0][:180],
+            "load": parts[1][:32],
+            "active": parts[2][:32],
+            "sub": parts[3][:32],
+            "description": parts[4][:200] if len(parts) > 4 else "",
+        })
+        if len(services) >= cap:
+            break
+    return {
+        "available": True,
+        "services": services,
+        "truncated": len(services) >= cap,
+        "notice": "Daftar layanan read-only; tidak ada layanan yang diaktifkan, dihentikan, atau diubah.",
+    }
+
+def collect_system_snapshot() -> dict[str, Any]:
+    """Collect an unprivileged snapshot; no commands or files are modified."""
+    uname = platform.uname()
+    module_count = 0
+    module_names: list[str] = []
+    try:
+        for line in Path("/proc/modules").read_text(encoding="utf-8", errors="replace").splitlines():
+            name = line.split(maxsplit=1)[0] if line.strip() else ""
+            if name:
+                module_count += 1
+                if len(module_names) < 40:
+                    module_names.append(name)
+    except OSError:
+        pass
+
+    overview_paths = (Path("/"), Path("/etc"), Path("/usr"), Path("/var"), Path("/opt"), Path("/boot"), Path("/home"))
+    existing_directories = tuple(path for path in overview_paths if path.is_dir())
+    disks = _disk_overview((Path("/"), Path("/home"), Path("/boot")))
+
+    try:
+        load_average = [round(float(value), 2) for value in os.getloadavg()]
+    except (AttributeError, OSError):
+        load_average = []
+
+    return {
+        "schema_version": 1,
+        "collected_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "mode": "read-only / user",
+        "operating_system": _read_os_release(),
+        "kernel": {"system": uname.system, "release": uname.release, "version": uname.version[:220]},
+        "machine": {"architecture": uname.machine, "hostname": uname.node, "python": platform.python_version()},
+        "cpu": _cpu_summary(),
+        "memory_mib": _read_memory(),
+        "disk_usage": disks,
+        "mounts": _read_mounts(),
+        "services": _services_summary(),
+        "load_average_1_5_15": load_average,
+        "kernel_modules": {"count": module_count, "sample": module_names},
+        "filesystem_layout": [_directory_overview(path) for path in existing_directories],
+        "notice": "Snapshot lokal hanya-baca. Tidak ada file atau konfigurasi yang diubah; data tidak dikirim ke jaringan.",
+    }
+
+
+ADMIN_ALLOWED_ROOTS = (
+    "/etc", "/boot", "/usr/local", "/opt", "/var/lib/dpkg", "/var/log",
+    "/usr/share", "/usr/bin", "/usr/sbin", "/usr/lib",
+)
+ADMIN_EXCLUDED_COMPONENTS = frozenset({
+    "private", "ssh", ".ssh", "sudoers.d", "system-connections", "auth.conf.d",
+    "credentials", "credstore", "openvpn", "wireguard",
+})
+ADMIN_EXCLUDED_FILENAMES = frozenset({
+    "shadow", "shadow-", "gshadow", "gshadow-", "passwd-", "master.passwd",
+    "id_rsa", "id_dsa", "id_ecdsa", "id_ed25519", "id_ed25519_sk",
+    "authorized_keys", "known_hosts", "auth.conf", "credentials", "netrc",
+    "htpasswd", "privatekey", "private_key", "server.key",
+})
+ADMIN_EXCLUDED_SUFFIXES = frozenset({
+    ".pem", ".key", ".p12", ".pfx", ".keystore", ".kdbx", ".gpg", ".pgp", ".age",
+})
+MAX_ADMIN_TEXT_FILE_BYTES = 256 * 1024
+
+
+def validate_admin_text_request(raw_path: str) -> str:
+    """Validate the UI's requested path before asking Polkit; the helper rechecks it as root."""
+    candidate = Path(raw_path)
+    if not candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError("Masukkan path absolut tanpa traversal '..'.")
+    if not any(candidate != Path(root) and candidate.is_relative_to(Path(root)) for root in ADMIN_ALLOWED_ROOTS):
+        raise ValueError("File harus berada di direktori sistem yang diizinkan.")
+    if any(part.casefold() in ADMIN_EXCLUDED_COMPONENTS for part in candidate.parts):
+        raise ValueError("Direktori tersebut termasuk area sensitif.")
+    name = candidate.name.casefold()
+    if name in ADMIN_EXCLUDED_FILENAMES or name.startswith(".env") or candidate.suffix.casefold() in ADMIN_EXCLUDED_SUFFIXES:
+        raise ValueError("File tersebut terlihat seperti kredensial atau private key dan tidak dibuka.")
+    return str(candidate)
+
+
+def _trusted_admin_prefix() -> list[str]:
+    """Verify the installed helper and return only the fixed pkexec invocation prefix."""
+    try:
+        helper = TRUSTED_HELPER.resolve(strict=True)
+        info = helper.stat()
+    except OSError as exc:
+        raise RuntimeError(
+            "Inspeksi administrator hanya tersedia dari paket Debian terpasang yang tepercaya. "
+            "Mode source/virtualenv tidak menaikkan hak akses."
+        ) from exc
+    if helper != TRUSTED_HELPER or not stat.S_ISREG(info.st_mode):
+        raise RuntimeError("Helper administrator tidak berada pada lokasi paket sistem yang diizinkan.")
+    if info.st_uid != 0 or info.st_mode & 0o022:
+        raise RuntimeError("Helper administrator tidak tepercaya: pemilik harus root dan file tidak boleh writable oleh group/others.")
+    for directory in (
+        helper.parent, helper.parent.parent,
+        helper.parent.parent.parent, helper.parent.parent.parent.parent,
+    ):
+        try:
+            directory_info = directory.stat()
+        except OSError as exc:
+            raise RuntimeError("Direktori paket sistem tidak dapat diverifikasi.") from exc
+        if directory_info.st_uid != 0 or directory_info.st_mode & 0o022:
+            raise RuntimeError("Direktori helper administrator tidak aman untuk dijalankan sebagai root.")
+
+    executable = Path("/usr/bin/pkexec")
+    python = Path("/usr/bin/python3")
+    if not executable.is_file() or not python.is_file():
+        raise RuntimeError("pkexec atau /usr/bin/python3 tidak tersedia.")
+    return [str(executable), str(python), "-I", str(helper)]
+
+
+def _run_admin_request(action_args: list[str]) -> dict[str, Any]:
+    argv = _trusted_admin_prefix() + action_args
+    try:
+        completed = subprocess.run(
+            argv, capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=45, check=False, shell=False,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8"},
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("Inspeksi administrator melewati batas waktu 45 detik.") from exc
+    if completed.returncode != 0:
+        if completed.returncode in (126, 127):
+            raise RuntimeError("Permintaan izin dibatalkan atau ditolak melalui Polkit.")
+        detail = completed.stderr.strip()[-300:]
+        raise RuntimeError("Inspeksi administrator gagal melalui Polkit." + (f" Detail: {detail}" if detail else ""))
+    if len(completed.stdout.encode("utf-8", errors="replace")) > MAX_ADMIN_OUTPUT:
+        raise RuntimeError("Hasil inspeksi melewati batas ukuran yang diizinkan.")
+    try:
+        payload = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Helper administrator mengembalikan hasil yang tidak valid.") from exc
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+        raise RuntimeError("Versi format inspeksi administrator tidak dikenal.")
+    return payload
+
+
+def run_privileged_metadata_inspection() -> dict[str, Any]:
+    """Run the fixed metadata collection after explicit app opt-in and Polkit authorization."""
+    return validate_admin_payload(_run_admin_request(["--metadata"]))
+
+
+def run_privileged_text_file_read(raw_path: str) -> dict[str, Any]:
+    """Read one selected text/config file after consent and a separate Polkit authorization."""
+    path = validate_admin_text_request(raw_path)
+    payload = _run_admin_request(["--read-text", path])
+    if payload.get("scope") != "selected-text-file-read-only" or payload.get("path") != path:
+        raise RuntimeError("Hasil pembacaan file sistem tidak cocok dengan path yang diminta.")
+    content = payload.get("content")
+    try:
+        size_bytes = int(payload.get("size_bytes", -1))
+    except (TypeError, ValueError) as exc:
+        raise RuntimeError("Ukuran file pada hasil administrator tidak valid.") from exc
+    if not isinstance(content, str) or size_bytes < 0 or size_bytes > MAX_ADMIN_TEXT_FILE_BYTES:
+        raise RuntimeError("Konten file administrator tidak valid atau melewati batas ukuran.")
+    if len(content.encode("utf-8")) > MAX_ADMIN_TEXT_FILE_BYTES:
+        raise RuntimeError("Konten file administrator melewati batas ukuran.")
+    return {
+        "schema_version": 1,
+        "scope": "selected-text-file-read-only",
+        "path": path,
+        "size_bytes": size_bytes,
+        "content": content,
+        "notice": "Dibaca saja; kode tidak dijalankan dan file tidak diubah. Maksimum 256 KiB.",
+    }
+
+
+def validate_admin_payload(payload: object) -> dict[str, Any]:
+    """Validate helper output before it is shown in the GUI."""
+    if not isinstance(payload, dict) or payload.get("schema_version") != 1:
+        raise RuntimeError("Versi format inspeksi administrator tidak dikenal.")
+    entries = payload.get("entries")
+    if not isinstance(entries, list) or len(entries) > 3000:
+        raise RuntimeError("Daftar metadata administrator tidak valid.")
+    allowed_roots = ADMIN_ALLOWED_ROOTS
+    normalized: list[dict[str, Any]] = []
+    for item in entries:
+        if not isinstance(item, dict):
+            continue
+        path = item.get("path")
+        if not isinstance(path, str) or ".." in Path(path).parts or not any(path == root or path.startswith(root + "/") for root in allowed_roots):
+            continue
+        try:
+            owner_uid = int(item.get("owner_uid", -1))
+            group_gid = int(item.get("group_gid", -1))
+            size_bytes = max(0, int(item.get("size_bytes", 0)))
+        except (TypeError, ValueError):
+            continue
+        normalized.append({
+            "path": path[:512],
+            "type": str(item.get("type", "unknown"))[:24],
+            "mode": str(item.get("mode", ""))[:12],
+            "owner_uid": owner_uid,
+            "group_gid": group_gid,
+            "size_bytes": size_bytes,
+        })
+    return {
+        "schema_version": 1,
+        "collected_at": str(payload.get("collected_at", ""))[:64],
+        "scope": "metadata-only",
+        "entries": normalized,
+        "diagnostics": [str(item)[:300] for item in payload.get("diagnostics", [])[:100]]
+        if isinstance(payload.get("diagnostics", []), list) else [],
+        "notice": "Metadata path, tipe, izin, UID/GID, dan ukuran saja. Gunakan aksi baca-file terpisah untuk file teks yang diizinkan.",
+    }
