@@ -417,7 +417,7 @@ class InspectionDialog(QDialog):
             f"Dibuat: {value.created_at}\n"
             f"File dianalisis: {value.scanned_files}\n"
             f"File dilewati: {value.skipped_files}\n"
-            "Batas: maksimum 2.500 file, 12 level direktori, 2 MiB per file.\n"
+            "Batas: maksimum 2.500 file, 12 level direktori, 2 MiB per file, 128 MiB data total.\n"
             "Folder build/cache, symlink, dan nama file yang menyerupai rahasia dikecualikan.\n"
             "Tidak ada kode yang dijalankan; analisis biner hanya membaca metadata ELF/hash."
         )
