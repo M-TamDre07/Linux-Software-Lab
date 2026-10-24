@@ -55,7 +55,10 @@ a stable `provider_id`, a user-facing `display_name`, and `collect()`, which
 returns a `ProviderResult` containing normalized `InstalledApplication` records
 and optional diagnostics. Register it explicitly in `collectors.DEFAULT_PROVIDERS`
 or inject an iterable into `PaketScopeService(inventory_providers=...)`. The UI
-builds its source filter from the sources actually returned.
+builds its source filter from the sources actually returned. The standard
+“Detail & asal” view also works for custom providers using their normalized
+records. That generic view does not independently verify the provider's claims;
+a source-specific inspector can be added for richer metadata.
 
 PaketScope deliberately does **not** auto-import arbitrary third-party plugins.
 A plugin would execute with the desktop user's OS permissions. New providers
