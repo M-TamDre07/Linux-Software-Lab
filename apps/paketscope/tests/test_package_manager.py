@@ -130,7 +130,7 @@ def test_mutation_uses_pkexec_and_never_a_shell(monkeypatch):
     def fake_run(argv, timeout):
         calls.append((argv, timeout))
         if argv[0] == "apt-get" and "--simulate" in argv:
-            return result(argv, "Inst firefox (1.0 repo [amd64])\\n")
+            return result(argv, "Inst firefox (1.0 repo [amd64])\n")
         return result(argv, "done")
 
     monkeypatch.setattr("paketscope.package_manager.run_command", fake_run)
