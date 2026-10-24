@@ -82,7 +82,7 @@ def to_record(app: dict[str, Any], sort_order: int, synced_at: str) -> dict[str,
 def request_json(url: str, key: str, *, method: str = "GET",
                  payload: Any | None = None, prefer: str | None = None) -> Any:
     body = None if payload is None else json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    headers = {"apikey": key, "Accept": "application/json"}
+    headers = {"apikey": key, "Authorization": f"Bearer {key}", "Accept": "application/json"}
     if body is not None:
         headers["Content-Type"] = "application/json"
     if prefer:
