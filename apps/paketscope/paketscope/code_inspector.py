@@ -14,11 +14,12 @@ import struct
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
 
 MAX_FILES = 2500
 MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_DEPTH = 12
+MAX_DIRECTORIES = 10000
+MAX_ENTRIES = 20000
 MAX_DIAGNOSTICS = 100
 
 IGNORED_DIRS = frozenset({
@@ -252,8 +253,11 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
     if root.is_file():
         candidates.append((root, root.name))
     else:
-        while pending and len(candidates) < MAX_FILES:
+        visited_directories = 0
+        visited_entries = 0
+        while pending and len(candidates) < MAX_FILES and visited_directories < MAX_DIRECTORIES and visited_entries < MAX_ENTRIES:
             current, depth = pending.pop()
+            visited_directories += 1
             try:
                 with os.scandir(current) as iterator:
                     entries = sorted(iterator, key=lambda entry: entry.name.casefold())
@@ -263,6 +267,9 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
                     diagnostics.append(f"{current}: tidak dapat dibaca ({exc.strerror or 'akses ditolak'}).")
                 continue
             for entry in entries:
+                visited_entries += 1
+                if visited_entries > MAX_ENTRIES:
+                    break
                 if entry.is_symlink():
                     skipped += 1
                     continue
@@ -294,9 +301,12 @@ def inspect_code_path(selected_path: str | Path) -> CodeInspectionReport:
                 candidates.append((entry_path, relative))
                 if len(candidates) >= MAX_FILES:
                     break
-    if pending or len(candidates) >= MAX_FILES:
+    if pending or len(candidates) >= MAX_FILES or visited_directories >= MAX_DIRECTORIES or visited_entries >= MAX_ENTRIES:
         skipped += len(pending)
-        diagnostics.append(f"Batas pemindaian {MAX_FILES} file tercapai; sebagian isi folder dilewati.")
+        diagnostics.append(
+            f"Batas pemindaian tercapai ({MAX_FILES} file, {MAX_DIRECTORIES} direktori, "
+            f"{MAX_ENTRIES} entri); sebagian isi folder dilewati."
+        )
 
     for path, relative in candidates[:MAX_FILES]:
         try:
