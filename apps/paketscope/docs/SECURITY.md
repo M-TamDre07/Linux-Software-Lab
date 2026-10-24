@@ -22,6 +22,10 @@ changes, so use the application carefully:
 4. Installation includes `--no-remove` and `--no-install-recommends`. The app
    does not expose autoremove, bulk upgrades, arbitrary command input, or
    background package mutation.
+5. Remove/purge refuses Essential/Protected and `required`/`important` packages,
+   refuses a transaction that removes any additional package, and re-simulates
+   after confirmation. If the plan differs from the approved plan, no mutation
+   is started and the user must review the new plan.
 
 Do not run PaketScope as root. APT package installation can run package
 maintainer scripts and change system state. Test package mutations in a
@@ -31,6 +35,28 @@ them on a daily-use computer.
 Flatpak inventory is read-only. User-triggered Flatpak update checks can contact
 configured remotes; APT update visibility is based on locally cached metadata
 and does not run `apt update` by itself.
+
+## Application identity and provenance
+
+The “Detail & asal” dialog displays APT control metadata (including the package
+description, section, priority, Essential flag, maintainer, and homepage where
+present) and safely reads a small number of `.desktop` metadata fields without
+executing launcher commands. Flatpak details use local app metadata, the stored
+remote, reference/commit/location information, and declared permissions when
+available. Descriptions are attributed to local package metadata rather than
+invented by the application.
+
+For APT, `apt-cache policy` can identify repositories that currently offer the
+exact installed version in the local index. That is not a reliable record of
+the historical source from which a package was installed. PaketScope must show
+that limitation plainly and must never label a current candidate repository as
+proven historical provenance. A missing description or origin is displayed as
+unknown, not guessed from the package name.
+
+Read-only inventory sources implement the explicit `InventoryProvider`
+contract. Third-party providers are not auto-imported; loading arbitrary plugin
+code would run it with the desktop user's privileges. New providers should
+return normalized metadata only and must not mutate the host.
 
 ## System & Code Lab boundaries
 
