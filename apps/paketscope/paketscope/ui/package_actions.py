@@ -141,7 +141,7 @@ class PackageManagementActionsMixin:
         lines.extend([
             "",
             "Operasi baru berjalan setelah kamu menyetujui dialog ini dan autentikasi sistem. "
-            "PaketScope tidak menjalankan autoremove dan tidak menjalankan upgrade massal.",
+            "PaketScope tidak menjalankan autoremove atau upgrade massal. Paket Essential/Protected dan prioritas required/important dilindungi; transaksi remove/purge yang ikut menghapus paket lain ditolak.",
         ])
         answer = QMessageBox.question(
             self,
@@ -155,7 +155,7 @@ class PackageManagementActionsMixin:
             return
         self._start_task(
             "Menjalankan APT melalui autentikasi sistem…",
-            lambda: apply_apt_action(action, package_name),
+            lambda: apply_apt_action(action, package_name, approved_preview=value),
             lambda result: self._apt_action_completed(result, action, display_name),
         )
 

@@ -14,13 +14,14 @@ The v3 branch adds a service boundary between the GUI and package operations. It
 ## Current scope
 
 - Local inventory using dpkg-query and flatpak list; source types are shown separately.
-- A Qt desktop interface with searchable, sortable table data.
+- A Qt desktop interface with searchable, sortable table data and an automatically populated source filter for registered inventory providers.
+- The “Detail & asal” action shows the installed package's source-attributed description, package type, section/priority/Essential status, maintainer/homepage metadata, and desktop launcher name/comment where available. For APT, it can report which repository currently supplies the installed version; the UI explicitly warns this is not proof of the historical installation source. For Flatpak, it displays locally recorded remote, reference, commit, installation location, runtime, and declared permissions where available.
 - On-demand update checks. APT is checked against local package-list metadata; Flatpak checks can contact configured remotes.
 - CSV export and password-encrypted JSON backup (AES-256-GCM with a scrypt-derived key).
 - No account, analytics, telemetry, background updater, or remote backend.
 - The GUI itself runs as the regular user. APT mutation uses pkexec/polkit only after a preview and confirmation; commands use validated package identifiers, argument arrays, and no shell.
 - APT installation refuses transactions that would remove other packages. PaketScope does not call autoremove or run bulk upgrades.
-- APT remove and purge operate on one selected package at a time. Purge removes dpkg-managed system configuration but does not guarantee that data or settings in the user's home directory are removed.
+- APT remove and purge operate on one selected package at a time. The application blocks Essential/Protected and priority-required/important packages, refuses transactions that remove additional packages, and re-simulates the plan after confirmation; any plan change aborts the operation and requires a fresh review. Purge removes dpkg-managed system configuration but does not guarantee that data or settings in the user's home directory are removed.
 - Flatpak packages remain read-only in this development build; no install/remove action is offered for them.
 - System & Code Lab provides an on-demand system snapshot (OS, kernel, CPU, memory, storage, module counts and directory names) plus a local static source-code explorer.
 - Code Inspector analyses user-selected files/folders without executing code or using the network. It reports common imports, classes/functions, file hashes, and basic ELF architecture metadata; it is not a binary decompiler. It also surfaces a small set of review hints for dynamic execution, shell execution, unsafe deserialization, dynamic imports, and common Python network calls. These are heuristic indicators, not a vulnerability verdict or replacement for a dedicated SAST tool.
@@ -42,8 +43,30 @@ Arch Linux, Fedora/RPM, openSUSE, and Alpine are out of the current scope. Futur
 
 The codebase is organized by responsibility: domain parsing, OS command adapters,
 application services, package operations, file workflows, and Qt UI modules live
-in separate files. The UI's table models, visual theme, and background worker
-are kept in `paketscope/ui/` rather than defined inside the application window.
+in separate files. The UI's table models, visual theme, background worker, and
+application-details dialog are kept in `paketscope/ui/` rather than folded into
+the main window.
+
+### Extending inventory sources
+
+Custom builds can add a read-only inventory adapter by implementing the
+`InventoryProvider` protocol from `paketscope/providers.py`. The adapter exposes
+a stable `provider_id`, a user-facing `display_name`, and `collect()`, which
+returns a `ProviderResult` containing normalized `InstalledApplication` records
+and optional diagnostics. Register it explicitly in `collectors.DEFAULT_PROVIDERS`
+or inject an iterable into `PaketScopeService(inventory_providers=...)`. The UI
+builds its source filter from the sources actually returned. The standard
+“Detail & asal” view also works for custom providers using their normalized
+records. That generic view does not independently verify the provider's claims;
+a source-specific inspector can be added for richer metadata.
+
+PaketScope deliberately does **not** auto-import arbitrary third-party plugins.
+A plugin would execute with the desktop user's OS permissions. New providers
+should be read-only, avoid network access unless that behavior is explicitly
+designed and documented, use argument-list subprocess calls, set timeouts, and
+never treat package names or metadata as trusted commands. Package modification
+requires a separate, reviewed adapter with its own simulation and permission
+boundary; inventory providers must never mutate the host.
 
 Start with [the developer guide](docs/DEVELOPING.md) for the module map, data flow,
 local test commands, package-backend guidance, and pull-request checklist. The

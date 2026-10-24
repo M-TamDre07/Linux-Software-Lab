@@ -122,9 +122,9 @@ jobs:
           package="$(find .. -maxdepth 1 -type f -name 'paketscope_*_all.deb' -print -quit)"
           test -n "$package"
           # Keep an independent copy in the container filesystem for docker cp after tests.
-          cp "$package" /tmp/paketscope_3.0.0~dev3_all.deb
+          cp "$package" /tmp/paketscope_3.0.0~dev4_all.deb
           test "$(dpkg-deb -f "$package" Package)" = "paketscope"
-          test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev3"
+          test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev4"
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
 
@@ -146,7 +146,7 @@ jobs:
           assert module_path.is_relative_to(installed_root), (
               f"Imported source-tree package instead of installed Debian package: {module_path}"
           )
-          assert paketscope.__version__ == "3.0.0.dev3", paketscope.__version__
+          assert paketscope.__version__ == "3.0.0.dev4", paketscope.__version__
           print(f"Installed package import OK: {module_path} (v{paketscope.__version__})")
           PYTHON_SMOKE
 
@@ -171,7 +171,7 @@ jobs:
             docker rm paketscope-debian-ci || true
             exit "$container_exit"
           fi
-          docker cp paketscope-debian-ci:/tmp/paketscope_3.0.0~dev3_all.deb "$GITHUB_WORKSPACE/dist/"
+          docker cp paketscope-debian-ci:/tmp/paketscope_3.0.0~dev4_all.deb "$GITHUB_WORKSPACE/dist/"
           docker rm paketscope-debian-ci
       - name: Confirm Debian package artifact is visible on the runner
         shell: bash

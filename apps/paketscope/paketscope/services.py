@@ -19,14 +19,24 @@ from .collectors import collect_inventory
 from .domain import InstalledApplication, InventorySnapshot
 from .exporting import csv_safe_record, write_private_file
 from .updates import UpdateCheckResult, check_updates
+from .providers import InventoryProvider
 
 
 class PaketScopeService:
-    """Coordinate safe, local use cases for the desktop application."""
+    """Coordinate safe, local use cases for the desktop application.
+
+    A custom application build can inject additional read-only inventory
+    providers. External providers are not auto-discovered or loaded implicitly.
+    """
+
+    def __init__(self, inventory_providers: Iterable[InventoryProvider] | None = None) -> None:
+        self._inventory_providers = (
+            None if inventory_providers is None else tuple(inventory_providers)
+        )
 
     def scan_inventory(self) -> InventorySnapshot:
         """Collect the supported local package inventory."""
-        return collect_inventory()
+        return collect_inventory(self._inventory_providers)
 
     def check_updates(self) -> UpdateCheckResult:
         """Check updates only when explicitly requested by the user."""
