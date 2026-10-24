@@ -40,7 +40,7 @@ not a process-memory browser, raw disk editor, or root shell.
 
 Code Inspector parses source as text/AST and computes a SHA-256 fingerprint. It
 never imports or executes the inspected project. It skips common cache/build
-directories and known credential-store paths, limits traversal and file size,
+directories and known credential-store paths, limits traversal, per-file size, and total bytes read in one scan,
 and only displays UTF-8 source files matching its supported file types. Binary
 inspection is limited to safe file metadata and basic ELF architecture details;
 it does not decompile proprietary binaries, bypass DRM, or alter packages.
