@@ -167,3 +167,26 @@ def test_flatpak_details_reject_invalid_application_id(monkeypatch):
         assert "ID aplikasi Flatpak tidak valid" in str(exc)
     else:
         raise AssertionError("Invalid Flatpak identifier must be rejected.")
+
+
+def test_custom_inventory_source_gets_generic_details_without_guessed_provenance():
+    app = InstalledApplication(
+        name="Custom Tool",
+        version="4.2",
+        source="Custom package manager",
+        identifier="custom.tool",
+        origin="local-custom-index",
+        description="A custom tool from local metadata.",
+        architecture="x86_64",
+        installation="/opt/custom-tool",
+    )
+
+    details = inspect_application(app)
+
+    assert details.manager == "Custom package manager"
+    assert details.package_kind == "Aplikasi/paket dari sumber ekstensi"
+    assert details.origin == "local-custom-index"
+    assert "belum diverifikasi secara independen" in details.origin_note
+    assert details.description == "A custom tool from local metadata."
+    assert details.installation == "/opt/custom-tool"
+    assert "tidak menyimpulkan fungsi hanya dari nama" in details.to_text()
