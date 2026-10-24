@@ -353,7 +353,7 @@ def _flatpak_details(application: InstalledApplication) -> ApplicationDetails:
         description=application.description,
         architecture=architecture,
         installation=application.installation,
-        runtime=branch and application.branch or application.branch,
+        runtime=_flatpak_value(app_id, "--show-runtime"),
         commit=commit,
         location=location,
         permissions=permissions,
