@@ -24,4 +24,4 @@ python -m pip install -e ".[dev]"
 QT_QPA_PLATFORM=offscreen python -m pytest -q
 ```
 
-The source overlay is tested in temporary extractions by `.github/workflows/sorot-source-quality.yml`. It must not be described as part of the existing 0.5.0 beta binaries. A revised release artifact requires a deliberate versioned rebuild, review, full test run, new checksums, and explicit publication.
+The source overlay is tested in temporary extractions by `.github/workflows/sorot-quality.yml`. It must not be described as part of the existing 0.5.0 beta binaries. A revised release artifact requires a deliberate versioned rebuild, review, full test run, new checksums, and explicit publication.
