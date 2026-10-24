@@ -218,19 +218,23 @@ def apply_apt_action(
     if action not in ACTIONS:
         raise PackageOperationError("Jenis operasi paket tidak didukung.")
     package_name = validate_apt_package_name(package_name)
+    if approved_preview is None:
+        raise PackageOperationError(
+            "Operasi perubahan paket harus berasal dari rencana yang telah ditinjau dan disetujui di antarmuka."
+        )
     current_preview = preview_apt_action(action, package_name)
-    if approved_preview is not None:
-        if (
-            approved_preview.action != action
-            or approved_preview.package_name != package_name
-            or approved_preview.install != current_preview.install
-            or approved_preview.remove != current_preview.remove
-            or approved_preview.purge != current_preview.purge
-        ):
-            raise PackageOperationError(
-                "Rencana APT berubah sejak ditinjau. Tidak ada perubahan dilakukan; "
-                "pindai ulang dan tinjau rencana terbaru."
-            )
+    if (
+        approved_preview.action != action
+        or approved_preview.package_name != package_name
+        or approved_preview.install != current_preview.install
+        or approved_preview.remove != current_preview.remove
+        or approved_preview.purge != current_preview.purge
+        or approved_preview.output != current_preview.output
+    ):
+        raise PackageOperationError(
+            "Rencana APT berubah sejak ditinjau. Tidak ada perubahan dilakukan; "
+            "pindai ulang dan tinjau rencana terbaru."
+        )
     argv = [
         "pkexec", "/usr/bin/env", "DEBIAN_FRONTEND=noninteractive",
         "/usr/bin/apt-get", "--assume-yes", "-o", "Dpkg::Use-Pty=0",
