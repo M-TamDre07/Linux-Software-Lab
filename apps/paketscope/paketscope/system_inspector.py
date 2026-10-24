@@ -7,6 +7,7 @@ import platform
 import shutil
 import stat
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -60,7 +61,8 @@ def _cpu_summary() -> dict[str, Any]:
 
 def _directory_overview(path: Path, cap: int = 80) -> dict[str, Any]:
     try:
-        entries = sorted(os.scandir(path), key=lambda entry: entry.name.casefold())
+        with os.scandir(path) as iterator:
+            entries = sorted(iterator, key=lambda entry: entry.name.casefold())
         names = [entry.name for entry in entries[:cap]]
         truncated = len(entries) > cap
         return {"path": str(path), "entries": names, "truncated": truncated}
@@ -116,7 +118,7 @@ def collect_system_snapshot() -> dict[str, Any]:
 
     return {
         "schema_version": 1,
-        "collected_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(timespec="seconds"),
+        "collected_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "mode": "read-only / user",
         "operating_system": _read_os_release(),
         "kernel": {"system": uname.system, "release": uname.release, "version": uname.version[:220]},
@@ -195,13 +197,19 @@ def validate_admin_payload(payload: object) -> dict[str, Any]:
         path = item.get("path")
         if not isinstance(path, str) or not any(path == root or path.startswith(root + "/") for root in allowed_roots):
             continue
+        try:
+            owner_uid = int(item.get("owner_uid", -1))
+            group_gid = int(item.get("group_gid", -1))
+            size_bytes = max(0, int(item.get("size_bytes", 0)))
+        except (TypeError, ValueError):
+            continue
         normalized.append({
             "path": path[:512],
             "type": str(item.get("type", "unknown"))[:24],
             "mode": str(item.get("mode", ""))[:12],
-            "owner_uid": int(item.get("owner_uid", -1)),
-            "group_gid": int(item.get("group_gid", -1)),
-            "size_bytes": max(0, int(item.get("size_bytes", 0))),
+            "owner_uid": owner_uid,
+            "group_gid": group_gid,
+            "size_bytes": size_bytes,
         })
     return {
         "schema_version": 1,
