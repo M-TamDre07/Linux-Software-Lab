@@ -48,7 +48,7 @@ Catatan lingkungan: sandbox ini meng-exclude `/usr/share/doc` dan man page pada 
 
 ## BELUM DIUJI
 
-- Sesi nyata GNOME Wayland, KDE Plasma (overlay: selalu-di-atas, klik-tembus, geser/ubah ukuran, multi-monitor, layar penuh), Xfce, Cinnamon. Prosedur: [MANUAL-TESTING.md](MANUAL-TESTING.md). (Laporan pengguna untuk 0.4.0: aplikasi berjalan di Debian 13 KDE Wayland via XWayland dengan PySide6 6.8.2.1 dan Python 3.13.5.)
+- Sesi nyata GNOME Wayland, KDE Plasma (overlay: selalu-di-atas, klik-tembus, geser/ubah ukuran, multi-monitor, layar penuh), Xfce, Cinnamon. Prosedur: [source ZIP 0.5.0](sorot-0.5.0.zip) (file MANUAL-TESTING.md is inside the source archive). (Laporan pengguna untuk 0.4.0: aplikasi berjalan di Debian 13 KDE Wayland via XWayland dengan PySide6 6.8.2.1 dan Python 3.13.5.)
 - Instalasi `sorot_0.5.0_all.deb` di Debian 13 bersih dan penyelesaian dependensinya; suite tes pada PySide6 6.8.x dan Python 3.11/3.13.
 - Penyedia AI nyata, rclone/Google Drive nyata, keyring nyata (hanya test double lokal).
 - Ekstensi pihak ketiga sungguhan; ekstensi bukan sandbox dan tidak diuji terhadap kode yang berniat jahat selain pemeriksaan manifest, jalur, hash, env, dan timeout.
