@@ -1,6 +1,6 @@
 # Sorot 0.5.0 Beta
 
-Sorot is a desktop teleprompter for Linux. The project was previously listed on the Linux Software Lab website as **Prompter Overlay**; the application name is now **Sorot**. The repository directory remains `apps/prompter-overlay/` to avoid moving or rebuilding existing release artifacts.
+Sorot is a desktop teleprompter for Linux. This directory contains the preserved beta distribution artifacts and documentation. The files are relocated byte-for-byte and are not rebuilt as part of the repository reorganization.
 
 > **Beta notice:** Sorot 0.5.0 is not a stable release. Read the test report and known limitations before installing it. The website rebranding does not modify the Debian package or application archives.
 
@@ -71,6 +71,10 @@ sha256sum -c SHA256SUMS
 ```
 
 Only run the check with the three matching artifact files present in the same directory.
+
+## Maintained source checks
+
+The supplied release files are checksum-verified and are not rewritten during website maintenance. A small maintenance patch series is stored in [`patches/`](patches/README.md). The repository's **Sorot source quality** workflow extracts the source ZIP into a temporary directory, applies those patches, runs Ruff, mypy, and pytest on Python 3.11–3.13, and performs a reproducible package build without publishing it. See the patch notes before treating any rebuilt artifact as a release.
 
 ## Open-source contributions
 

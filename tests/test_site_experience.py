@@ -17,7 +17,7 @@ CORE_PAGES = (
     "index.html",
     "software/index.html",
     "software/paketscope.html",
-    "software/prompter-overlay.html",
+    "software/sorot.html",
 )
 
 

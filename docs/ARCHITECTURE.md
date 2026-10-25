@@ -1,6 +1,6 @@
 # Website architecture
 
-Linux Software Lab is a static-first software catalogue. The design favours a small attack surface, predictable deployments, fast page loads, and simple maintenance. A database or backend search service is not needed for the current catalogue size.
+Linux Software Lab is a static-first software catalogue with a read-only Supabase mirror and a committed JSON fallback. GitHub remains the source of truth, Vercel serves the site, and the mirror is used only to retrieve public product metadata. This adds synchronization and central read access without making catalogue search depend on a backend.
 
 ## Directory ownership
 
@@ -31,14 +31,14 @@ Keep the Vercel Root Directory at the repository root. vercel.json selects publi
 2. public/data/software.schema.json documents the catalogue data contract.
 3. scripts/validate_catalog.py validates required fields, safe local paths, unique IDs/slugs, date and URL formats, accepted software types/statuses, and release-link rules.
 4. scripts/check_site_links.py checks local HTML references and verifies sitemap, robots directives, and canonical URLs against actual catalogue pages.
-5. GitHub Actions runs the validators, JavaScript syntax check, JSON parsing, and regression tests.
-6. The browser fetches same-origin JSON and builds a searchable catalogue; it does not transmit search terms to a third-party search service.
+5. GitHub Actions runs site checks and validates the Supabase sync mapping; a trusted main-branch workflow mirrors approved metadata to Supabase.
+6. The browser reads published rows from Supabase with the public publishable key, falling back to same-origin JSON if the API fails; search and filtering remain client-side.
 
 ## Catalogue scaling
 
 Search indexes are built once when catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
 
-Measure catalogue payload and render time before introducing a database, generated full-text index, external search provider, or framework build. Add infrastructure when measurements and user needs justify it, not by default.
+The Supabase mirror is limited to public catalogue metadata. Do not expand it into user data, analytics, package search, or a write API without a concrete requirement, measured need, and a separate security review.
 
 ## Metadata and release integrity
 
@@ -54,7 +54,7 @@ Measure catalogue payload and render time before introducing a database, generat
 ## Security boundaries
 
 - Only public/ is sent to Vercel as static output.
-- The website has no backend, account database, or telemetry endpoint.
-- CSP allows same-origin scripts/data and the Google Fonts files/styles used by the pages.
+- The website has no accounts or telemetry endpoint; Supabase is a read-only public catalogue mirror.
+- CSP allows same-origin scripts, Google Fonts files/styles, and connections only to the configured Supabase project.
 - X-Content-Type-Options, X-Frame-Options, Referrer-Policy, and Permissions-Policy are configured in vercel.json.
-- Never place .env files, API keys, private credentials, or unreviewed files under public/.
+- Only the Supabase publishable key is present in browser assets. Never place an sb_secret_ key, service-role key, .env file, or other private credential under public/.

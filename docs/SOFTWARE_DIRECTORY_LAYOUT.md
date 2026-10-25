@@ -13,7 +13,7 @@ repository/
 │   └── software/
 │       ├── index.html
 │       ├── paketscope.html         # Public product information
-│       └── prompter-overlay.html
+│       └── sorot.html
 ├── apps/                           # Source projects, isolated per application
 │   ├── README.md
 │   ├── paketscope/                 # Native desktop software, active v3 branch
@@ -23,7 +23,7 @@ repository/
 │   │   ├── paketscope/
 │   │   ├── tests/
 │   │   └── docs/
-│   └── prompter-overlay/           # Planned; README only for now
+│   └── sorot/                          # Sorot 0.5.0 Beta distribution artifacts and docs
 │       └── README.md
 ├── scripts/                        # Website/catalog validators
 ├── tests/                          # Website regression tests
@@ -31,7 +31,7 @@ repository/
 └── vercel.json                     # Serves public/ only
 ```
 
-The v3 PaketScope branch is `feature/paketscope-v3-native`. Its source already has a project README, GPL-3.0 license, Python package metadata, tests, and architecture documentation. Version 3 is still a development preview, not a published or installable release. The default branch must not be described as having v3 source until that branch is merged.
+PaketScope 3 source is present in the default branch and the website catalogue currently labels version 3.0.0.dev4 as testing. It remains a development preview, not a stable release.
 
 ## Rules for adding an application
 

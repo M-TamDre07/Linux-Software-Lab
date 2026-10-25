@@ -5,7 +5,7 @@
     "description": "Katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-10-24"
+    "updatedAt": "2026-10-25"
   },
   "software": [
     {
@@ -96,13 +96,13 @@
         "Integrasi AI dan cloud opsional; layanan nyata belum diverifikasi dalam laporan tes"
       ],
       "detailUrl": "/software/sorot.html",
-      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/prompter-overlay",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
       "releaseUrl": "",
       "icon": "type",
-      "iconImage": "/assets/images/prompter-overlay-icon.svg",
-      "previewImage": "/assets/images/prompter-overlay-preview.svg",
+      "iconImage": "/assets/images/sorot-icon.svg",
+      "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Ilustrasi teleprompter Sorot; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-24"
+      "updatedAt": "2026-10-25"
     }
   ]
 }

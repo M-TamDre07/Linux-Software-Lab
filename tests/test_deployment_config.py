@@ -24,13 +24,26 @@ class DeploymentConfigTests(unittest.TestCase):
             "data/software.schema.json",
             "software/index.html",
             "software/paketscope.html",
-            "software/prompter-overlay.html",
+            "software/sorot.html",
+            "assets/js/supabase-config.js",
+            "assets/images/sorot-icon.svg",
+            "assets/images/sorot-preview.svg",
             "robots.txt",
             "sitemap.xml",
             "google505d5a75f881baa2.html",
         ):
             with self.subTest(path=relative):
                 self.assertTrue((public / relative).is_file(), f"Missing public/{relative}")
+
+    def test_legacy_sorot_url_redirects_to_the_canonical_product_page(self):
+        redirects = self.config.get("redirects", [])
+        self.assertTrue(any(
+            item.get("source") == "/software/prompter-overlay.html"
+            and item.get("destination") == "/software/sorot.html"
+            and item.get("permanent") is True
+            for item in redirects
+        ))
+        self.assertFalse((REPO_ROOT / "public/software/prompter-overlay.html").exists())
 
     def test_legacy_portfolio_files_are_not_tracked_at_repository_root(self):
         for relative in (
@@ -61,6 +74,7 @@ class DeploymentConfigTests(unittest.TestCase):
         self.assertIn("object-src 'none'", headers.get("Content-Security-Policy", ""))
         self.assertIn("script-src 'self'", headers.get("Content-Security-Policy", ""))
         self.assertIn("connect-src 'self'", headers.get("Content-Security-Policy", ""))
+        self.assertIn("https://ttofugaqwthmvhvntdlc.supabase.co", headers.get("Content-Security-Policy", ""))
         self.assertEqual(headers.get("Strict-Transport-Security"), "max-age=31536000")
         self.assertEqual(headers.get("Cross-Origin-Opener-Policy"), "same-origin")
         self.assertEqual(headers.get("X-Permitted-Cross-Domain-Policies"), "none")
