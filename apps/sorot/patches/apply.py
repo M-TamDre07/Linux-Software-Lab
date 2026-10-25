@@ -196,10 +196,62 @@ def apply(root: Path) -> None:
     security = replace_once(
         security,
         "Kontak keamanan maintainer **belum ditetapkan** (repositori belum dipublikasikan). Setelah repositori publik dibuat, gunakan fitur *Private vulnerability reporting* GitHub dan perbarui berkas ini dengan kontak yang valid. Jangan membuka isu publik untuk kerentanan.",
-        "Jangan membuka isu publik berisi detail yang dapat dieksploitasi. Gunakan *Private vulnerability reporting* GitHub apabila fitur itu tersedia pada tab Security repositori. Sebelum distribusi stabil, maintainer harus memastikan kanal pelaporan privat aktif dan mendokumentasikan prosedur triase serta respons insiden.",
+        "Untuk melaporkan kerentanan keamanan atau masalah keamanan serius yang berkaitan langsung dengan Sorot, kirim email ke **muhammadandreatama@outlook.com** dengan subjek **[Sorot Security] Laporan Kerentanan**. Gunakan alamat ini hanya untuk laporan keamanan dan urusan penting yang terkait langsung dengan Sorot; jangan kirim promosi, spam, atau pesan yang tidak berkaitan. Jangan membuka isu publik berisi detail yang dapat dieksploitasi. Sertakan versi Sorot, distro/lingkungan desktop, langkah reproduksi, dan dampak yang diamati; jangan sertakan kata sandi, token API, atau data sensitif.",
         "security reporting guidance",
     )
     security_path.write_text(security, encoding="utf-8")
+
+    # The original beta artifacts remain immutable. Apply maintainer details only
+    # to the temporary source tree used by CI and the next intentional build.
+    contact = "Muhammad Andreatama <muhammadandreatama@outlook.com>"
+
+    control_path = root / "packaging/control.in"
+    control = control_path.read_text(encoding="utf-8")
+    control_path.write_text(
+        replace_once(
+            control,
+            "Maintainer: Muhammad Andreatama <maintainer@sorot.invalid>",
+            f"Maintainer: {contact}",
+            "Debian maintainer email",
+        ),
+        encoding="utf-8",
+    )
+
+    changelog_path = root / "packaging/debian-changelog"
+    changelog = changelog_path.read_text(encoding="utf-8")
+    changelog_path.write_text(
+        replace_once(
+            changelog,
+            " -- Muhammad Andreatama <maintainer@sorot.invalid>  Sun, 18 Oct 2026 00:00:00 +0000",
+            f" -- {contact}  Sun, 18 Oct 2026 00:00:00 +0000",
+            "Debian changelog maintainer email",
+        ),
+        encoding="utf-8",
+    )
+
+    copyright_path = root / "packaging/copyright"
+    copyright_text = copyright_path.read_text(encoding="utf-8")
+    copyright_path.write_text(
+        replace_once(
+            copyright_text,
+            "Upstream-Name: Sorot\\nSource: (belum ada URL repositori publik)",
+            "Upstream-Name: Sorot\\nUpstream-Contact: " + contact + "\\nSource: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
+            "Debian copyright upstream contact and source URL",
+        ),
+        encoding="utf-8",
+    )
+
+    checklist_path = root / "docs/RELEASE-CHECKLIST.md"
+    checklist = checklist_path.read_text(encoding="utf-8")
+    checklist_path.write_text(
+        replace_once(
+            checklist,
+            "- [ ] Ganti maintainer placeholder `maintainer@sorot.invalid` (nama sudah Muhammad Andreatama; **email asli belum ada**) di `packaging/control.in`, `packaging/debian-changelog`, `packaging/copyright` dengan kontak nyata",
+            "- [x] Kontak maintainer publik telah diberikan; overlay mengisi `packaging/control.in`, `packaging/debian-changelog`, `packaging/copyright`, dan `SECURITY.md` untuk build berikutnya. Artefak beta 0.5.0 yang ada tetap tidak berubah.",
+            "release checklist maintainer contact",
+        ),
+        encoding="utf-8",
+    )
 
 
 def main() -> int:
@@ -216,7 +268,7 @@ def main() -> int:
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"Sorot maintenance overlay failed: {exc}", file=sys.stderr)
         return 1
-    print("Applied Sorot maintenance overlay: bounded rclone output, regression tests, and current security policy.")
+    print("Applied Sorot maintenance overlay: bounded rclone output, regression tests, maintainer metadata, and current security policy.")
     return 0
 
 
