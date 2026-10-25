@@ -21,7 +21,7 @@
 3. **Real desktop sessions:** test overlay transparency, position, click-through, multi-monitor, fullscreen, suspend/resume, and compositor variations on actual X11/XWayland and Wayland sessions. Offscreen tests are not evidence of compositor behavior.
 4. **Optional integrations:** run opt-in tests against a user-configured OpenAI-compatible endpoint and rclone/Google Drive test remote; document that these integrations are external and user-configured.
 5. **Accessibility:** validate keyboard navigation, focus order, zoom, contrast, and screen-reader behavior with the actual desktop application.
-6. **Maintainer metadata:** the supplied `.deb` currently uses `maintainer@sorot.invalid`. Replace this placeholder with the project-approved support/maintainer contact before building a distributable release; do not invent a contact address.
+6. **Maintainer metadata:** the maintainer has supplied `Muhammad Andreatama <muhammadandreatama@outlook.com>` as the professional project contact. The source-only overlay now applies that contact to `packaging/control.in`, `packaging/debian-changelog`, `packaging/copyright`, and the security-reporting guidance for the next intentional build. The currently preserved `.deb`, ZIP, tarball, and checksums remain unchanged and still retain the original placeholder; do not describe those existing artifacts as corrected.
 7. **Release integrity:** bump the application version, regenerate the artifacts intentionally, verify reproducible builds and SHA-256 sums, inspect the package with Lintian, publish release notes and checksums, and only then set the website catalog to `released`.
 
 ## Security boundary
