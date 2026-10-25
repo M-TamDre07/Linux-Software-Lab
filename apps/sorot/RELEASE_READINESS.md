@@ -11,7 +11,7 @@
 - All MD5 checksums recorded inside the Debian package match the extracted payload.
 - The Python source in the ZIP compiles under Python 3.13.
 - Targeted test groups passed, including API service/config/CLI tests, rclone/path handling, extension discovery and archive extraction checks, script/file utilities, and platform metadata tests after the maintained Qt-plugin patch was applied.
-- The unpatched source failed `test_plugin_with_missing_dependency_is_not_offered` in an environment without PySide6: arbitrary non-ELF files named `libq*.so` were treated as loadable because the probe fallback returned `True`. Patch `patches/0001-validate-qt-plugin-elf.patch` rejects files without the ELF magic before falling back to the optional Qt loader probe.
+- The unpatched source failed `test_plugin_with_missing_dependency_is_not_offered` in an environment without PySide6: arbitrary non-ELF files named `libq*.so` were treated as loadable because the probe fallback returned `True`. Patch `../../patches/0001-validate-qt-plugin-elf.patch` rejects files without the ELF magic before falling back to the optional Qt loader probe.
 - Supabase RLS and effective table privileges were checked separately as part of the website integration: anonymous clients have SELECT and do not have INSERT, UPDATE, or DELETE access.
 
 ## Still required before a stable release
