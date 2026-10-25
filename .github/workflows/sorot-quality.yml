@@ -39,12 +39,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 fonts-dejavu-core
       - name: Verify immutable beta artifact checksums
-        working-directory: apps/sorot
+        working-directory: apps/sorot/releases/0.5.0
         run: sha256sum -c SHA256SUMS
+      - name: Validate all per-version Sorot release manifests
+        run: python apps/sorot/validate_releases.py
       - name: Extract source archive for testing
         run: |
           mkdir -p "${RUNNER_TEMP}/sorot-source"
-          unzip -q "$GITHUB_WORKSPACE/apps/sorot/sorot-0.5.0.zip" -d "${RUNNER_TEMP}/sorot-source"
+          unzip -q "$GITHUB_WORKSPACE/apps/sorot/releases/0.5.0/sorot-0.5.0.zip" -d "${RUNNER_TEMP}/sorot-source"
           echo "SOROT_SOURCE=${RUNNER_TEMP}/sorot-source/sorot-0.5.0" >> "$GITHUB_ENV"
       - name: Apply maintained source patches
         run: patch --batch --forward -p0 --input="$GITHUB_WORKSPACE/apps/sorot/patches/0001-validate-qt-plugin-elf.patch"
@@ -80,7 +82,7 @@ jobs:
       - name: Extract source and apply maintenance patches
         run: |
           mkdir -p "${RUNNER_TEMP}/sorot-source"
-          unzip -q "$GITHUB_WORKSPACE/apps/sorot/sorot-0.5.0.zip" -d "${RUNNER_TEMP}/sorot-source"
+          unzip -q "$GITHUB_WORKSPACE/apps/sorot/releases/0.5.0/sorot-0.5.0.zip" -d "${RUNNER_TEMP}/sorot-source"
           cd "${RUNNER_TEMP}/sorot-source/sorot-0.5.0"
           patch --batch --forward -p0 --input="$GITHUB_WORKSPACE/apps/sorot/patches/0001-validate-qt-plugin-elf.patch"
           python "$GITHUB_WORKSPACE/apps/sorot/patches/apply.py" "${RUNNER_TEMP}/sorot-source/sorot-0.5.0"
