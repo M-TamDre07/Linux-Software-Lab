@@ -471,3 +471,38 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 @media(max-width:700px){
   .nav-home{align-self:stretch;justify-content:flex-start;min-height:42px;margin-right:0;padding:0 8px;border:0!important;border-bottom:1px solid var(--line)!important;background:transparent}
 }
+
+/* Sorot: reuse the official package identity and make real archived downloads explicit. */
+.tool-secondary-icon-image{padding:0;overflow:hidden;background:transparent}
+.tool-secondary-icon-image img{display:block;width:100%;height:100%;border-radius:15px}
+.tool-secondary-art{margin-top:19px;overflow:hidden;border:1px solid var(--line);background:#131210}
+.tool-secondary-art img{display:block;width:100%;height:auto;max-height:154px;object-fit:cover;object-position:center}
+.sorot-downloads{border-top:1px solid var(--line)}
+.sorot-release-card{padding:clamp(20px,3vw,32px);border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-2)}
+.sorot-release-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.sorot-release-brand{display:flex;align-items:center;gap:15px;min-width:0}
+.sorot-release-brand img{display:block;width:54px;height:54px;border-radius:12px;flex:0 0 auto}
+.sorot-release-kicker{display:block;color:var(--muted);font:9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.1em}
+.sorot-release-brand h3{margin:5px 0;font-size:23px;letter-spacing:-.05em}
+.sorot-release-brand p{margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+.sorot-release-status{border:1px solid var(--line);padding:7px 10px;color:var(--muted);font:9px ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+.sorot-release-notice{max-width:780px;margin:18px 0;color:var(--muted);font-size:12px;line-height:1.8}
+.sorot-artifact-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.sorot-artifact-link{position:relative;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:145px;padding:18px;border:1px solid var(--line);background:var(--surface);color:var(--text);text-decoration:none;transition:border-color .16s ease,transform .16s ease}
+.sorot-artifact-link:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
+.sorot-artifact-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.sorot-artifact-link.is-primary{border-color:var(--accent);background:var(--accent-soft)}
+.sorot-artifact-format{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em;color:var(--muted)}
+.sorot-artifact-link strong{font-size:14px;line-height:1.4}
+.sorot-artifact-link small{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);overflow-wrap:anywhere}
+.sorot-artifact-arrow{margin-top:auto;align-self:flex-end;color:var(--accent);font-size:20px}
+.sorot-release-footer{display:flex;flex-wrap:wrap;align-items:center;gap:13px 18px;padding:17px 0;border-bottom:1px solid var(--line);font-size:11px}
+.sorot-release-footer span{flex-basis:100%;color:var(--muted);line-height:1.6}
+.sorot-release-footer a{color:var(--text);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:4px}
+.sorot-release-footer a:hover{color:var(--accent)}
+.sorot-install-note{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:9px 18px;padding-top:18px;font-size:11px}
+.sorot-install-note code{font:11px ui-monospace,SFMono-Regular,Menlo,monospace;padding:10px 12px;background:var(--surface);border:1px solid var(--line);overflow-wrap:anywhere}
+.sorot-install-note span{grid-column:1/-1;color:var(--muted);line-height:1.7}
+@media(max-width:900px){.sorot-artifact-grid{grid-template-columns:1fr}.sorot-artifact-link{min-height:115px}}
+@media(max-width:600px){.sorot-release-heading{align-items:flex-start;flex-direction:column}.sorot-release-brand h3{font-size:20px}.sorot-install-note{grid-template-columns:1fr}.sorot-install-note span{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.sorot-artifact-link{transition:none}.sorot-artifact-link:hover{transform:none}}
