@@ -1,8 +1,8 @@
 # Sorot maintenance patches
 
-The tagged 0.5.0 beta artifacts in this directory are immutable audit inputs. Keep changes for the next source build as a small, ordered patch series until a new versioned source tree and release are intentionally cut.
+The 0.5.0 beta artifacts in ../releases/0.5.0/ are immutable audit inputs. Keep changes for the next source build as a small, ordered patch series until a new versioned source tree and release are intentionally cut.
 
-Patches are applied to a temporary extraction of `sorot-0.5.0.zip` in CI. The archive, Debian package, and existing SHA-256 manifest are not rewritten.
+Patches are applied to a temporary extraction of `releases/0.5.0/sorot-0.5.0.zip` in CI. The archive, Debian package, and existing SHA-256 manifest are not rewritten.
 
 ## Current patch series
 
@@ -16,7 +16,7 @@ From the repository root:
 ```bash
 repo_root="$PWD"
 tmp="$(mktemp -d)"
-unzip -q apps/sorot/sorot-0.5.0.zip -d "$tmp"
+unzip -q apps/sorot/releases/0.5.0/sorot-0.5.0.zip -d "$tmp"
 cd "$tmp/sorot-0.5.0"
 patch -p0 < "$repo_root/apps/sorot/patches/0001-validate-qt-plugin-elf.patch"
 python "$repo_root/apps/sorot/patches/apply.py" "$tmp/sorot-0.5.0"
