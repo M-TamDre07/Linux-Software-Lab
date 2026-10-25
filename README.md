@@ -91,7 +91,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 
 ## Sorot 0.5.0 Beta
 
-Sorot adalah teleprompter desktop untuk Linux yang sebelumnya tercatat di katalog sebagai Prompter Overlay. Artefak beta dan dokumentasi tersedia di [`apps/sorot/`](apps/sorot/README.md). Paket `.deb`, arsip source, checksum SHA-256, laporan pengujian, dan panduan ekstensi tersedia di folder tersebut. Sorot masih beta; laporan pengujian mencatat suite otomatis di Ubuntu 24.04, sementara instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu diuji. Website hanya mendokumentasikan dan menautkan artefak; file paket aplikasi tidak diubah dalam pembaruan rebranding ini.
+Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.5.0 Beta`](apps/sorot/releases/0.5.0/RELEASE-NOTES.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot masih beta; pengujian instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu dilakukan. Arsip versi lama tidak ditimpa oleh versi baru.
 
 ## PaketScope 3 (pratinjau pengembangan)
 
@@ -117,6 +117,6 @@ Untuk menguji pemasangan atau penghapusan paket, gunakan mesin virtual Debian 13
 Website dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela: https://saweria.co/tamaandrea
 
 
-## UI/UX design lock
+## Kontribusi dan atribusi
 
-The website and PaketScope desktop interface follow a mandatory, ArtCraft-inspired editorial design system. Routine updates must preserve the established visual identity; redesigns require explicit maintainer approval. See [docs/DESIGN_SYSTEM_LOCK.md](docs/DESIGN_SYSTEM_LOCK.md) before changing UI, styling, layout, or motion.
+Pencipta awal dan maintainer proyek: **Muhammad Andreatama**. Sebelum mengerjakan perubahan untuk repositori resmi, hubungi maintainer dan tunggu persetujuan. Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk proses pengajuan, etika atribusi, dan batas kebijakan ini terhadap hak yang diberikan GPL-3.0.

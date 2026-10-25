@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.5.0",
+  "channel": "beta",
+  "status": "testing",
+  "artifacts": [
+    {
+      "file": "sorot_0.5.0_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "3a9a95a5646f30b6f071cedfea17915c7fc290c338702ba1547566217416f357"
+    },
+    {
+      "file": "sorot-0.5.0.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "sha256": "5e8f68b84ab5b2b1cc668205483a759202cfd5f380754f251031bb2f62c623f6"
+    },
+    {
+      "file": "sorot-0.5.0.zip",
+      "kind": "source-archive",
+      "format": "zip",
+      "sha256": "cf660084fb56e413cb1fba4599bb4e703e551873121f21d602d88ce65b2b6533"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

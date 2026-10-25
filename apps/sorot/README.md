@@ -1,25 +1,25 @@
-# Sorot 0.5.0 Beta
+# Sorot
 
-Sorot is a desktop teleprompter for Linux. This directory contains the preserved beta distribution artifacts and documentation. The files are relocated byte-for-byte and are not rebuilt as part of the repository reorganization.
+Sorot is a native Linux desktop teleprompter. Its existing interface, text workflow, playback behavior, and extension ecosystem are maintained incrementally; this repository does not treat a new release as a reason to redesign the UI/UX.
 
-> **Beta notice:** Sorot 0.5.0 is not a stable release. Read the test report and known limitations before installing it. The website rebranding does not modify the Debian package or application archives.
+## Current archived version
 
-## Available artifacts
+The repository currently contains **Sorot 0.5.0 Beta** as an immutable audit/release candidate. It is not a stable release.
 
-| Artifact | Purpose |
-| --- | --- |
-| [`sorot_0.5.0_all.deb`](sorot_0.5.0_all.deb) | Debian package for testing |
-| [`sorot-0.5.0.tar.gz`](sorot-0.5.0.tar.gz) | Source archive |
-| [`sorot-0.5.0.zip`](sorot-0.5.0.zip) | ZIP source archive |
-| [`SHA256SUMS`](SHA256SUMS) | SHA-256 checksums for the three artifacts |
-| [`TEST-REPORT.md`](TEST-REPORT.md) | Test results and outstanding validation |
-| [`EXTENSIONS.md`](EXTENSIONS.md) | Extension format, API, installation, and security model |
+- [Release notes and status](releases/0.5.0/RELEASE-NOTES.md)
+- [Debian package](releases/0.5.0/sorot_0.5.0_all.deb)
+- [Source archive (tar.gz)](releases/0.5.0/sorot-0.5.0.tar.gz)
+- [Source archive (ZIP)](releases/0.5.0/sorot-0.5.0.zip)
+- [SHA-256 checksum file](releases/0.5.0/SHA256SUMS)
+- [Machine-readable version manifest](releases/0.5.0/release.json)
+- [Version-specific test report](releases/0.5.0/TEST-REPORT.md)
+- [Version-specific release readiness report](releases/0.5.0/RELEASE_READINESS.md)
 
-The project has no published GitHub Release entry at the time this document was prepared. The files above are repository artifacts, not a tagged stable release.
+See [the version archive index](releases/README.md) for how versions are kept side-by-side and how to verify their artifacts.
 
 ## What Sorot provides
 
-Based on the included test report and extension documentation, the beta includes:
+Based on the included 0.5.0 Beta test report and extension documentation, the archived beta includes:
 
 - Script editing, opening/saving, undo, drafts, and local snapshots.
 - A floating teleprompter overlay with playback controls, pause, speed controls, and duration-oriented playback.
@@ -32,50 +32,50 @@ The separate process used for code extensions protects application stability; **
 
 ## Installation
 
-Download the `.deb` package to a local directory, then install it with APT so dependencies can be resolved:
+Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.5.0 package file:
 
-```bash
-cd ~/Downloads
+~~~bash
 sudo apt install ./sorot_0.5.0_all.deb
-```
+~~~
 
-If the package was downloaded to another directory, change to that directory first or provide the full file path. Review the package and its dependencies before confirming installation. To remove the installed package, use the package name shown by the installed package metadata (the test report records the package as `sorot`).
+For a move back to an older version, first select that version's directory, verify its SHA-256 checksums, back up scripts and other important data, and install its package. If APT blocks a downgrade, use the explicit downgrade option:
 
-The clean-install workflow on Debian 13 has **not** been verified in the included test report. Do not treat Debian 13 compatibility as confirmed just because a Debian package is provided.
+~~~bash
+sudo apt install --allow-downgrades ./sorot_0.5.8_all.deb
+~~~
+
+The name 0.5.8 in this example illustrates a possible future version; it is not currently included in this archive. Avoid removing user configuration with package purge commands when the intent is only to change application versions.
+
+The source tar.gz and ZIP archives are version-specific snapshots for reviewing or building the application source. They are not guaranteed to include maintenance changes made after the archived version was built.
 
 ## Test status and limitations
 
-The report dated 2026-10-18 records the following environment and results:
+The report for version 0.5.0 records 378 automated tests passed on Ubuntu 24.04 x86_64, Python 3.12.3, and PySide6 6.12.0, along with reproducible artifacts from two consecutive builds. This is the project's recorded report, not a universal compatibility guarantee.
 
-- Ubuntu 24.04 x86_64, Python 3.12.3, PySide6 6.12.0.
-- Ruff checks passed; mypy reported no issues across 43 files.
-- Pytest: 378 passed, 0 failed, 0 skipped.
-- `desktop-file-validate` was clean; Lintian reported one pedantic note and no errors/warnings.
-- Two consecutive builds produced identical checksums for the Debian, tar.gz, and ZIP artifacts.
+The following have not been confirmed by that report:
 
-The same report explicitly marks these areas as **not yet tested**:
+- Clean installation and dependency resolution on Debian 13.
+- Actual compositor behavior in real KDE Plasma Wayland/XWayland or X11 sessions, including always-on-top, click-through, dragging, multi-monitor, and fullscreen behavior.
+- Real AI provider, rclone/Google Drive, and keyring integration.
+- Third-party extension compatibility and screen-reader accessibility.
 
-- Real desktop sessions on GNOME Wayland, KDE Plasma, Xfce, and Cinnamon, including overlay positioning, click-through, multi-monitor, and fullscreen behaviour.
-- A clean Debian 13 installation and dependency resolution.
-- Real AI providers, rclone/Google Drive, and a real keyring.
-- Third-party extensions and screen-reader accessibility.
+See the [0.5.0 test report](releases/0.5.0/TEST-REPORT.md) for the test scope and known limitations.
 
-These results are the supplied project's report, not an independent audit or a guarantee for every Linux environment. See [`TEST-REPORT.md`](TEST-REPORT.md) for the full scope.
+## Integrity and maintenance
 
-## Integrity checks
+Verify the artifacts in a version folder by running:
 
-From this directory, verify an artifact against the provided checksum file:
-
-```bash
+~~~bash
+cd apps/sorot/releases/0.5.0
 sha256sum -c SHA256SUMS
-```
+~~~
 
-Only run the check with the three matching artifact files present in the same directory.
+The release validator also checks that each version's release.json, SHA256SUMS, and actual artifact files agree:
 
-## Maintained source checks
+~~~bash
+python apps/sorot/validate_releases.py
+~~~
 
-The supplied release files are checksum-verified and are not rewritten during website maintenance. A small maintenance patch series is stored in [`patches/`](patches/README.md). The repository's **Sorot source quality** workflow extracts the source ZIP into a temporary directory, applies those patches, runs Ruff, mypy, and pytest on Python 3.11–3.13, and performs a reproducible package build without publishing it. See the patch notes before treating any rebuilt artifact as a release.
+The repository's **Sorot source quality** workflow extracts the selected version's source ZIP into a temporary directory, applies maintained test/build overlays, runs Ruff, mypy, and pytest on Python 3.11–3.13, and performs a reproducible package build without publishing it. These CI-only maintenance overlays must not be represented as modifications to already archived package binaries.
 
-## Open-source contributions
-
-Please read [`EXTENSIONS.md`](EXTENSIONS.md) before developing or installing extensions. For source changes, include reproducible steps, focused tests, and documentation updates. The public website catalog is maintained separately under `public/`; website-only rebranding should not rewrite application binaries, the Debian packaging files, or source archives.
+For maintainer-approved contributions and attribution expectations, see the repository-level [CONTRIBUTING.md](../../CONTRIBUTING.md). Shared extension API documentation is available in [EXTENSIONS.md](EXTENSIONS.md).
