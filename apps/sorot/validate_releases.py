@@ -123,7 +123,7 @@ def main() -> int:
         return 2
     versions = sorted(
         (path for path in RELEASES_DIR.iterdir() if path.is_dir() and VERSION_PATTERN.fullmatch(path.name)),
-        key=lambda path: tuple(int(part) if part.isdigit() else part for part in re.split(r"[.+-]", path.name)),
+        key=lambda path: path.name,
     )
     if not versions:
         print("No versioned Sorot release directories found.", file=sys.stderr)
