@@ -234,8 +234,8 @@ def apply(root: Path) -> None:
     copyright_path.write_text(
         replace_once(
             copyright_text,
-            "Upstream-Name: Sorot\\nSource: (belum ada URL repositori publik)",
-            "Upstream-Name: Sorot\\nUpstream-Contact: " + contact + "\\nSource: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
+            "Upstream-Name: Sorot\nSource: (belum ada URL repositori publik)",
+            "Upstream-Name: Sorot\nUpstream-Contact: " + contact + "\nSource: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
             "Debian copyright upstream contact and source URL",
         ),
         encoding="utf-8",
