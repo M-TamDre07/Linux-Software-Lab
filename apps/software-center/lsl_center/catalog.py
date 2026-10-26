@@ -253,6 +253,8 @@ class CatalogService:
                 product_artifacts.setdefault("sorot", []).append(artifact)
 
         assets_dir = data_dir / "assets"
+        if not assets_dir.is_dir():
+            assets_dir = bundled_data_dir() / "assets"
         applications: list[Application] = []
         for record in catalog_data["software"]:
             app_id = record["id"]
