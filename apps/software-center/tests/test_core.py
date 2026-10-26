@@ -15,6 +15,7 @@ from lsl_center.catalog import (
     validate_catalog_payload,
     validate_download_payload,
 )
+from lsl_center.cli import main
 from lsl_center.distro import (
     architecture_matches,
     canonical_architecture,
