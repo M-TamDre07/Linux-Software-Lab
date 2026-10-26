@@ -424,6 +424,12 @@ class MainWindow(QMainWindow):
             notice = reasons[0] if reasons else "Hanya artefak source yang terdaftar; source bukan installer native."
         else:
             notice = "Belum ada paket rilis terdaftar untuk pemasangan satu-klik. Source tetap bisa ditinjau."
+        if app.planned_targets:
+            planned_lines = [
+                f"Direncanakan · {target.distribution_id} · versi {target.version}: {target.note}"
+                for target in app.planned_targets
+            ]
+            notice += "\\n\\n" + "\\n".join(planned_lines)
         self.compatibility_label.setText(notice)
 
         self.source_combo.clear()
