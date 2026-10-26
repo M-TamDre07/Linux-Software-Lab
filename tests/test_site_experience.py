@@ -19,6 +19,7 @@ CORE_PAGES = (
     "software/paketscope.html",
     "software/sorot.html",
     "launcher/index.html",
+    "admin/index.html",
 )
 
 
@@ -207,6 +208,35 @@ class WebsiteExperienceTests(unittest.TestCase):
                 )
                 self.assertTrue(canonical_manifest.is_file(), str(relative))
                 self.assertEqual(canonical_manifest.read_bytes(), bundled_manifest.read_bytes())
+
+
+    def test_admin_control_room_is_authenticated_and_not_indexed(self) -> None:
+        source, page = self.parse_page("admin/index.html")
+        self.assertEqual(page.meta.get("robots"), "noindex,nofollow")
+        self.assertEqual(page.canonicals, ["https://linux-software-lab.vercel.app/admin/"])
+        self.assertIn('id="loginForm"', source)
+        self.assertIn('id="dashboardView"', source)
+        self.assertIn('id="deniedView"', source)
+        self.assertIn('type="module" src="/assets/js/admin.js"', source)
+
+        script = (PUBLIC / "assets" / "js" / "admin.js").read_text(encoding="utf-8")
+        self.assertIn("signInWithPassword", script)
+        self.assertIn("lsl_admin_users", script)
+        self.assertIn("software_catalog", script)
+        self.assertIn("createClient", script)
+        self.assertNotIn("sb_secret_", script)
+        self.assertNotIn("service_role", script)
+        self.assertNotRegex(script, r"\\.from\\(['\\\"]software_catalog['\\\"]\\)\\.(insert|update|upsert|delete)\\(")
+
+        migration = (ROOT / "supabase" / "migrations" / "20261026105902_add_admin_catalog_read_access.sql").read_text(encoding="utf-8")
+        self.assertIn("create policy software_catalog_admin_read", migration)
+        self.assertIn("user_id = (select auth.uid())", migration)
+        self.assertIn("active is true", migration)
+        self.assertIn("grant select on table public.software_catalog to authenticated", migration)
+        self.assertNotIn("grant all", migration.lower())
+
+        sitemap = (PUBLIC / "sitemap.xml").read_text(encoding="utf-8")
+        self.assertNotIn("/admin/", sitemap)
 
 
 if __name__ == "__main__":
