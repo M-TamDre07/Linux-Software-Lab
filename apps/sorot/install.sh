@@ -73,8 +73,8 @@ while (($#)); do
   esac
 done
 
-if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][A-Za-z0-9.-]+)?$ ]]; then
-  die "Invalid version string: $VERSION"
+if [[ -n "$VERSION" ]]; then
+  [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][A-Za-z0-9.-]+)?$ ]] || die "Invalid version string: $VERSION"
 fi
 
 if [[ ! -r /etc/os-release ]]; then
@@ -186,7 +186,7 @@ for version in reversed(versions):
     print(version)
 PY
 )
-(("${#INDEXED_VERSIONS[@]}" > 0)) || die "The version index contains no selectable releases."
+[[ "${#INDEXED_VERSIONS[@]}" -gt 0 ]] || die "The version index contains no selectable releases."
 
 if [[ -n "$VERSION" ]]; then
   FOUND_VERSION=0
