@@ -409,16 +409,14 @@ def install_verified_artifact(
     artifact: Artifact,
     package_path: Path,
     profile: SystemProfile,
+    *,
+    expected_preview: InstallPreview,
     timeout_seconds: int = 1800,
-    expected_preview: InstallPreview | None = None,
 ) -> InstallResult:
     """Execute only if the package still matches the displayed APT preview."""
     verify_local_artifact(artifact, package_path)
     current_preview = preview_installation(artifact, package_path, profile)
-    if (
-        expected_preview is not None
-        and not _same_preview_plan(expected_preview, current_preview)
-    ):
+    if not _same_preview_plan(expected_preview, current_preview):
         raise InstallError(
             "APT's package plan changed after confirmation. No installation was started; "
             "review a fresh transaction preview."
