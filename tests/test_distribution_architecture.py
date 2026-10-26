@@ -47,7 +47,6 @@ class DistributionArchitectureTests(unittest.TestCase):
         self.assertTrue({"deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip"} <= formats)
         self.assertIn("Flatpak tetap menjadi salah satu format", self.architecture)
         self.assertIn("native packages plus optional Flatpak delivery", self.architecture)
-        self.assertIn("No Arch", self.architecture) if False else None
         index = json.loads((ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8"))
         arch_target = next(x for x in index["planned_targets"] if x["distribution"] == "Arch Linux")
         self.assertEqual(arch_target["status"], "planned")
