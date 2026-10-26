@@ -169,6 +169,13 @@ def validate_catalog_payload(data: dict[str, Any]) -> None:
             raise CatalogError(f"{app_id}: slug and id must match for release-directory lookup.")
         if app["status"] not in ALLOWED_STATUSES:
             raise CatalogError(f"{app_id}: unsupported status {app['status']!r}.")
+        detail_url = app.get("detailUrl")
+        if (
+            not isinstance(detail_url, str)
+            or not re.fullmatch(r"/software/[a-z0-9-]+\\.html", detail_url)
+            or ".." in detail_url.split("/")
+        ):
+            raise CatalogError(f"{app_id}: detailUrl must point to a local /software/<slug>.html page.")
         for field in ("platforms", "tags", "keywords", "features"):
             value = app.get(field, [])
             if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
