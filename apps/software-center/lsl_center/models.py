@@ -67,6 +67,7 @@ class Application:
     category: str
     status: str
     app_type: str
+    detail_url: str
     platforms: tuple[str, ...]
     tags: tuple[str, ...]
     keywords: tuple[str, ...]
@@ -94,6 +95,7 @@ class Application:
             category=record["category"],
             status=record["status"],
             app_type=record["type"],
+            detail_url=record.get("detailUrl", ""),
             platforms=tuple(record.get("platforms", [])),
             tags=tuple(record.get("tags", [])),
             keywords=tuple(record.get("keywords", [])),
