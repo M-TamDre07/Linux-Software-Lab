@@ -9,7 +9,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from .catalog import CatalogError, CatalogService, WEBSITE_ROOT
+from .catalog import WEBSITE_ROOT, CatalogError, CatalogService
 from .distro import artifact_compatibility, detect_system_profile, executable_for
 from .installer import (
     InstallError,
