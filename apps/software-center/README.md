@@ -46,8 +46,12 @@ lsl detect
 lsl list
 lsl info sorot
 lsl download sorot --format zip
+lsl ecosystem
+lsl ecosystem --json
 lsl doctor
 ~~~
+
+`lsl ecosystem` reports the canonical GitHub, website and launcher portal links, the active local catalogue source, detected system profile, reviewed local integration IDs, and enabled installation adapters. `--json` provides the same local facts for scripts and support diagnostics. This command deliberately performs no network health probe and does not make changes to the system. `lsl --version` prints the installed launcher version.
 
 Refresh the user's local metadata cache from the official repository:
 

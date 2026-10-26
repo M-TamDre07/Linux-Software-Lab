@@ -192,6 +192,11 @@ class MainWindow(QMainWindow):
         self.system_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self.system_label.setWordWrap(True)
         header_layout.addWidget(self.system_label, 0)
+        self.portal_button = QPushButton("Portal web ↗")
+        self.portal_button.setObjectName("secondaryButton")
+        self.portal_button.setToolTip("Buka portal web Linux Software Lab Center di browser.")
+        self.portal_button.clicked.connect(self._open_launcher_portal)
+        header_layout.addWidget(self.portal_button)
         self.refresh_button = QPushButton("Perbarui katalog")
         self.refresh_button.setObjectName("secondaryButton")
         self.refresh_button.clicked.connect(self._refresh_catalog)
@@ -699,6 +704,14 @@ class MainWindow(QMainWindow):
         started = result[0] if isinstance(result, tuple) else bool(result)
         if not started:
             QMessageBox.warning(self, "Tidak bisa membuka aplikasi", f"Gagal menjalankan {executable}.")
+
+    def _open_launcher_portal(self) -> None:
+        """Open the public launcher portal, separate from the local catalogue."""
+        url = f"{WEBSITE_ROOT}/launcher/"
+        if QDesktopServices.openUrl(QUrl(url)):
+            self._set_status(f"Portal web dibuka: {url}")
+        else:
+            self._set_status(f"Tidak dapat membuka browser. Buka manual: {url}")
 
     def _open_website(self) -> None:
         app = self.current_application

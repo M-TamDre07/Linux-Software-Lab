@@ -5,13 +5,17 @@ on:
     branches: [main]
     paths:
       - "public/**"
-      - "apps/paketscope/**"
+      - "apps/**"
+      - "scripts/**"
+      - "tests/**"
       - ".github/workflows/codeql.yml"
   pull_request:
     branches: [main]
     paths:
       - "public/**"
-      - "apps/paketscope/**"
+      - "apps/**"
+      - "scripts/**"
+      - "tests/**"
       - ".github/workflows/codeql.yml"
   schedule:
     - cron: "17 4 * * 1"

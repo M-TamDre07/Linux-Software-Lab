@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
@@ -66,6 +67,19 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertTrue(window.source_button.isEnabled())
         self.assertTrue(window.website_button.isEnabled())
         self.assertTrue(window.manifest_button.isEnabled())
+        window.close()
+
+    def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("debian-family"),
+        )
+        self.assertTrue(window.portal_button.isEnabled())
+        with patch("lsl_center.gui.QDesktopServices.openUrl", return_value=True) as open_url:
+            window.portal_button.click()
+        opened_url = open_url.call_args.args[0]
+        self.assertEqual(opened_url.toString(), "https://linux-software-lab.vercel.app/launcher/")
+        self.assertIn("Portal web dibuka", window.status_message.text())
         window.close()
 
     def test_debian_catalogue_shows_testing_install_action_with_explicit_status(self) -> None:

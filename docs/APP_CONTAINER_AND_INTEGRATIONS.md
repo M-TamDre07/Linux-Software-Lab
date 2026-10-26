@@ -1,5 +1,11 @@
 # Linux Software Lab Center: app container and integrations
 
+## Launcher portal and local diagnostics
+
+The desktop GUI links to the public `/launcher/` portal so users can move from local application discovery to ecosystem documentation without guessing a URL. The CLI offers `lsl ecosystem` and `lsl ecosystem --json` to report canonical links, the active local catalogue source, local distro/architecture, reviewed local integration IDs, and the adapter availability advertised by the current implementation.
+
+This is a local diagnostic command. It intentionally does not claim that GitHub, Vercel, or Supabase is currently reachable, and it performs no network probe or system mutation. “Detected application” means a registered local executable is found; it does not prove that the app works correctly or is installed by a particular package manager.
+
 ## The meaning of “container”
 
 Linux Software Lab Center is an **application hub and catalogue**: it brings the projects in Linux Software Lab into one searchable desktop interface, shows their real release state, and connects each entry to its website page, GitHub source directory, and version manifest.
