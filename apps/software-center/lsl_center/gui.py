@@ -38,7 +38,6 @@ except ImportError as exc:  # pragma: no cover - depends on optional GUI extra
 from .catalog import CatalogError, CatalogService
 from .distro import artifact_compatibility, detect_system_profile, executable_for
 from .installer import (
-    InstallError,
     download_artifact,
     install_verified_artifact,
     preview_installation,
