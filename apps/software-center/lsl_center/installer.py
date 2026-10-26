@@ -72,7 +72,12 @@ def _fetch_limited(
             final_path = (
                 f"{RAW_PATH_PREFIX}{artifact.product_id}/releases/{artifact.version}/{expected_leaf}"
             )
-            if final_url.path != final_path or final_url.query or final_url.fragment:
+            if (
+                final_url.port not in (None, 443)
+                or final_url.path != final_path
+                or final_url.query
+                or final_url.fragment
+            ):
                 raise InstallError("The download redirected away from the selected release artifact.")
             length = response.headers.get("Content-Length")
             if length and int(length) > maximum_bytes:
