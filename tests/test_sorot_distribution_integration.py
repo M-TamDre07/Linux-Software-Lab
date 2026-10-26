@@ -49,36 +49,33 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
             self.assertEqual(set(artifact_formats), set(entry["formats"]))
             self.assertEqual(set(checksums), {artifact["file"] for artifact in manifest["artifacts"]})
 
-    def test_website_download_data_matches_immutable_release_manifest(self):
-        data = json.loads((PUBLIC / "data" / "sorot-downloads.json").read_text(encoding="utf-8"))
+    def test_website_distribution_index_points_to_immutable_release_manifests(self):
+        data = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
         index = json.loads((RELEASES / "index.json").read_text(encoding="utf-8"))
-        self.assertEqual(data["schemaVersion"], 1)
-        self.assertEqual(data["product"], "Sorot")
-        website_versions = {item["version"]: item for item in data["versions"]}
-        index_versions = {item["version"] for item in index["versions"]}
-        self.assertEqual(set(website_versions), index_versions)
+        website_product = next(item for item in data["products"] if item["id"] == "sorot")
+        website_manifests = {item["version"]: item["url"] for item in website_product["manifests"]}
+        indexed_versions = {item["version"] for item in index["versions"]}
+        self.assertEqual(set(website_manifests), indexed_versions)
 
-        for version, web_release in website_versions.items():
-            manifest = json.loads((RELEASES / version / "release.json").read_text(encoding="utf-8"))
-            self.assertEqual(web_release["status"], manifest["status"])
-            self.assertEqual(web_release["channel"], manifest["channel"])
-            web_artifacts = {item["file"]: item for item in web_release["artifacts"]}
-            manifest_artifacts = {item["file"]: item for item in manifest["artifacts"]}
-            self.assertEqual(set(web_artifacts), set(manifest_artifacts))
-            for filename, manifest_artifact in manifest_artifacts.items():
-                web_artifact = web_artifacts[filename]
-                self.assertEqual(web_artifact["format"], manifest_artifact["format"])
-                self.assertEqual(web_artifact["kind"], manifest_artifact["kind"])
-                self.assertEqual(web_artifact["sha256"], manifest_artifact["sha256"])
-                self.assertTrue(web_artifact["url"].endswith("/" + version + "/" + filename))
+        for version, url in website_manifests.items():
+            expected_suffix = f"/apps/sorot/releases/{version}/release.json"
+            self.assertTrue(url.endswith(expected_suffix))
+            manifest_path = RELEASES / version / "release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["version"], version)
+            self.assertEqual(manifest["product"], "Sorot")
+            self.assertEqual(manifest["status"], next(item for item in index["versions"] if item["version"] == version)["status"])
+
 
     def test_arch_is_marked_planned_until_a_real_package_exists(self):
         index = json.loads((RELEASES / "index.json").read_text(encoding="utf-8"))
-        web_data = json.loads((PUBLIC / "data" / "sorot-downloads.json").read_text(encoding="utf-8"))
+        web_data = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
         arch = next(item for item in web_data["distributions"] if item["id"] == "arch")
-        self.assertEqual(arch["status"], "planned")
-        self.assertEqual(arch["targetVersion"], "0.6.0")
-        self.assertEqual(arch["packageFormat"], "pkg.tar.zst")
+        self.assertEqual(arch["package_format"], "pkg.tar.zst")
+        sorot = next(item for item in web_data["products"] if item["id"] == "sorot")
+        planned = next(item for item in sorot["planned_targets"] if item["distribution_id"] == "arch")
+        self.assertEqual(planned["version"], "0.6.0")
+        self.assertEqual(planned["status"], "planned")
 
         all_formats = {
             artifact["format"]
@@ -86,19 +83,22 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
             for artifact in json.loads((RELEASES / item["version"] / "release.json").read_text(encoding="utf-8"))["artifacts"]
         }
         self.assertNotIn("pkg.tar.zst", all_formats)
-        planned = next(item for item in index["planned_targets"] if item["distribution"] == "Arch Linux")
-        self.assertEqual(planned["version"], "0.6.0")
-        self.assertEqual(planned["status"], "planned")
+        legacy_planned = next(item for item in index["planned_targets"] if item["distribution"] == "Arch Linux")
+        self.assertEqual(legacy_planned["version"], "0.6.0")
+        self.assertEqual(legacy_planned["status"], "planned")
 
     def test_sorot_page_has_distribution_selector_and_terminal_helper(self):
         page = (PUBLIC / "software" / "sorot.html").read_text(encoding="utf-8")
         script = (PUBLIC / "assets" / "js" / "sorot-downloads.js").read_text(encoding="utf-8")
         self.assertIn('id="sorotDistro"', page)
-        self.assertIn('data-download-data="/data/sorot-downloads.json"', page)
+        self.assertIn('data-download-data="/data/distribution-index.json"', page)
         self.assertIn('/assets/js/sorot-downloads.js', page)
-        self.assertIn("Browsers do not reliably expose", json.dumps(json.loads((PUBLIC / "data" / "sorot-downloads.json").read_text(encoding="utf-8"))))
-        self.assertIn("distro.status === 'available' && format === distro.packageFormat", script)
-        self.assertIn("distro.status === 'available' ? artifacts.find(item => item.format === distro.packageFormat) : null", script)
+        distribution_index = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
+        self.assertIn("browser", distribution_index["detection_policy"])
+        self.assertIn("distribution-index.json", script)
+        self.assertIn("trustedManifestURL", script)
+        self.assertNotIn("sorot-downloads.json", page + script)
+        self.assertIn("availability", script)
         self.assertIn("BUKAN", (PUBLIC / "assets" / "images" / "sorot-preview.svg").read_text(encoding="utf-8"))
 
     def test_terminal_helper_checks_os_release_manifest_and_checksum(self):
