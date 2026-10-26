@@ -17,10 +17,21 @@ This is an operational checklist, not a claim that the project has passed an ind
 
 ## Supabase database
 
-- The `Linux-Software-Lab` Supabase project was initialized on 2026-10-22. During the initial review it had no application tables, no user-created Storage buckets, and no migration history. Do not treat an empty database as a backup of the website: static website source and release artifacts must also be backed up in Git and/or an independent artifact archive.
+- The `Linux-Software-Lab` Supabase project was initialized on 2026-10-22. A live read-only audit on 2026-10-27 found two public tables (`software_catalog` and `lsl_admin_users`) and three applied migrations. Migration history must be tracked in `supabase/migrations/` in Git as well as in the database; a migration applied directly to the database but missing from Git is source-control drift and must be reconciled before future schema changes. Static website source and release artifacts still need Git and/or independent artifact backups.
 - The database has an `ensure_rls` DDL event trigger which calls `public.rls_auto_enable()`. It remains enabled after the security fix. This function automatically enables RLS on new tables in `public`; **RLS being enabled does not create access policies**. Every future table still needs explicit, reviewed policies appropriate to its data and access model.
 - Migration `20261022164925_revoke_public_execute_rls_auto_enable.sql` revokes direct function execution from `PUBLIC`, `anon`, `authenticated`, and `service_role`. It does not drop or disable the event trigger. Keep database changes in versioned migrations and re-run the Supabase Security Advisor after schema updates.
 - Verify the configured backup/export mechanism and perform a restore test before storing production data. Supabase backup availability depends on the plan; database backups do not include the contents of Storage buckets. Keep an independent off-site export where the plan does not provide suitable backups.
+
+## Foundation audit snapshot — 2026-10-27
+
+The live project was inspected without changing schema or data:
+
+- `public.software_catalog`: RLS enabled; anonymous role has SELECT only for rows where `published IS TRUE`.
+- `public.lsl_admin_users`: RLS enabled; public and anonymous table access are revoked. Authenticated users can only read their own membership row. Admin catalogue reads require an active membership row.
+- A role-scoped SQL probe observed two published catalogue rows and zero unpublished rows as `anon`; a read of the admin registry was denied. Under `authenticated` without a valid user identity, RLS returned no admin or catalogue rows.
+- Supabase Security Advisor returned no security lints at the time of the audit. The performance advisor reported the published-order index had not yet been used, which is not sufficient evidence to drop it while the catalogue contains only a few rows.
+- This was a configuration/RLS audit and safe regression check, **not** an independent penetration test. Keep malicious-input cases as unit/regression tests; never run destructive injection payloads against production.
+- The website's latest production deployment was verified as `READY` on the merged GitHub `main` commit. The separate Vercel project `paketscope` still reports failed deployments because it is configured like a web application despite PaketScope being a native desktop app. Review and disconnect that project's Git integration manually in Vercel only after confirming it is not needed; do not change the website project's connection.
 
 ## Dependency and source scanning
 
