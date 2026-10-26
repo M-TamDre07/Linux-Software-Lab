@@ -54,7 +54,8 @@ jobs:
               "lsl_center/catalog.py",
               "lsl_center/installer.py",
               "lsl_center/data/catalog.json",
-              "lsl_center/data/sorot-downloads.json",
+              "lsl_center/data/distribution-index.json",
+              "lsl_center/data/manifests/sorot/0.5.0/release.json",
               "lsl_center/data/assets/center-icon.svg",
           }
           missing = sorted(required - names)
