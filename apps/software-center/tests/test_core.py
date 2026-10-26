@@ -28,7 +28,6 @@ from lsl_center.installer import (
     validate_release_metadata,
 )
 from lsl_center.models import SystemProfile
-from lsl_center.cli import main
 from lsl_center.selection import select_artifact, source_artifacts
 
 
