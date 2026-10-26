@@ -492,6 +492,14 @@ class CliTests(unittest.TestCase):
         self.assertEqual({record["id"] for record in records}, {"paketscope", "sorot"})
         sorot = next(record for record in records if record["id"] == "sorot")
         self.assertEqual(sorot["available_artifacts"], [])
+        self.assertEqual(
+            sorot["website_url"],
+            "https://linux-software-lab.vercel.app/software/sorot.html",
+        )
+        self.assertEqual(
+            sorot["source_url"],
+            "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
+        )
 
     def test_install_command_on_arch_fails_closed_without_network(self) -> None:
         output = StringIO()
@@ -506,6 +514,14 @@ class CliTests(unittest.TestCase):
             code = main(["info", "paketscope"], service=self.service, profile=debian_profile())
         self.assertEqual(code, 0)
         self.assertIn("Belum ada paket/arsip rilis", output.getvalue())
+        self.assertIn(
+            "https://linux-software-lab.vercel.app/software/paketscope.html",
+            output.getvalue(),
+        )
+        self.assertIn(
+            "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
+            output.getvalue(),
+        )
 
 
 if __name__ == "__main__":
