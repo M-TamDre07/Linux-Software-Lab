@@ -167,16 +167,25 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
     return errors
 
 
-def validate_manifest_file(path: Path) -> list[str]:
+def validate_manifest_file(path: Path, *, template: bool = False) -> list[str]:
     try:
         source = path.read_text(encoding="utf-8")
     except OSError as exc:
         return [f"Manifest tidak dapat dibaca: {exc}"]
+    if template:
+        # Use inert sample values only in memory; never rewrite the committed template.
+        source = source.replace('"{{APP_SLUG}}"', '"template-app"')
+        source = source.replace('{{APP_NAME_JSON}}', json.dumps("Template App"))
+        source = source.replace(
+            '{{APP_DESCRIPTION_JSON}}',
+            json.dumps("Synthetic description used to validate the scaffold contract."),
+        )
+        source = source.replace("/software/{{APP_SLUG}}.html", "/software/template-app.html")
     try:
         data = json.loads(source)
     except json.JSONDecodeError as exc:
         return [f"JSON tidak valid di baris {exc.lineno}, kolom {exc.colno}."]
-    return validate_manifest(data, base_dir=path.parent)
+    return validate_manifest(data, base_dir=None if template else path.parent)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -187,21 +196,24 @@ def build_parser() -> argparse.ArgumentParser:
         "manifest",
         nargs="?",
         type=Path,
-        default=DEFAULT_MANIFEST,
-        help="Path application.json; default memvalidasi template resmi.",
+        help="Path application.json; jika dihilangkan, validasi template resmi dengan fixture inert.",
     )
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    errors = validate_manifest_file(args.manifest)
+    target = args.manifest or DEFAULT_MANIFEST
+    is_template = args.manifest is None
+    errors = validate_manifest_file(target, template=is_template)
     if errors:
-        print(f"Manifest tidak valid: {args.manifest}", file=sys.stderr)
+        label = "Template manifest" if is_template else "Manifest"
+        print(f"{label} tidak valid: {target}", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-    print(f"Manifest valid: {args.manifest}")
+    label = "Template manifest valid" if is_template else "Manifest valid"
+    print(f"{label}: {target}")
     return 0
 
 
