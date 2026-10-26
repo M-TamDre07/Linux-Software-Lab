@@ -64,6 +64,8 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertIn("Belum tersedia", window.install_button.text())
         self.assertEqual(window.source_combo.count(), 2)
         self.assertTrue(window.source_button.isEnabled())
+        self.assertTrue(window.website_button.isEnabled())
+        self.assertTrue(window.manifest_button.isEnabled())
         window.close()
 
     def test_debian_catalogue_shows_testing_install_action_with_explicit_status(self) -> None:
