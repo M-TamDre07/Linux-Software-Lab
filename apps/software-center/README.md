@@ -4,6 +4,12 @@ Linux Software Lab Center is the planned desktop launcher for people moving to L
 
 **Status: 0.1.0.dev1, development preview.** This is source code for testing, not a published, signed, distro-native launcher package. Only the Debian .deb installation adapter is implemented. RPM, Arch, Flatpak, AppImage, signed release metadata, package signing, unattended installation, and automatic upgrades are not yet enabled.
 
+## Arti “container” pada launcher
+
+Linux Software Lab Center berfungsi sebagai pusat katalog dan pengelolaan aplikasi: ia menunjukkan aplikasi, versi, kompatibilitas distro, sumber GitHub/website, dan tindakan instalasi atau menjalankan aplikasi. **MVP ini bukan container runtime dan bukan sandbox** yang menyalin semua aplikasi ke dalam satu file atau menjalankan aplikasi secara terisolasi. Paket yang dipasang tetap menjadi paket sistem/user sesuai mekanisme native distro, dan peluncuran aplikasi dijalankan sebagai pengguna biasa.
+
+Pendekatan ini disengaja untuk migrasi dari Windows: pengguna pemula mendapat antarmuka klik, sementara pengguna profesional tetap mendapat CLI yang memakai core dan aturan kompatibilitas yang sama. Isolasi per aplikasi (misalnya melalui Flatpak) adalah format distribusi tersendiri dan hanya boleh ditampilkan saat paket/runtime serta integrasinya benar-benar tersedia dan diuji.
+
 ## What works in this MVP
 
 - Offline-first catalogue for PaketScope and Sorot; bundled metadata is checked against the website's distribution index and version manifests by regression tests.
