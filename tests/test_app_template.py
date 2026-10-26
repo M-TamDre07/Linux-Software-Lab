@@ -56,7 +56,8 @@ class ApplicationScaffoldTests(unittest.TestCase):
         self.assertEqual(target, self.apps_dir / "demo-tool")
         required = (
             "README.md",
-            "application.json",\n            "application.schema.json",
+            "application.json",
+            "application.schema.json",
             "CHANGELOG.md",
             "LICENSE-REQUIRED.md",
             ".gitignore",
