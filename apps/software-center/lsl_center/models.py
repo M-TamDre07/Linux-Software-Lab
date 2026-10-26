@@ -75,7 +75,7 @@ class Application:
         record: dict[str, Any],
         artifacts: tuple[Artifact, ...],
         icon_path: Path | None,
-    ) -> "Application":
+    ) -> Application:
         return cls(
             id=record["id"],
             name=record["name"],
