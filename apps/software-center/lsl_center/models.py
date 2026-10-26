@@ -51,6 +51,13 @@ class Artifact:
 
 
 @dataclass(frozen=True, slots=True)
+class PlannedTarget:
+    distribution_id: str
+    version: str
+    note: str
+
+
+@dataclass(frozen=True, slots=True)
 class Application:
     id: str
     name: str
@@ -68,6 +75,7 @@ class Application:
     release_url: str
     icon_path: Path | None
     artifacts: tuple[Artifact, ...]
+    planned_targets: tuple[PlannedTarget, ...] = ()
 
     @classmethod
     def from_catalog_record(
@@ -75,6 +83,7 @@ class Application:
         record: dict[str, Any],
         artifacts: tuple[Artifact, ...],
         icon_path: Path | None,
+        planned_targets: tuple[PlannedTarget, ...] = (),
     ) -> Application:
         return cls(
             id=record["id"],
@@ -93,6 +102,7 @@ class Application:
             release_url=record.get("releaseUrl", ""),
             icon_path=icon_path,
             artifacts=artifacts,
+            planned_targets=planned_targets,
         )
 
 
