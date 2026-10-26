@@ -28,7 +28,7 @@ where = ["."]
 include = ["lsl_center*"]
 
 [tool.setuptools.package-data]
-lsl_center = ["data/*.json", "data/assets/*.svg"]
+lsl_center = ["data/*.json", "data/assets/*.svg", "data/manifests/*/*/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
