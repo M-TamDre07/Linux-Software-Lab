@@ -8,11 +8,9 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC = ROOT / "public"
-PAGES = (
+BASE_PAGES = (
     "index.html",
     "software/index.html",
-    "software/paketscope.html",
-    "software/sorot.html",
     "launcher/index.html",
 )
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
@@ -21,6 +19,13 @@ SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 class SeoMetadataTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        catalogue = json.loads((PUBLIC / "data" / "software.json").read_text(encoding="utf-8"))
+        product_pages = [
+            app["detailUrl"].lstrip("/")
+            for app in catalogue["software"]
+            if isinstance(app, dict) and isinstance(app.get("detailUrl"), str)
+        ]
+        cls.pages = tuple(dict.fromkeys((*BASE_PAGES, *product_pages)))
         sitemap_path = PUBLIC / "sitemap.xml"
         cls.sitemap = ET.parse(sitemap_path).getroot()
         cls.sitemap_urls = {
@@ -30,7 +35,7 @@ class SeoMetadataTests(unittest.TestCase):
         }
 
     def test_pages_have_unique_canonical_and_share_metadata(self):
-        for relative_path in PAGES:
+        for relative_path in self.pages:
             with self.subTest(page=relative_path):
                 html = (PUBLIC / relative_path).read_text(encoding="utf-8")
                 canonicals = re.findall(
@@ -57,6 +62,14 @@ class SeoMetadataTests(unittest.TestCase):
                 self.assertEqual(image_url.netloc, canonical_parts.netloc)
                 image_path = PUBLIC / image_url.path.lstrip("/")
                 self.assertTrue(image_path.is_file(), f"social image does not exist: {image_path}")
+
+    def test_sitemap_entries_are_unique_and_private_admin_is_not_listed(self):
+        nodes = self.sitemap.findall("sm:url/sm:loc", SITEMAP_NS)
+        values = [node.text.strip() for node in nodes if node.text]
+        self.assertEqual(len(values), len(set(values)), "sitemap canonical URLs must be unique")
+        self.assertNotIn("https://linux-software-lab.vercel.app/admin/", values)
+        admin = (PUBLIC / "admin" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('name="robots" content="noindex,nofollow,noarchive"', admin)
 
     def test_catalogue_schema_id_uses_canonical_website_host(self):
         schema = json.loads((PUBLIC / "data" / "software.schema.json").read_text(encoding="utf-8"))
