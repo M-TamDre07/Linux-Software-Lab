@@ -1,0 +1,29 @@
+{
+  "$schema": "./application.schema.json",
+  "schema_version": 1,
+  "id": "{{APP_SLUG}}",
+  "slug": "{{APP_SLUG}}",
+  "name": {{APP_NAME_JSON}},
+  "description": {{APP_DESCRIPTION_JSON}},
+  "lifecycle": "planned",
+  "runtime": "select-before-implementation",
+  "supported_os": [],
+  "supported_architectures": [],
+  "entrypoints": {
+    "gui": null,
+    "cli": null
+  },
+  "distribution": {
+    "enabled_formats": [],
+    "release_manifest": null
+  },
+  "integrity": {
+    "sha256_checksums": "not-published",
+    "publisher_signature": "not-implemented"
+  },
+  "integration": {
+    "website_page": "/software/{{APP_SLUG}}.html",
+    "launcher_allowlist": "not-registered",
+    "catalogue_record": "not-registered"
+  }
+}
