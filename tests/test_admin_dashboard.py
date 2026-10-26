@@ -57,6 +57,7 @@ class AdminDashboardTests(unittest.TestCase):
         self.assertIn("/rest/v1/software_catalog?", script)
         self.assertIn("active: 'eq.true'", script)
         self.assertIn("sessionStorage", script)
+        self.assertIn("/auth/v1/logout?scope=local", script)
         self.assertIn("credentials: 'omit'", script)
         self.assertIn("redirect: 'error'", script)
         self.assertNotIn(".innerHTML", script)
