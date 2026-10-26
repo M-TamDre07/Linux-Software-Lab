@@ -81,6 +81,12 @@ class SeoMetadataTests(unittest.TestCase):
                     types = {item.get("@type") for item in data["@graph"]}
                     self.assertIn("Organization", types)
                     self.assertIn("WebSite", types)
+                elif data.get("@type") == "WebPage":
+                    self.assertIn("url", data)
+                    self.assertIn("isPartOf", data)
+                    self.assertEqual(data["url"], re.search(
+                        r'<link\\s+rel="canonical"\\s+href="([^"]+)"', html, flags=re.IGNORECASE
+                    ).group(1))
                 else:
                     self.assertEqual(data.get("@type"), "BreadcrumbList")
 
