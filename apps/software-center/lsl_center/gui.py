@@ -649,7 +649,8 @@ class MainWindow(QMainWindow):
             return
         from PySide6.QtCore import QProcess
 
-        started = QProcess.startDetached(executable, [])
+        result = QProcess.startDetached(executable, [])
+        started = result[0] if isinstance(result, tuple) else bool(result)
         if not started:
             QMessageBox.warning(self, "Tidak bisa membuka aplikasi", f"Gagal menjalankan {executable}.")
 
