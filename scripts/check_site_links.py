@@ -160,8 +160,12 @@ def validate_sitemap(root: Path = ROOT) -> list[str]:
         return ["index.html canonical URL must be an HTTPS origin URL ending in '/'."]
 
     origin = f"{canonical.scheme}://{canonical.netloc}"
-    expected_paths = {"/", "/software/"}
-    expected_pages = {"/": root / "index.html", "/software/": root / "software" / "index.html"}
+    expected_paths = {"/", "/software/", "/launcher/"}
+    expected_pages = {
+        "/": root / "index.html",
+        "/software/": root / "software" / "index.html",
+        "/launcher/": root / "launcher" / "index.html",
+    }
 
     catalog_path = root / "data" / "software.json"
     try:

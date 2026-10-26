@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Launcher — Linux Software Lab Center</title>
+<meta name="description" content="Kenali Linux Software Lab Center: launcher desktop dan CLI yang menghubungkan katalog Linux Software Lab, metadata GitHub, dokumentasi website, serta alur distribusi aplikasi yang tervalidasi.">
+<meta name="author" content="Muhammad Andreatama">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://linux-software-lab.vercel.app/launcher/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Launcher — Linux Software Lab Center">
+<meta property="og:description" content="Satu pintu ke katalog, sumber, dokumentasi, dan alur distribusi aplikasi Linux Software Lab.">
+<meta property="og:url" content="https://linux-software-lab.vercel.app/launcher/">
+<meta property="og:site_name" content="Linux Software Lab">
+<meta property="og:image" content="https://linux-software-lab.vercel.app/assets/images/linux-software-lab-social.svg">
+<meta property="og:image:type" content="image/svg+xml">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Identitas visual Linux Software Lab; halaman ini menjelaskan launcher dalam tahap pengembangan.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Launcher — Linux Software Lab Center">
+<meta name="twitter:description" content="Katalog desktop dan CLI dengan sumber metadata GitHub serta alur distribusi yang tervalidasi.">
+<meta name="twitter:image" content="https://linux-software-lab.vercel.app/assets/images/linux-software-lab-social.svg">
+<meta property="og:locale" content="id_ID">
+<link rel="icon" href="/assets/images/linux-software-lab.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/experience.css">
+<link rel="stylesheet" href="/assets/css/launcher.css">
+<script src="/assets/js/supabase-config.js" defer></script>
+<script src="/assets/js/site.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Linux Software Lab Center",
+  "url": "https://linux-software-lab.vercel.app/launcher/",
+  "description": "Informasi resmi tentang launcher desktop dan CLI Linux Software Lab yang masih dalam tahap pengembangan.",
+  "inLanguage": "id-ID",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Linux Software Lab",
+    "url": "https://linux-software-lab.vercel.app/"
+  }
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/><path d="m8 9 4 2 4-2"/></svg></span>
+      <span class="brand-copy"><strong>Linux Software Lab</strong><small>Alat berguna. Dibangun terbuka.</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Navigasi utama">
+      <a class="nav-home" href="/" aria-label="Kembali ke halaman Home"><img src="/assets/images/home-icon.svg" alt="" width="14" height="14"> Home</a>
+      <a href="/software/">Jelajahi software</a>
+      <a href="/launcher/" aria-current="page">Launcher</a>
+      <a href="/#pendekatan">Pendekatan</a>
+      <a href="/#install">Instalasi</a>
+      <a href="/#kontribusi">Kontribusi</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-small btn-secondary desktop-github" href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">Repository ↗</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/></svg></button>
+      <button class="menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Buka menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main">
+  <section class="launcher-hero">
+    <div class="container launcher-hero-grid">
+      <div class="launcher-copy">
+        <span class="eyebrow"><span class="status-dot" aria-hidden="true"></span> LINUX SOFTWARE LAB CENTER</span>
+        <h1>Satu pintu untuk <span>ekosistem aplikasi Linux.</span></h1>
+        <p class="hero-lead">Launcher desktop dan CLI untuk menjelajahi aplikasi Linux Software Lab, membaca status rilis, memeriksa kompatibilitas, serta membuka source dan dokumentasi dari satu tempat.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center" target="_blank" rel="noopener noreferrer">Lihat source launcher ↗</a>
+          <a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/pull/22" target="_blank" rel="noopener noreferrer">Lihat PR #22 ↗</a>
+        </div>
+        <div class="launcher-meta">
+          <span class="status-badge testing">Development preview</span>
+          <span class="launcher-version">Versi source: 0.1.0.dev1</span>
+        </div>
+      </div>
+      <aside class="launcher-panel" aria-labelledby="launcher-status-title">
+        <div class="launcher-panel-top">
+          <span class="launcher-panel-mark" aria-hidden="true">LS</span>
+          <div>
+            <span class="eyebrow">STATUS PRODUK</span>
+            <h2 id="launcher-status-title">Launcher sedang dikembangkan.</h2>
+          </div>
+        </div>
+        <p>Source GUI dan CLI tersedia untuk ditinjau. Paket launcher resmi yang ditandatangani belum dipublikasikan, jadi halaman ini tidak menawarkan tombol unduh installer yang belum ada.</p>
+        <div class="launcher-facts">
+          <div class="launcher-fact"><span>Antarmuka</span><strong>GUI + CLI</strong></div>
+          <div class="launcher-fact"><span>Katalog</span><strong>GitHub + cache lokal</strong></div>
+          <div class="launcher-fact"><span>Jalur native</span><strong>Debian/Ubuntu .deb</strong></div>
+          <div class="launcher-fact"><span>Rilis publik</span><strong>Belum tersedia</strong></div>
+        </div>
+        <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/software-center/README.md" target="_blank" rel="noopener noreferrer">Baca status teknis lengkap ↗</a>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="ecosystem">
+    <div class="container">
+      <div class="section-heading">
+        <div><span class="eyebrow">01 / SATU EKOSISTEM</span><h2>Repo adalah pusatnya.</h2></div>
+        <p>Website, launcher, dan setiap aplikasi punya tugas berbeda. Metadata dirawat di repositori, lalu dipakai bersama oleh permukaan publik dan launcher.</p>
+      </div>
+      <div class="launcher-grid launcher-ecosystem-grid">
+        <article class="launcher-card">
+          <span class="launcher-card-number">01 / SOURCE OF TRUTH</span>
+          <h3>GitHub repository</h3>
+          <p>Kode sumber, katalog JSON, indeks distribusi, manifest per versi, checksum, tes, dan dokumentasi dikendalikan dari satu repositori resmi.</p>
+          <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">Buka repositori ↗</a>
+        </article>
+        <article class="launcher-card">
+          <span class="launcher-card-number">02 / DISCOVERY</span>
+          <h3>Website</h3>
+          <p>Tempat pengguna menemukan software, membaca fungsi, memahami status rilis, membuka source, dan mengikuti perkembangan launcher.</p>
+          <a class="card-link" href="/software/">Jelajahi katalog ↗</a>
+        </article>
+        <article class="launcher-card">
+          <span class="launcher-card-number">03 / DESKTOP WORKFLOW</span>
+          <h3>Launcher GUI + CLI</h3>
+          <p>Antarmuka lokal memakai kontrak metadata yang sama untuk pencarian, deteksi distro, pemilihan artefak, pemeriksaan integritas, dan alur instalasi yang memang didukung.</p>
+          <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center/lsl_center" target="_blank" rel="noopener noreferrer">Lihat core launcher ↗</a>
+        </article>
+      </div>
+      <div class="launcher-flow" aria-label="Alur data ekosistem">
+        <div><span>SUMBER</span><strong>GitHub main</strong></div>
+        <span class="launcher-flow-arrow" aria-hidden="true">→</span>
+        <div><span>VALIDASI</span><strong>Katalog + manifest</strong></div>
+        <span class="launcher-flow-arrow" aria-hidden="true">→</span>
+        <div><span>KONSUMEN</span><strong>Website + launcher</strong></div>
+        <span class="launcher-flow-arrow" aria-hidden="true">→</span>
+        <div><span>MODE OFFLINE</span><strong>Snapshot lokal</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="capabilities">
+    <div class="container">
+      <div class="section-heading">
+        <div><span class="eyebrow">02 / KEMAMPUAN SAAT INI</span><h2>Terpusat, tetapi tetap terjaga.</h2></div>
+        <p>Launcher menyatukan cara menemukan aplikasi. Ia tidak boleh menganggap semua distro atau semua format paket memiliki perilaku yang sama.</p>
+      </div>
+      <div class="launcher-grid">
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">⌕</span><h3>Katalog terpadu</h3><p>Pencarian aplikasi dan detail produk memakai metadata bersama; GUI dan terminal menggunakan core yang sama.</p></article>
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">↻</span><h3>Offline-first</h3><p>Katalog bundel menjadi fallback awal, sementara refresh memvalidasi satu snapshot sebelum cache baru diaktifkan.</p></article>
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">✓</span><h3>Verifikasi artefak</h3><p>Unduhan diperiksa terhadap manifest dan SHA-256. Digest ini memeriksa kesesuaian bytes, bukan tanda tangan penerbit.</p></article>
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">⌘</span><h3>CLI untuk pengguna teknis</h3><p>Perintah seperti <code>lsl list</code>, <code>lsl info sorot</code>, dan <code>lsl doctor</code> menggunakan aturan inti yang sama.</p></article>
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">▣</span><h3>Alur instalasi terbatas</h3><p>Adapter native yang aktif pada MVP adalah paket .deb di keluarga Debian/Ubuntu, dengan simulasi APT dan konfirmasi terpisah.</p></article>
+        <article class="launcher-card"><span class="launcher-card-icon" aria-hidden="true">↗</span><h3>Navigasi lintas proyek</h3><p>Entri katalog membuka halaman website, direktori source GitHub, dan manifest versi tanpa harus menebak lokasi file.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="roadmap">
+    <div class="container">
+      <div class="section-heading">
+        <div><span class="eyebrow">03 / PETA PENGEMBANGAN</span><h2>Fondasi dahulu, baru diperluas.</h2></div>
+        <p>Roadmap ini adalah urutan kerja, bukan janji tanggal rilis. Status fitur akan mengikuti kode, artefak, dan pengujian yang benar-benar ada.</p>
+      </div>
+      <div class="launcher-roadmap">
+        <article class="launcher-roadmap-item">
+          <span class="launcher-roadmap-step">FASE 01</span>
+          <div><h3>Kontrak data dan alur inti</h3><p>Katalog bersama, deteksi distro/arsitektur, cache offline, pemilihan artefak, CLI/GUI, tautan website/source, dan pemeriksaan metadata.</p></div>
+          <span class="status-badge testing">Penguatan</span>
+        </article>
+        <article class="launcher-roadmap-item">
+          <span class="launcher-roadmap-step">FASE 02</span>
+          <div><h3>Validasi penuh dan pengujian integrasi</h3><p>Menuntaskan lint, tes inti, GUI/CLI, wheel build, dan pengujian install di lingkungan Linux yang dapat dipulihkan sebelum menyatakan siap dipakai luas.</p></div>
+          <span class="status-badge testing">Berikutnya</span>
+        </article>
+        <article class="launcher-roadmap-item">
+          <span class="launcher-roadmap-step">FASE 03</span>
+          <div><h3>Kepercayaan rilis dan packaging launcher</h3><p>Menetapkan tanda tangan rilis, kebijakan rotasi/pencabutan kunci, serta membuat paket launcher nyata dan menguji instalasi bersih.</p></div>
+          <span class="status-badge planned">Direncanakan</span>
+        </article>
+        <article class="launcher-roadmap-item">
+          <span class="launcher-roadmap-step">FASE 04</span>
+          <div><h3>Adapter lintas distribusi</h3><p>Mengaktifkan RPM, Arch, Flatpak, atau AppImage hanya setelah implementasi dan skenario uji spesifik format tersedia. Distro yang belum diuji tidak akan diklaim didukung.</p></div>
+          <span class="status-badge planned">Direncanakan</span>
+        </article>
+        <article class="launcher-roadmap-item">
+          <span class="launcher-roadmap-step">FASE 05</span>
+          <div><h3>Pengelolaan aplikasi yang lebih lengkap</h3><p>Memperluas status lokal, tindakan buka/update/uninstall, dokumentasi integrasi per aplikasi, aksesibilitas, dan pengalaman pengguna pemula secara bertahap.</p></div>
+          <span class="status-badge planned">Direncanakan</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="try-source">
+    <div class="container launcher-quickstart">
+      <div>
+        <span class="eyebrow">04 / UNTUK PENGEMBANG</span>
+        <h2>Uji dari source, bukan installer palsu.</h2>
+        <p>Launcher masih merupakan pratinjau pengembangan. Langkah ini ditujukan untuk pengujian pada Linux desktop, idealnya di mesin virtual dengan snapshot yang dapat dipulihkan. Jangan jalankan GUI menggunakan <code>sudo</code>.</p>
+      </div>
+      <div class="launcher-code">
+        <pre><code>cd apps/software-center
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '[gui,test]'
+lsl-center
+
+# Terminal terpisah
+lsl detect
+lsl list
+lsl info sorot
+lsl doctor</code></pre>
+        <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/software-center/README.md" target="_blank" rel="noopener noreferrer">Petunjuk setup dan batasan ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="trust">
+    <div class="container launcher-trust">
+      <span class="eyebrow">05 / BATAS KEAMANAN</span>
+      <h2>“Container” berarti pusat aplikasi, bukan sandbox.</h2>
+      <p>Linux Software Lab Center mengelompokkan aplikasi, metadata, dan alur kerja dalam satu launcher. Ia tidak menggantikan container runtime, tidak mengisolasi semua aplikasi, dan tidak membuat izin aplikasi menjadi lebih sempit secara otomatis. Paket yang dipasang tetap mengikuti mekanisme native masing-masing distro.</p>
+      <p>Metadata dari GitHub tidak boleh membawa perintah shell arbitrer. Instalasi ditentukan oleh kode adapter yang direview, kecocokan distro/arsitektur, validasi manifest, dan konfirmasi pengguna. Sebelum distribusi publik lebih luas, tanda tangan rilis dan uji instalasi bersih tetap menjadi gerbang wajib.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/docs/APP_CONTAINER_AND_INTEGRATIONS.md" target="_blank" rel="noopener noreferrer">Arsitektur integrasi ↗</a>
+        <a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">Arsitektur distribusi ↗</a>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container launcher-footer">
+    <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Alat berguna. Dibangun terbuka.</small></span></a>
+    <div class="launcher-footer-links"><a href="/software/">Katalog software</a><a href="/launcher/">Launcher</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
+    <p>Source of truth: repositori GitHub. Website dan launcher menampilkan status rilis secara eksplisit.</p>
+  </div>
+</footer>
+</body>
+</html>

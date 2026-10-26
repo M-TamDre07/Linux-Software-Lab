@@ -23,7 +23,7 @@ Supported statuses:
 
 Do not put application cards directly into JavaScript. public/data/software.schema.json describes the expected metadata contract; scripts/validate_catalog.py enforces the principal field and safety rules.
 
-For the approved catalogue-card and product-detail appearance, follow the shared [Product catalogue and detail-page UI standard](PRODUCT_UI_STANDARD.md). The `/software/` list must continue to use the shared card renderer and existing design tokens; do not create a one-off card style for a single product. For package delivery, follow the [unified launcher and distribution architecture](LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md) and validate versioned artifact metadata against [the distribution manifest schema](schemas/distribution-manifest.schema.json).
+For the approved catalogue-card and product-detail appearance, follow the shared [Product catalogue and detail-page UI standard](PRODUCT_UI_STANDARD.md). The `/software/` list must continue to use the shared card renderer and existing design tokens; do not create a one-off card style for a single product. For package delivery, follow the [unified launcher and distribution architecture](LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md) and validate versioned artifact metadata against [the distribution manifest schema](schemas/distribution-manifest.schema.json). The launcher’s catalogue, local launch allowlist, and trust boundaries are described in [APP_CONTAINER_AND_INTEGRATIONS.md](APP_CONTAINER_AND_INTEGRATIONS.md).
 
 ## 3. Complete the metadata
 

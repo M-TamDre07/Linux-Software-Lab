@@ -18,6 +18,7 @@ CORE_PAGES = (
     "software/index.html",
     "software/paketscope.html",
     "software/sorot.html",
+    "launcher/index.html",
 )
 
 
@@ -106,6 +107,22 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn(":focus-visible", css)
         self.assertIn("minmax(0,1fr)", css)
 
+    def test_launcher_menu_is_shared_across_primary_pages(self) -> None:
+        for relative in CORE_PAGES:
+            with self.subTest(page=relative):
+                source, _ = self.parse_page(relative)
+                self.assertIn('href="/launcher/"', source)
+                self.assertIn('id="navLinks"', source)
+        launcher, page = self.parse_page("launcher/index.html")
+        self.assertIn('href="/launcher/" aria-current="page"', launcher)
+        self.assertIn("Linux Software Lab Center", launcher)
+        self.assertIn("Development preview", launcher)
+        self.assertIn("belum dipublikasikan", launcher.casefold())
+        self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center", launcher)
+        self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/pull/22", launcher)
+        self.assertIn("/assets/css/launcher.css", launcher)
+        self.assertEqual(page.canonicals, ["https://linux-software-lab.vercel.app/launcher/"])
+
     def test_catalogue_has_operable_search_and_filters(self) -> None:
         source, _ = self.parse_page("software/index.html")
         for identifier in (
@@ -149,6 +166,47 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("PaketScope 3", page)
         self.assertEqual(app["status"], "testing")
         self.assertEqual(app["releaseUrl"], "")
+
+    def test_website_and_launcher_share_one_distribution_index(self) -> None:
+        website_catalog = PUBLIC / "data" / "software.json"
+        bundled_catalog = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "catalog.json"
+        website_index = PUBLIC / "data" / "distribution-index.json"
+        bundled_index = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "distribution-index.json"
+        self.assertEqual(website_catalog.read_bytes(), bundled_catalog.read_bytes())
+        self.assertEqual(website_index.read_bytes(), bundled_index.read_bytes())
+
+        catalog_data = json.loads(website_catalog.read_text(encoding="utf-8"))
+        index_data = json.loads(website_index.read_text(encoding="utf-8"))
+        catalog_ids = {item["id"] for item in catalog_data["software"]}
+        index_ids = {item["id"] for item in index_data["products"]}
+        self.assertEqual(catalog_ids, index_ids)
+
+        sorot_page, _ = self.parse_page("software/sorot.html")
+        script = (PUBLIC / "assets" / "js" / "sorot-downloads.js").read_text(encoding="utf-8")
+        self.assertIn('data-download-data="/data/distribution-index.json"', sorot_page)
+        self.assertIn("distribution-index.json", script)
+        self.assertIn("trustedManifestURL", script)
+        self.assertNotIn("sorot-downloads.json", sorot_page + script)
+
+        product_schema = json.loads(
+            (PUBLIC / "data" / "distribution-index.schema.json").read_text(encoding="utf-8")
+        )
+        self.assertIn("planned_targets", product_schema["properties"]["products"]["items"]["properties"])
+        sorot = next(item for item in index_data["products"] if item["id"] == "sorot")
+        arch_target = next(target for target in sorot["planned_targets"] if target["distribution_id"] == "arch")
+        self.assertEqual(arch_target["version"], "0.6.0")
+        self.assertEqual(arch_target["status"], "planned")
+
+        for product in index_data["products"]:
+            for reference in product["manifests"]:
+                relative = Path("apps") / product["id"] / "releases" / reference["version"] / "release.json"
+                canonical_manifest = ROOT / relative
+                bundled_manifest = (
+                    ROOT / "apps" / "software-center" / "lsl_center" / "data"
+                    / "manifests" / product["id"] / reference["version"] / "release.json"
+                )
+                self.assertTrue(canonical_manifest.is_file(), str(relative))
+                self.assertEqual(canonical_manifest.read_bytes(), bundled_manifest.read_bytes())
 
 
 if __name__ == "__main__":

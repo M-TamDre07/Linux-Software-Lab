@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 2,
+  "catalog": {
+    "name": "Linux Software Lab",
+    "description": "Katalog software desktop independen untuk Debian dan keluarga Linux.",
+    "searchMode": "client-side",
+    "pageSize": 12,
+    "updatedAt": "2026-10-25"
+  },
+  "software": [
+    {
+      "id": "paketscope",
+      "slug": "paketscope",
+      "name": "PaketScope",
+      "version": "3.0.0.dev4",
+      "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
+      "description": "PaketScope 3 sedang diuji sebagai aplikasi desktop native berbasis Qt. Pengguna dapat memeriksa jenis, deskripsi fungsi, metadata, dan asal yang diketahui untuk paket APT/Flatpak; asal APT hanya menunjukkan repositori lokal yang saat ini menyediakan versi yang sama, bukan bukti historis instalasi. Perubahan paket APT memerlukan tinjauan dan autentikasi, sementara Flatpak masih read-only. System & Code Lab menyediakan snapshot Linux, viewer source lokal, dan petunjuk analisis statis. Sumber inventaris tambahan dapat dikembangkan melalui kontrak provider eksplisit; plugin pihak ketiga tidak dimuat otomatis.",
+      "category": "Pengelolaan aplikasi",
+      "status": "testing",
+      "type": "desktop",
+      "platforms": [
+        "Debian 13 (Trixie)"
+      ],
+      "tags": [
+        "Python",
+        "PySide6",
+        "APT / dpkg",
+        "Flatpak",
+        "AES-GCM",
+        "Local-first"
+      ],
+      "keywords": [
+        "inventaris paket",
+        "aplikasi terpasang",
+        "package manager",
+        "perangkat lunak",
+        "cadangan terenkripsi",
+        "privasi"
+      ],
+      "features": [
+        "Inventaris aplikasi dari APT/dpkg dan Flatpak",
+        "Detail jenis paket dan deskripsi fungsi dari metadata lokal",
+        "Asal repositori APT yang diketahui dengan penjelasan batas historis",
+        "Pencarian, pengurutan, dan filter sumber dinamis",
+        "Pemasangan APT dengan simulasi dan konfirmasi",
+        "Remove/purge dibatasi untuk paket sistem kritis dan transaksi yang aman",
+        "Pemeriksaan pembaruan sesuai permintaan",
+        "System & Code Lab read-only dan Code Inspector",
+        "Provider inventaris read-only yang dapat dikembangkan",
+        "Ekspor CSV dan cadangan terenkripsi"
+      ],
+      "detailUrl": "/software/paketscope.html",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
+      "releaseUrl": "",
+      "icon": "package",
+      "iconImage": "/assets/images/paketscope-icon.svg",
+      "previewImage": "/assets/images/paketscope-preview.svg",
+      "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
+      "updatedAt": "2026-10-24"
+    },
+    {
+      "id": "sorot",
+      "slug": "sorot",
+      "name": "Sorot",
+      "version": "0.5.0 Beta",
+      "summary": "Teleprompter desktop untuk membaca naskah saat presentasi dan rekaman, dengan overlay, kontrol pemutaran, pengelolaan naskah, dan sistem ekstensi.",
+      "description": "Sorot adalah aplikasi teleprompter desktop untuk Linux. Versi 0.5.0 Beta menyediakan editor naskah, overlay yang dapat diatur, kontrol pemutaran dan jeda, mode durasi, penyimpanan naskah/draf, serta sistem ekstensi untuk tema, preset, tugas, dan fungsi tambahan. Integrasi AI dan penyimpanan cloud bersifat opsional dan belum diverifikasi dengan layanan nyata dalam laporan pengujian. Sorot masih beta: uji compositor Wayland/X11, pemasangan bersih di Debian 13, dan aksesibilitas pembaca layar belum lengkap.",
+      "category": "Produktivitas",
+      "status": "testing",
+      "type": "desktop",
+      "platforms": [
+        "Linux desktop (uji tercatat: Ubuntu 24.04; Debian 13 belum diverifikasi untuk paket ini)"
+      ],
+      "tags": [
+        "Python",
+        "PySide6",
+        "Teleprompter",
+        "Overlay",
+        "Naskah",
+        "Ekstensi"
+      ],
+      "keywords": [
+        "teleprompter linux",
+        "sorot",
+        "membaca naskah",
+        "presentasi",
+        "rekaman video",
+        "overlay teks"
+      ],
+      "features": [
+        "Editor naskah dengan buka/simpan dan undo",
+        "Overlay teleprompter dengan kontrol pemutaran, jeda, dan pengaturan kecepatan",
+        "Mode durasi dan penanda jeda pada naskah",
+        "Draf, snapshot, serta penyimpanan pengaturan lokal",
+        "Ekstensi deklaratif dan ekstensi kode dengan persetujuan eksplisit",
+        "Integrasi AI dan cloud opsional; layanan nyata belum diverifikasi dalam laporan tes"
+      ],
+      "detailUrl": "/software/sorot.html",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
+      "releaseUrl": "",
+      "icon": "type",
+      "iconImage": "/assets/images/sorot-icon.svg",
+      "previewImage": "/assets/images/sorot-preview.svg",
+      "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
+      "updatedAt": "2026-10-25"
+    }
+  ]
+}

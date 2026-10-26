@@ -1,0 +1,107 @@
+{
+  "$schema": "./distribution-index.schema.json",
+  "schema_version": 1,
+  "updated_at": "2026-10-26",
+  "detection_policy": {
+    "native_launcher": "Read /etc/os-release and detect architecture locally; never infer exact distro from browser user-agent.",
+    "browser": "Detect only broad operating-system hints; ask users to choose the target distro manually.",
+    "install_metadata": "The index references version manifests. Artifact filenames, formats, architectures, and hashes are sourced from each version manifest."
+  },
+  "distributions": [
+    {
+      "id": "debian-family",
+      "family": "debian-family",
+      "label": "Debian / Ubuntu dan turunannya",
+      "package_format": "deb",
+      "package_manager": "apt",
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Sorot 0.5.0 Beta memiliki paket .deb. Pengujian instalasi bersih Debian 13 belum dinyatakan lulus."
+    },
+    {
+      "id": "arch",
+      "family": "arch-family",
+      "label": "Arch Linux",
+      "package_format": "pkg.tar.zst",
+      "package_manager": "pacman",
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Paket Arch Sorot masih ditargetkan untuk 0.6.0. Belum ada paket .pkg.tar.zst atau PKGBUILD resmi untuk dipasang."
+    },
+    {
+      "id": "fedora",
+      "family": "fedora-family",
+      "label": "Fedora / RHEL dan turunannya",
+      "package_format": "rpm",
+      "package_manager": "dnf",
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Belum ada paket RPM Sorot yang dipublikasikan."
+    },
+    {
+      "id": "opensuse",
+      "family": "suse-family",
+      "label": "openSUSE / SUSE",
+      "package_format": "rpm",
+      "package_manager": "zypper",
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Belum ada paket RPM Sorot yang dipublikasikan."
+    },
+    {
+      "id": "other-linux",
+      "family": "unknown",
+      "label": "Linux lain / distro belum diketahui",
+      "package_format": null,
+      "package_manager": null,
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Pilih distro yang sesuai; jangan memasang paket dari keluarga distro yang berbeda."
+    },
+    {
+      "id": "non-linux",
+      "family": "unknown",
+      "label": "Windows / macOS / sistem non-Linux",
+      "package_format": null,
+      "package_manager": null,
+      "source_formats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Linux Software Lab Center dan Sorot adalah aplikasi native Linux. Arsip source bukan installer Windows/macOS."
+    }
+  ],
+  "products": [
+    {
+      "id": "paketscope",
+      "manifests": []
+    },
+    {
+      "id": "sorot",
+      "manifests": [
+        {
+          "version": "0.5.0",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/release.json"
+        }
+      ],
+      "planned_targets": [
+        {
+          "distribution_id": "arch",
+          "version": "0.6.0",
+          "status": "planned",
+          "note": "Target Arch Linux for Sorot 0.6.0. Do not offer installation until a real .pkg.tar.zst or reviewed PKGBUILD is added and tested."
+        }
+      ]
+    }
+  ]
+}

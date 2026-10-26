@@ -25,6 +25,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 ├── apps/
 │   ├── README.md                 # Pedoman folder per aplikasi
 │   ├── paketscope/               # Source desktop native; bukan direktori website
+│   ├── software-center/          # Launcher GUI + CLI preview, berbagi core katalog dan installer
 │   └── sorot/         # Sorot 0.5.0 Beta; paket dan dokumentasi beta
 ├── scripts/                      # Validator katalog dan pemeriksaan website
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
@@ -39,7 +40,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 python3 -m http.server 8000 --directory public
 ~~~
 
-Buka http://localhost:8000 untuk halaman utama dan http://localhost:8000/software/ untuk direktori pencarian.
+Buka http://localhost:8000 untuk halaman utama, http://localhost:8000/software/ untuk direktori pencarian, dan http://localhost:8000/launcher/ untuk portal Linux Software Lab Center.
 
 ## Pemeriksaan sebelum merge
 
@@ -78,6 +79,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
 - [Integrasi katalog Supabase](docs/SUPABASE_INTEGRATION.md) menjelaskan mirror baca-saja, sinkronisasi CI, dan batas keamanan.
 - [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
+- [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
 - Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
 
 ## Prinsip
@@ -92,6 +94,12 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 ## Sorot 0.5.0 Beta
 
 Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.5.0 Beta`](apps/sorot/releases/0.5.0/RELEASE-NOTES.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot masih beta; pengujian instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu dilakukan. Arsip versi lama tidak ditimpa oleh versi baru.
+
+## Linux Software Lab Center (pratinjau launcher)
+
+Portal web launcher tersedia di [linux-software-lab.vercel.app/launcher/](https://linux-software-lab.vercel.app/launcher/) dan dapat diakses dari menu utama website. Halaman ini merangkum status, ekosistem GitHub–website–launcher, cara mencoba source, dan roadmap tanpa mengiklankan installer yang belum ada.
+
+Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya menyediakan pengalaman klik untuk pemula dan alur terminal yang cepat untuk pengguna profesional, dengan satu core metadata, deteksi distro/arsitektur, pemilihan artefak, dan verifikasi. Untuk saat ini hanya adapter instalasi .deb berbasis APT yang diaktifkan; RPM, Arch, Flatpak, AppImage, paket launcher native, serta metadata rilis bertanda tangan belum tersedia. Jangan jalankan launcher dengan sudo. Lihat panduan pengembangan apps/software-center/README.md, [dokumen integrasi ekosistem](docs/APP_CONTAINER_AND_INTEGRATIONS.md), dan arsitektur docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md.
 
 ## PaketScope 3 (pratinjau pengembangan)
 

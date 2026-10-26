@@ -36,6 +36,12 @@ Each application may support a different subset of formats. The catalogue must s
 
 For Sorot, the live state remains 0.5.0 Beta with `.deb`, `.tar.gz`, and `.zip`. Arch Linux for 0.6.0 is a planned target; it must remain labelled **planned** until an actual Arch artifact or reviewed build recipe and its test evidence have been added. PaketScope's source-mode command is not the same thing as a public package release.
 
+## Meaning of “container” in the product plan
+
+For the current product, “container” means a **single application hub/catalogue** that holds entries for many apps and manages install/download/launch actions. It does not mean that the launcher contains the binaries of every application or isolates each app in a private runtime. Native packages remain installed through the distribution's package manager and obey the OS's normal filesystem/process model.
+
+If the project later chooses to run applications inside actual isolation (Flatpak, OCI containers, or another sandbox), that is a separate runtime design decision. The launcher must not advertise sandboxing, rollback guarantees, or isolation unless the relevant runtime is installed, the permissions/dependencies are reviewed, and end-to-end tests prove the claim.
+
 ## One catalogue; two user experiences
 
 ### Graphical launcher

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">PaketScope</title>
+  <desc id="desc">Ikon PaketScope berupa daftar paket dengan lensa pencarian dan tanda centang.</desc>
+  <rect width="128" height="128" rx="24" fill="#171715"/>
+  <rect x="22" y="22" width="84" height="84" rx="8" fill="#f2f1ee"/>
+  <path d="M22 43h84" stroke="#d5d4ce" stroke-width="2"/>
+  <circle cx="34" cy="32.5" r="2.5" fill="#456d4b"/>
+  <circle cx="43" cy="32.5" r="2.5" fill="#8c6528"/>
+  <circle cx="52" cy="32.5" r="2.5" fill="#686863"/>
+  <rect x="34" y="55" width="39" height="7" rx="1" fill="#171715"/>
+  <rect x="34" y="69" width="28" height="4" rx="1" fill="#aaa9a2"/>
+  <rect x="34" y="80" width="34" height="4" rx="1" fill="#aaa9a2"/>
+  <circle cx="83" cy="79" r="17" fill="#f2f1ee" stroke="#171715" stroke-width="5"/>
+  <path d="m95 91 12 12" stroke="#171715" stroke-width="8" stroke-linecap="square"/>
+  <path d="m76 79 5 5 9-10" fill="none" stroke="#456d4b" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

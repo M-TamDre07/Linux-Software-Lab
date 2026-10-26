@@ -1,204 +1,347 @@
 (() => {
-'use strict';
+  'use strict';
 
-const root = document.querySelector('[data-download-data]');
-if (!root) return;
+  const root = document.querySelector('[data-download-data]');
+  if (!root) return;
 
-const $ = (selector, context = root) => context.querySelector(selector);
-const distroSelect = $('#sorotDistro');
-const detected = $('#sorotDetectedPlatform');
-const status = $('#sorotDistroStatus');
-const releaseList = $('#sorotReleaseList');
-if (!distroSelect || !detected || !status || !releaseList) return;
+  const $ = (selector, context = root) => context.querySelector(selector);
+  const distroSelect = $('#sorotDistro');
+  const detected = $('#sorotDetectedPlatform');
+  const status = $('#sorotDistroStatus');
+  const releaseList = $('#sorotReleaseList');
+  if (!distroSelect || !detected || !status || !releaseList) return;
 
-const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, character => ({
-  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-}[character]));
+  const OWNER = 'M-TamDre07';
+  const REPO = 'Linux-Software-Lab';
+  const RAW_ROOT = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/main';
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[char]));
+  const versionPattern = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
+  const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+  const hashPattern = /^[a-f0-9]{64}$/;
+  const formats = new Set(['deb', 'rpm', 'pkg.tar.zst', 'flatpak', 'flatpakref', 'AppImage', 'tar.gz', 'zip']);
+  const kinds = new Set(['native-package', 'debian-package', 'rpm-package', 'arch-package', 'flatpak-bundle', 'flatpak-ref', 'appimage', 'source-archive']);
 
-const safeHTTPS = value => {
-  try {
-    const url = new URL(String(value || ''));
-    return url.protocol === 'https:' ? url.href : '';
-  } catch (_) {
-    return '';
-  }
-};
+  const trustedManifestURL = value => {
+    if (typeof value !== 'string') return '';
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'https:' || url.hostname !== 'raw.githubusercontent.com' ||
+          url.port && url.port !== '443' || url.username || url.password || url.search || url.hash) return '';
+      if (!new RegExp('^/' + OWNER + '/' + REPO + '/main/apps/[a-z0-9-]+/releases/' +
+          '[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?/release\\.json$').test(url.pathname)) return '';
+      return url.href;
+    } catch (_) {
+      return '';
+    }
+  };
 
-const fallbackDistributions = {
-  'debian-family': {
-    label: 'Debian / Ubuntu dan turunannya', status: 'available', packageFormat: 'deb',
-    packageManager: 'apt', sourceFormats: ['tar.gz', 'zip'],
-    note: 'Paket .deb Sorot 0.5.0 Beta tersedia; instalasi bersih Debian 13 belum dinyatakan terverifikasi.'
-  },
-  arch: {
-    label: 'Arch Linux', status: 'planned', packageFormat: 'pkg.tar.zst',
-    packageManager: 'pacman', sourceFormats: ['tar.gz', 'zip'], targetVersion: '0.6.0',
-    note: 'Paket Arch ditargetkan untuk Sorot 0.6.0. Belum ada paket Arch yang dipublikasikan.'
-  },
-  fedora: {
-    label: 'Fedora / RHEL dan turunannya', status: 'source-only', packageFormat: 'rpm',
-    packageManager: 'dnf', sourceFormats: ['tar.gz', 'zip'],
-    note: 'Belum ada paket RPM yang dipublikasikan.'
-  },
-  opensuse: {
-    label: 'openSUSE / SUSE', status: 'source-only', packageFormat: 'rpm',
-    packageManager: 'zypper', sourceFormats: ['tar.gz', 'zip'],
-    note: 'Belum ada paket RPM yang dipublikasikan.'
-  },
-  'other-linux': {
-    label: 'Linux lain / distro belum diketahui', status: 'source-only',
-    packageFormat: null, packageManager: null, sourceFormats: ['tar.gz', 'zip'],
-    note: 'Tampilkan arsip sumber saja; belum ada paket native yang dinyatakan cocok.'
-  },
-  'non-linux': {
-    label: 'Windows / macOS / sistem non-Linux', status: 'unsupported',
-    packageFormat: null, packageManager: null, sourceFormats: ['tar.gz', 'zip'],
-    note: 'Sorot adalah aplikasi native Linux. Arsip sumber bukan installer Windows/macOS.'
-  }
-};
+  const trustedArtifactURL = (value, manifestURL, filename) => {
+    const base = new URL('.', manifestURL);
+    const expected = new URL(filename, base);
+    if (typeof value !== 'string') return '';
+    try {
+      const actual = new URL(value);
+      if (actual.protocol !== 'https:' || actual.hostname !== 'raw.githubusercontent.com' ||
+          actual.port && actual.port !== '443' || actual.username || actual.password ||
+          actual.search || actual.hash || actual.href !== expected.href) return '';
+      return actual.href;
+    } catch (_) {
+      return '';
+    }
+  };
 
-const detectOSFamily = () => {
-  const platform = String(navigator.userAgentData?.platform || navigator.platform || '');
-  const agent = String(navigator.userAgent || '');
-  if (/linux/i.test(platform) || /linux/i.test(agent)) return { id: 'other-linux', label: 'Linux' };
-  if (/windows/i.test(platform) || /windows/i.test(agent)) return { id: 'non-linux', label: 'Windows' };
-  if (/mac/i.test(platform) || /mac os|macintosh/i.test(agent)) return { id: 'non-linux', label: 'macOS' };
-  return { id: 'other-linux', label: 'sistem operasi tidak diketahui' };
-};
+  const fallbackDistributions = {
+    'debian-family': {
+      id: 'debian-family', family: 'debian-family',
+      label: 'Debian / Ubuntu dan turunannya', packageFormat: 'deb',
+      packageManager: 'apt', sourceFormats: ['tar.gz', 'zip'],
+      note: 'Paket .deb hanya ditampilkan bila tercatat dalam manifest rilis yang tervalidasi.'
+    },
+    arch: {
+      id: 'arch', family: 'arch-family',
+      label: 'Arch Linux', packageFormat: 'pkg.tar.zst',
+      packageManager: 'pacman', sourceFormats: ['tar.gz', 'zip'],
+      note: 'Paket Arch belum tercatat pada arsip saat ini.'
+    },
+    fedora: {
+      id: 'fedora', family: 'fedora-family',
+      label: 'Fedora / RHEL dan turunannya', packageFormat: 'rpm',
+      packageManager: 'dnf', sourceFormats: ['tar.gz', 'zip'],
+      note: 'Belum ada paket RPM yang dapat dipilih dari metadata rilis saat ini.'
+    },
+    opensuse: {
+      id: 'opensuse', family: 'suse-family',
+      label: 'openSUSE / SUSE', packageFormat: 'rpm',
+      packageManager: 'zypper', sourceFormats: ['tar.gz', 'zip'],
+      note: 'Belum ada paket RPM yang dapat dipilih dari metadata rilis saat ini.'
+    },
+    'other-linux': {
+      id: 'other-linux', family: 'unknown',
+      label: 'Linux lain / distro belum diketahui', packageFormat: null,
+      packageManager: null, sourceFormats: ['tar.gz', 'zip'],
+      note: 'Pilih distro yang cocok; browser tidak dapat memastikan nama distro Linux secara andal.'
+    },
+    'non-linux': {
+      id: 'non-linux', family: 'unknown',
+      label: 'Windows / macOS / sistem non-Linux', packageFormat: null,
+      packageManager: null, sourceFormats: ['tar.gz', 'zip'],
+      note: 'Sorot adalah aplikasi desktop native Linux; arsip source bukan installer Windows/macOS.'
+    }
+  };
 
-const detectedOS = detectOSFamily();
-distroSelect.value = detectedOS.id;
-detected.textContent = detectedOS.label === 'Linux'
-  ? 'Browser mengenali OS sebagai Linux, tetapi tidak mengungkap nama distro secara andal. Pilih distro secara manual; pilihan browser tidak dijadikan bukti kompatibilitas.'
-  : 'Petunjuk browser: ' + detectedOS.label + '. Pemilih ini tidak menginstal apa pun otomatis; pilih distro target hanya jika memang sedang mengunduh untuk sistem tersebut.';
+  const detectOS = () => {
+    const platform = String(navigator.userAgentData?.platform || navigator.platform || '');
+    const agent = String(navigator.userAgent || '');
+    if (/linux/i.test(platform) || /linux/i.test(agent)) return { id: 'other-linux', label: 'Linux' };
+    if (/windows/i.test(platform) || /windows/i.test(agent)) return { id: 'non-linux', label: 'Windows' };
+    if (/mac/i.test(platform) || /mac os|macintosh/i.test(agent)) return { id: 'non-linux', label: 'macOS' };
+    return { id: 'other-linux', label: 'sistem operasi tidak diketahui' };
+  };
 
-let data = null;
+  const detectedOS = detectOS();
+  distroSelect.value = detectedOS.id;
+  detected.textContent = detectedOS.label === 'Linux'
+    ? 'Browser mengenali Linux, tetapi tidak mengungkap distro secara andal. Pilih distro secara manual; pilihan browser tidak dianggap bukti kompatibilitas.'
+    : 'Petunjuk browser: ' + detectedOS.label + '. Pemilih ini hanya mengatur metadata yang ditampilkan, bukan memasang paket secara otomatis.';
 
-const getDistro = () => {
-  if (!data || !Array.isArray(data.distributions)) return fallbackDistributions[distroSelect.value] || fallbackDistributions['other-linux'];
-  return data.distributions.find(item => item.id === distroSelect.value) || fallbackDistributions['other-linux'];
-};
+  let registry = null;
 
-const labelForFormat = format => ({
-  deb: 'PAKET DEBIAN · .DEB',
-  'pkg.tar.zst': 'PAKET ARCH · .PKG.TAR.ZST',
-  rpm: 'PAKET RPM · .RPM',
-  'tar.gz': 'ARSIP SUMBER · .TAR.GZ',
-  zip: 'ARSIP SUMBER · .ZIP'
-}[format] || ('FORMAT · ' + String(format).toUpperCase()));
+  const normalizeDistribution = raw => {
+    if (!raw || typeof raw.id !== 'string' || typeof raw.label !== 'string' ||
+        typeof raw.family !== 'string' || typeof raw.note !== 'string' ||
+        !Array.isArray(raw.source_formats)) throw new Error('Invalid distribution entry');
+    if (!raw.source_formats.every(value => value === 'tar.gz' || value === 'zip')) {
+      throw new Error('Unsupported source format in distribution index');
+    }
+    return {
+      id: raw.id, family: raw.family, label: raw.label,
+      packageFormat: raw.package_format || null,
+      packageManager: raw.package_manager || null,
+      sourceFormats: raw.source_formats, note: raw.note
+    };
+  };
 
-const commandFor = (manager, filename) => {
-  const safeName = String(filename || '');
-  if (!/^[A-Za-z0-9._+-]+$/.test(safeName)) return '';
-  if (manager === 'apt' && safeName.endsWith('.deb')) return 'sudo apt install ./' + safeName;
-  if (manager === 'pacman' && safeName.endsWith('.pkg.tar.zst')) return 'sudo pacman -U ./' + safeName;
-  if (manager === 'dnf' && safeName.endsWith('.rpm')) return 'sudo dnf install ./' + safeName;
-  if (manager === 'zypper' && safeName.endsWith('.rpm')) return 'sudo zypper install ./' + safeName;
-  return '';
-};
+  const fetchJSON = async (url, maximumBytes = 2 * 1024 * 1024) => {
+    const response = await fetch(url, { cache: 'no-cache', redirect: 'error' });
+    if (!response.ok) throw new Error('Could not load ' + url);
+    const length = Number(response.headers.get('content-length') || 0);
+    if (length > maximumBytes) throw new Error('Metadata exceeds the size limit');
+    const text = await response.text();
+    if (new TextEncoder().encode(text).length > maximumBytes) throw new Error('Metadata exceeds the size limit');
+    return JSON.parse(text);
+  };
 
-const artifactMarkup = (artifact, distro) => {
-  const file = escapeHTML(artifact.file);
-  const format = String(artifact.format || '');
-  const isSource = artifact.kind === 'source-archive' && (distro.sourceFormats || []).includes(format);
-  const isNativePackage = distro.status === 'available' && format === distro.packageFormat;
-  if (!isSource && !isNativePackage) return '';
-  const href = safeHTTPS(artifact.url);
-  if (!href || !file) return '';
-  const primary = isNativePackage ? ' is-primary' : '';
-  let title = 'Unduh arsip sumber';
-  if (format === 'deb') title = 'Unduh paket instalasi';
-  if (format === 'pkg.tar.zst') title = 'Unduh paket Arch';
-  if (format === 'rpm') title = 'Unduh paket RPM';
-  return '<a class="sorot-artifact-link' + primary + '" href="' + escapeHTML(href) + '">' +
-    '<span class="sorot-artifact-format">' + escapeHTML(labelForFormat(format)) + '</span>' +
-    '<strong>' + escapeHTML(title) + '</strong>' +
-    '<small>' + file + '</small><span class="sorot-artifact-arrow" aria-hidden="true">↓</span></a>';
-};
-
-const releaseMarkup = (release, distro) => {
-  const artifacts = Array.isArray(release.artifacts) ? release.artifacts : [];
-  const visibleArtifacts = artifacts.map(artifact => artifactMarkup(artifact, distro)).filter(Boolean).join('');
-  const nativeArtifact = distro.status === 'available' ? artifacts.find(item => item.format === distro.packageFormat) : null;
-  const command = nativeArtifact ? commandFor(distro.packageManager, nativeArtifact.file) : '';
-  const note = release.status === 'testing'
-    ? 'Versi ini masih beta/testing dan bukan rilis stabil.'
-    : 'Periksa catatan rilis dan pengujian untuk versi ini.';
-  const checksumURL = safeHTTPS(release.checksumsUrl);
-  const manifestURL = safeHTTPS(release.manifestUrl);
-  const notesURL = safeHTTPS(release.releaseNotesUrl);
-  const testsURL = safeHTTPS(release.testReportUrl);
-  const links = [
-    checksumURL ? '<a href="' + escapeHTML(checksumURL) + '">SHA256SUMS ↗</a>' : '',
-    manifestURL ? '<a href="' + escapeHTML(manifestURL) + '" target="_blank" rel="noopener noreferrer">Manifest versi ↗</a>' : '',
-    notesURL ? '<a href="' + escapeHTML(notesURL) + '" target="_blank" rel="noopener noreferrer">Catatan rilis ↗</a>' : '',
-    testsURL ? '<a href="' + escapeHTML(testsURL) + '" target="_blank" rel="noopener noreferrer">Laporan pengujian ↗</a>' : ''
-  ].filter(Boolean).join('');
-  const commandSection = command
-    ? '<div class="sorot-install-note"><strong>Instalasi via terminal</strong><code>' + escapeHTML(command) + '</code><span>Jalankan dari direktori tempat paket diunduh. Perintah ini tidak menjadikan paket beta sebagai rilis stabil dan tidak membuktikan kompatibilitas yang belum diuji.</span></div>'
-    : '';
-  return '<article class="sorot-release-card">' +
-    '<div class="sorot-release-heading"><div class="sorot-release-brand"><img src="/assets/images/sorot-icon.svg" alt="" width="54" height="54" loading="lazy" decoding="async"><div>' +
-    '<span class="sorot-release-kicker">VERSI TERARSIP</span><h3>' + escapeHTML(release.label || ('Sorot ' + release.version)) + '</h3>' +
-    '<p>Linux desktop · Python / PySide6</p></div></div><span class="sorot-release-status">' +
-    escapeHTML(String(release.status || 'unknown').toUpperCase()) + ' · ' + escapeHTML(String(release.channel || '').toUpperCase()) + '</span></div>' +
-    '<p class="sorot-release-notice">' + escapeHTML(note) + ' ' + escapeHTML(release.architectureNote || '') + '</p>' +
-    '<div class="sorot-artifact-grid">' + (visibleArtifacts || '<p class="sorot-release-notice">Tidak ada artefak yang cocok untuk distribusi ini pada versi tersebut.</p>') + '</div>' +
-    '<div class="sorot-release-footer"><span><strong>Integritas:</strong> verifikasi checksum sebelum instalasi. SHA-256 tidak sama dengan tanda tangan penerbit.</span>' + links + '</div>' +
-    commandSection + '</article>';
-};
-
-const render = () => {
-  const distro = getDistro();
-  const versions = data && Array.isArray(data.versions) ? data.versions : [];
-  const supportAvailable = distro.status === 'available' && (data
-    ? versions.some(release => Array.isArray(release.artifacts) && release.artifacts.some(artifact => artifact.format === distro.packageFormat))
-    : Boolean(root.querySelector('.sorot-artifact-link[data-format="' + distro.packageFormat + '"]'))
-  );
-  let message = distro.note || '';
-  if (distro.status === 'available' && !supportAvailable) {
-    message = 'Metadata menyatakan format ini tersedia, tetapi tidak ada artefak versi yang cocok. Jangan gunakan tautan paket sampai metadata diperbaiki.';
-  } else if (distro.status === 'available' && supportAvailable) {
-    message += ' Website akan menampilkan paket native yang tercatat pada manifest dan arsipnya.';
-  } else if (distro.status === 'planned') {
-    message += ' Ini target pengembangan, bukan unduhan yang sudah tersedia.';
-  }
-  status.textContent = message;
-
-  if (data && versions.length) {
-    releaseList.innerHTML = versions.slice().reverse().map(release => releaseMarkup(release, distro)).join('');
-  } else {
-    const sourceFormats = distro.sourceFormats || ['tar.gz', 'zip'];
-    releaseList.querySelectorAll('.sorot-artifact-link[data-format]').forEach(link => {
-      const format = link.dataset.format || '';
-      link.hidden = !(sourceFormats.includes(format) || (distro.status === 'available' && format === distro.packageFormat));
-    });
-    const command = releaseList.querySelector('.sorot-install-note[data-package-format="deb"]');
-    if (command) command.hidden = !(distro.status === 'available' && distro.packageFormat === 'deb');
-  }
-};
-
-distroSelect.addEventListener('change', render);
-render();
-
-const dataPath = String(root.dataset.downloadData || '');
-if (dataPath.startsWith('/data/') && !dataPath.includes('..')) {
-  fetch(dataPath, { cache: 'no-cache' })
-    .then(response => {
-      if (!response.ok) throw new Error('Download metadata unavailable');
-      return response.json();
-    })
-    .then(payload => {
-      if (!payload || payload.schemaVersion !== 1 || payload.product !== 'Sorot' ||
-          !Array.isArray(payload.distributions) || !Array.isArray(payload.versions)) {
-        throw new Error('Download metadata schema mismatch');
+  const normalizeRelease = (manifest, manifestURL, expectedProduct, expectedVersion) => {
+    if (!manifest || manifest.schema_version !== 1 ||
+        String(manifest.product || '').toLowerCase() !== expectedProduct.id ||
+        manifest.version !== expectedVersion ||
+        !['stable', 'beta', 'alpha', 'development'].includes(manifest.channel) ||
+        !['released', 'testing', 'planned', 'archived'].includes(manifest.status) ||
+        !Array.isArray(manifest.artifacts)) throw new Error('Release manifest does not match the index');
+    const directory = new URL('.', manifestURL).href;
+    const artifacts = manifest.artifacts.map(item => {
+      if (!item || typeof item.file !== 'string' || !filePattern.test(item.file) ||
+          !kinds.has(item.kind) || !formats.has(item.format) || !hashPattern.test(String(item.sha256 || ''))) {
+        throw new Error('Invalid release artifact metadata');
       }
-      data = payload;
-      render();
-    })
-    .catch(() => {
-      render();
-      status.textContent += ' Metadata dinamis tidak dapat dimuat; kartu fallback tetap digunakan.';
+      const resolvedURL = trustedArtifactURL(
+        item.download_url || directory + item.file,
+        manifestURL,
+        item.file
+      );
+      if (!resolvedURL) throw new Error('Artifact URL is outside its trusted version directory');
+      const expectedSuffix = {
+        deb: '.deb', rpm: '.rpm', 'pkg.tar.zst': '.pkg.tar.zst',
+        flatpak: '.flatpak', flatpakref: '.flatpakref',
+        AppImage: '.AppImage', 'tar.gz': '.tar.gz', zip: '.zip'
+      }[item.format];
+      if (!item.file.endsWith(expectedSuffix)) throw new Error('Artifact filename does not match format');
+      return {
+        file: item.file, kind: item.kind, format: item.format,
+        architecture: item.architecture || 'all',
+        sha256: item.sha256, url: resolvedURL
+      };
     });
-}
+    const base = directory;
+    return {
+      version: manifest.version,
+      label: 'Sorot ' + manifest.version + (manifest.channel === 'stable' ? '' : ' ' + manifest.channel.toUpperCase()),
+      channel: manifest.channel, status: manifest.status,
+      architectureNote: manifest.architecture_note || '',
+      manifestUrl: manifestURL,
+      checksumsUrl: base + 'SHA256SUMS',
+      releaseNotesUrl: manifest.notes_url || '',
+      testReportUrl: '',
+      artifacts
+    };
+  };
+
+  const loadRegistry = async index => {
+    if (!index || index.schema_version !== 1 || !Array.isArray(index.distributions) ||
+        !Array.isArray(index.products)) throw new Error('Distribution index schema mismatch');
+    const distributions = index.distributions.map(normalizeDistribution);
+    const seenDistroIds = new Set();
+    for (const distro of distributions) {
+      if (seenDistroIds.has(distro.id)) throw new Error('Duplicate distribution ID');
+      seenDistroIds.add(distro.id);
+    }
+    const product = index.products.find(item => item && item.id === 'sorot');
+    if (!product || !Array.isArray(product.manifests) || !Array.isArray(product.planned_targets || [])) {
+      throw new Error('Sorot is missing from the distribution index');
+    }
+    const refs = product.manifests;
+    if (refs.length > 100) throw new Error('Too many manifests in the distribution index');
+    const versions = await Promise.all(refs.map(async reference => {
+      if (!reference || !versionPattern.test(String(reference.version || ''))) throw new Error('Invalid version reference');
+      const manifestURL = trustedManifestURL(reference.url);
+      if (!manifestURL) throw new Error('Manifest URL is outside the trusted GitHub repository');
+      const manifest = await fetchJSON(manifestURL);
+      return normalizeRelease(manifest, manifestURL, product, reference.version);
+    }));
+    const targets = (product.planned_targets || []).map(target => {
+      if (!target || typeof target.distribution_id !== 'string' ||
+          !versionPattern.test(String(target.version || '')) || target.status !== 'planned' ||
+          typeof target.note !== 'string' || !target.note.trim() ||
+          !seenDistroIds.has(target.distribution_id)) throw new Error('Invalid planned target metadata');
+      return target;
+    });
+    return {
+      updatedAt: index.updated_at,
+      distributions,
+      versions,
+      plannedTargets: targets
+    };
+  };
+
+  const getDistro = () => {
+    const raw = registry && registry.distributions.find(item => item.id === distroSelect.value);
+    const distro = raw || fallbackDistributions[distroSelect.value] || fallbackDistributions['other-linux'];
+    const hasPackage = distro.packageFormat && registry && registry.versions.some(release =>
+      release.status !== 'archived' &&
+      release.artifacts.some(artifact => artifact.format === distro.packageFormat)
+    );
+    const plannedTarget = registry && registry.plannedTargets.find(target => target.distribution_id === distro.id);
+    let availability;
+    if (distro.id === 'non-linux') availability = 'unsupported';
+    else if (hasPackage) availability = 'available';
+    else if (plannedTarget) availability = 'planned';
+    else availability = 'source-only';
+    let note = distro.note || '';
+    if (availability === 'available') {
+      note = 'Tersedia paket ' + '.' + distro.packageFormat + ' di salah satu manifest rilis. Periksa versi, arsitektur, dan status testing sebelum mengunduh.';
+    } else if (availability === 'planned' && plannedTarget) {
+      note = plannedTarget.note + ' Target ' + plannedTarget.version + ' belum menjadi unduhan.';
+    }
+    return { ...distro, status: availability, note, plannedTarget };
+  };
+
+  const labelForFormat = (format, architecture) => {
+    const label = {
+      deb: 'PAKET DEBIAN · .DEB',
+      'pkg.tar.zst': 'PAKET ARCH · .PKG.TAR.ZST',
+      rpm: 'PAKET RPM · .RPM',
+      flatpak: 'FLATPAK BUNDLE · .FLATPAK',
+      flatpakref: 'FLATPAK REFERENCE · .FLATPAKREF',
+      AppImage: 'PORTABLE · .APPIMAGE',
+      'tar.gz': 'ARSIP SUMBER · .TAR.GZ',
+      zip: 'ARSIP SUMBER · .ZIP'
+    }[format] || ('FORMAT · ' + String(format).toUpperCase());
+    return architecture && !['all', 'any', 'noarch'].includes(architecture)
+      ? label + ' · ' + String(architecture).toUpperCase()
+      : label;
+  };
+
+  const installCommand = (manager, file) => {
+    if (!filePattern.test(file)) return '';
+    if (manager === 'apt' && file.endsWith('.deb')) return 'sudo apt install ./' + file;
+    if (manager === 'pacman' && file.endsWith('.pkg.tar.zst')) return 'sudo pacman -U ./' + file;
+    if (manager === 'dnf' && file.endsWith('.rpm')) return 'sudo dnf install ./' + file;
+    if (manager === 'zypper' && file.endsWith('.rpm')) return 'sudo zypper install ./' + file;
+    return '';
+  };
+
+  const artifactMarkup = (artifact, distro) => {
+    const source = artifact.kind === 'source-archive' && distro.sourceFormats.includes(artifact.format);
+    const native = distro.status === 'available' && artifact.format === distro.packageFormat &&
+      artifact.kind !== 'source-archive';
+    if (!source && !native) return '';
+    const primary = native ? ' is-primary' : '';
+    const title = source ? 'Unduh arsip sumber' : 'Unduh paket instalasi';
+    return '<a class="sorot-artifact-link' + primary + '" href="' + escapeHTML(artifact.url) + '">' +
+      '<span class="sorot-artifact-format">' + escapeHTML(labelForFormat(artifact.format, artifact.architecture)) + '</span>' +
+      '<strong>' + title + '</strong><small>' + escapeHTML(artifact.file) + '</small>' +
+      '<span class="sorot-artifact-arrow" aria-hidden="true">↓</span></a>';
+  };
+
+  const releaseMarkup = (release, distro) => {
+    const links = [
+      '<a href="' + escapeHTML(release.checksumsUrl) + '">SHA256SUMS ↗</a>',
+      '<a href="' + escapeHTML(release.manifestUrl) + '" target="_blank" rel="noopener noreferrer">Manifest versi ↗</a>',
+      release.releaseNotesUrl && /^https:\/\//.test(release.releaseNotesUrl)
+        ? '<a href="' + escapeHTML(release.releaseNotesUrl) + '" target="_blank" rel="noopener noreferrer">Catatan rilis ↗</a>' : '',
+      release.testReportUrl && /^https:\/\//.test(release.testReportUrl)
+        ? '<a href="' + escapeHTML(release.testReportUrl) + '" target="_blank" rel="noopener noreferrer">Laporan pengujian ↗</a>' : ''
+    ].filter(Boolean).join('');
+    const visibleArtifacts = release.artifacts.map(item => artifactMarkup(item, distro)).filter(Boolean).join('');
+    const native = distro.status === 'available'
+      ? release.artifacts.find(item => item.format === distro.packageFormat && item.kind !== 'source-archive')
+      : null;
+    const command = native ? installCommand(distro.packageManager, native.file) : '';
+    const note = release.status === 'testing'
+      ? 'Rilis ini masih Beta/testing dan bukan rilis stabil.'
+      : release.status === 'planned' ? 'Versi ini direncanakan, tetapi bukan unduhan yang tersedia.' : '';
+    const commandMarkup = command
+      ? '<div class="sorot-install-note"><strong>Instalasi via terminal</strong><code>' + escapeHTML(command) +
+        '</code><span>Jalankan dari direktori tempat paket diunduh. Perintah ini tidak membuktikan kompatibilitas yang belum diuji.</span></div>'
+      : '';
+    return '<article class="sorot-release-card"><div class="sorot-release-heading">' +
+      '<div class="sorot-release-brand"><img src="/assets/images/sorot-icon.svg" alt="" width="54" height="54" loading="lazy" decoding="async">' +
+      '<div><span class="sorot-release-kicker">VERSI TERARSIP</span><h3>' + escapeHTML(release.label) + '</h3>' +
+      '<p>Linux desktop · versi ' + escapeHTML(release.version) + '</p></div></div>' +
+      '<span class="sorot-release-status">' + escapeHTML(release.status.toUpperCase()) + ' · ' + escapeHTML(release.channel.toUpperCase()) + '</span></div>' +
+      '<p class="sorot-release-notice">' + escapeHTML(note || 'Format yang ditampilkan bersumber dari manifest versi yang terdaftar di GitHub.') +
+      ' ' + escapeHTML(release.architectureNote) + '</p>' +
+      '<div class="sorot-artifact-grid">' +
+      (visibleArtifacts || '<p class="sorot-release-notice">Belum ada format yang cocok untuk pilihan distro ini.</p>') +
+      '</div><div class="sorot-release-footer"><span><strong>Integritas:</strong> SHA-256 mendeteksi mismatch terhadap metadata; bukan tanda tangan kriptografis penerbit.</span>' +
+      links + '</div>' + commandMarkup + '</article>';
+  };
+
+  const render = () => {
+    const distro = getDistro();
+    status.textContent = distro.note;
+    if (!registry) {
+      const sourceFormats = distro.sourceFormats || ['tar.gz', 'zip'];
+      releaseList.querySelectorAll('.sorot-artifact-link[data-format]').forEach(link => {
+        const format = link.dataset.format || '';
+        link.hidden = !sourceFormats.includes(format);
+      });
+      const command = releaseList.querySelector('.sorot-install-note[data-package-format="deb"]');
+      if (command) command.hidden = true;
+      return;
+    }
+    const releases = registry.versions.slice().reverse();
+    releaseList.innerHTML = releases.length
+      ? releases.map(release => releaseMarkup(release, distro)).join('')
+      : '<article class="sorot-release-card"><p>Belum ada versi rilis yang terdaftar untuk Sorot.</p></article>';
+  };
+
+  distroSelect.addEventListener('change', render);
+  render();
+
+  const indexPath = String(root.dataset.downloadData || '');
+  if (indexPath === '/data/distribution-index.json') {
+    fetchJSON(indexPath, 2 * 1024 * 1024)
+      .then(loadRegistry)
+      .then(value => {
+        registry = value;
+        render();
+      })
+      .catch(() => {
+        render();
+        status.textContent += ' Indeks GitHub tidak dapat dimuat; tombol paket native disembunyikan dan hanya arsip source fallback yang ditampilkan.';
+      });
+  }
 })();
