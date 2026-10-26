@@ -120,7 +120,7 @@ class BackgroundTask(QRunnable):
     def run(self) -> None:
         try:
             self.signals.succeeded.emit(self.key, self.operation())
-        except Exception as exc:  # deliver a safe, visible error to the UI thread
+        except Exception as exc:  # noqa: BLE001 - isolate arbitrary worker failures from the Qt event loop
             self.signals.failed.emit(self.key, str(exc))
 
 
