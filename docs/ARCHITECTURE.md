@@ -33,11 +33,12 @@ Keep the Vercel Root Directory at the repository root. vercel.json selects publi
 3. scripts/validate_catalog.py validates required fields, safe local paths, unique IDs/slugs, date and URL formats, accepted software types/statuses, and release-link rules.
 4. scripts/check_site_links.py checks local HTML references and verifies sitemap, robots directives, and canonical URLs against actual catalogue pages.
 5. GitHub Actions runs site checks and validates the Supabase sync mapping; a trusted main-branch workflow mirrors approved metadata to Supabase.
-6. The browser reads published rows from Supabase with the public publishable key, falling back to same-origin JSON if the API fails; search and filtering remain client-side.
+6. The browser reads published rows from Supabase with the public publishable key. `public/assets/js/catalog-contract.js` validates both the mirror response and the same-origin JSON fallback before anything is rendered; if the mirror is unavailable or malformed, the browser uses the validated static catalogue. Search and filtering remain client-side.
+7. The read-only `scripts/check_live_integrations.py` compares production Vercel JSON and published Supabase rows with the canonical GitHub catalogue. The scheduled/manual `Live integration integrity` workflow catches deployment lag or mirror drift without writing to either service.
 
 ## Catalogue scaling
 
-Search indexes are built once when catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
+A shared runtime contract rejects malformed rows, duplicate IDs/slugs, unknown statuses/types, unsafe URLs/assets, and invalid dates before rendering. Search indexes are built once after catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
 
 The Supabase mirror is limited to public catalogue metadata. Do not expand it into user data, analytics, package search, or a write API without a concrete requirement, measured need, and a separate security review.
 
