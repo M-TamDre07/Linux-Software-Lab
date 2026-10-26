@@ -8,7 +8,8 @@ import shutil
 import sys
 from collections import Counter
 from collections.abc import Sequence
-from importlib.metadata import PackageNotFoundError, version as distribution_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 
 from .catalog import (
@@ -21,7 +22,6 @@ from .catalog import (
     CatalogService,
 )
 from .distro import artifact_compatibility, detect_system_profile, executable_for
-from .integrations import LOCAL_INTEGRATIONS
 from .installer import (
     InstallError,
     download_artifact,
@@ -29,6 +29,7 @@ from .installer import (
     preview_installation,
     verify_local_artifact,
 )
+from .integrations import LOCAL_INTEGRATIONS
 from .models import Application, SystemProfile
 from .selection import select_artifact
 
