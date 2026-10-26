@@ -15,7 +15,7 @@
 ```text
 apps/{{APP_SLUG}}/
 ├── README.md
-├── application.yaml
+├── application.json
 ├── CHANGELOG.md
 ├── LICENSE-REQUIRED.md
 ├── .gitignore
@@ -43,11 +43,11 @@ apps/{{APP_SLUG}}/
     └── README.md
 ```
 
-The top-level contract is shared across products. Technology-specific files belong inside `src/` or the relevant packaging directory. A directory does not claim that its runtime or package format is supported: the included packaging READMEs remain explicit placeholders until a real build and clean-install test exist.
+The `application.json` contract is validated against `application.schema.json` before integration. The top-level layout is shared across products. Technology-specific files belong inside `src/` or the relevant packaging directory. A directory does not claim that its runtime or package format is supported: the included packaging READMEs remain explicit placeholders until a real build and clean-install test exist.
 
 ## Getting from scaffold to integrated application
 
-1. Choose a licence and runtime, then document the supported OS families and minimum versions in `application.yaml` and `docs/ARCHITECTURE.md`.
+1. Choose a licence and runtime, then document the supported OS families and minimum versions in `application.json` and `docs/ARCHITECTURE.md`.
 2. Implement the app in `src/`; add unit, integration, and security regression tests. Do not add secrets, generated environments, local caches, or real user data to Git.
 3. Write setup, run, recovery, and troubleshooting instructions in `docs/DEVELOPMENT.md`. Every user-facing error should explain what happened, whether the system changed, and the safe next step.
 4. Add a CI workflow that installs pinned dependencies and runs the project's real lint, build, and test commands. The base template intentionally does not invent a framework or fake passing test.
