@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
 import sys
 import uuid
 from collections.abc import Callable
