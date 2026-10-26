@@ -37,12 +37,22 @@ class DocumentationLinkTests(unittest.TestCase):
                 "[External](https://example.com) [Anchor](#section)\n"
                 "`[not a link](missing-inline.md)`\n"
                 "```md\n[not a link](missing-fenced.md)\n```\n"
+                "~~~md\n[not a link](missing-tilde-fenced.md)\n~~~\n"
                 "[Exists](child.md)\n",
                 encoding="utf-8",
             )
             (root / "child.md").write_text("# Child\n", encoding="utf-8")
             errors = check_markdown_file(page, root=root)
         self.assertEqual(errors, [])
+
+    def test_rejects_unsafe_link_schemes(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            page = root / "README.md"
+            page.write_text("[Unsafe](javascript:alert(1))\n", encoding="utf-8")
+            errors = check_markdown_file(page, root=root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("unsafe link scheme", errors[0])
 
     def test_rejects_links_that_escape_the_repository_root(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
