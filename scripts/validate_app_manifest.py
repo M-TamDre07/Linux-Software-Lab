@@ -175,10 +175,10 @@ def validate_manifest_file(path: Path, *, template: bool = False) -> list[str]:
     if template:
         # Use inert sample values only in memory; never rewrite the committed template.
         source = source.replace('"{{APP_SLUG}}"', '"template-app"')
-        source = source.replace('{{APP_NAME_JSON}}', json.dumps("Template App"))
+        source = source.replace('{{APP_NAME_JSON}}', json.dumps("Template App")[1:-1])
         source = source.replace(
             '{{APP_DESCRIPTION_JSON}}',
-            json.dumps("Synthetic description used to validate the scaffold contract."),
+            json.dumps("Synthetic description used to validate the scaffold contract.")[1:-1],
         )
         source = source.replace("/software/{{APP_SLUG}}.html", "/software/template-app.html")
     try:
