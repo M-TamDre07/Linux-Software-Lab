@@ -56,16 +56,17 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
             errors.append(f"'{field}' tidak boleh mengandung karakter kontrol.")
 
     lifecycle = data.get("lifecycle")
-    if lifecycle not in LIFECYCLES:
+    if not isinstance(lifecycle, str) or lifecycle not in LIFECYCLES:
         errors.append("'lifecycle' harus planned, testing, released, atau archived.")
 
     for field in ("supported_os", "supported_architectures"):
         value = data.get(field)
-        if (
-            not isinstance(value, list)
-            or any(not isinstance(item, str) or not item.strip() for item in value)
-            or len(value) != len(set(value)) if isinstance(value, list) and all(isinstance(item, str) for item in value) else not isinstance(value, list)
-        ):
+        invalid_list = not isinstance(value, list)
+        if isinstance(value, list):
+            invalid_list = any(not isinstance(item, str) or not item.strip() for item in value)
+            if not invalid_list:
+                invalid_list = len(value) != len(set(value))
+        if invalid_list:
             errors.append(f"'{field}' harus berupa daftar teks unik tanpa nilai kosong.")
 
     entrypoints = data.get("entrypoints")
@@ -84,7 +85,9 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
         errors.append("'distribution' harus berisi hanya enabled_formats dan release_manifest.")
     else:
         enabled = distribution["enabled_formats"]
-        if not isinstance(enabled, list) or any(item not in RELEASE_FORMATS for item in enabled):
+        if not isinstance(enabled, list) or any(
+            not isinstance(item, str) or item not in RELEASE_FORMATS for item in enabled
+        ):
             errors.append("'distribution.enabled_formats' berisi format tidak dikenal.")
         elif len(enabled) != len(set(enabled)):
             errors.append("'distribution.enabled_formats' tidak boleh berisi format duplikat.")
@@ -111,9 +114,11 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
     if not isinstance(integrity, dict) or set(integrity) != {"sha256_checksums", "publisher_signature"}:
         errors.append("'integrity' harus berisi hanya sha256_checksums dan publisher_signature.")
     else:
-        if integrity["sha256_checksums"] not in {"not-published", "published"}:
+        checksum_state = integrity["sha256_checksums"]
+        signature_state = integrity["publisher_signature"]
+        if not isinstance(checksum_state, str) or checksum_state not in {"not-published", "published"}:
             errors.append("'integrity.sha256_checksums' harus not-published atau published.")
-        if integrity["publisher_signature"] not in {"not-implemented", "implemented"}:
+        if not isinstance(signature_state, str) or signature_state not in {"not-implemented", "implemented"}:
             errors.append("'integrity.publisher_signature' harus not-implemented atau implemented.")
 
     integration = data.get("integration")
@@ -125,10 +130,10 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
             errors.append("'integration.website_page' harus berbentuk /software/<slug>.html.")
         elif isinstance(slug, str) and route != f"/software/{slug}.html":
             errors.append("'integration.website_page' harus memakai slug aplikasi yang sama.")
-        if integration["launcher_allowlist"] not in {"not-registered", "registered"}:
-            errors.append("'integration.launcher_allowlist' harus not-registered atau registered.")
-        if integration["catalogue_record"] not in {"not-registered", "registered"}:
-            errors.append("'integration.catalogue_record' harus not-registered atau registered.")
+        for field in ("launcher_allowlist", "catalogue_record"):
+            value = integration[field]
+            if not isinstance(value, str) or value not in {"not-registered", "registered"}:
+                errors.append(f"'integration.{field}' harus not-registered atau registered.")
 
     if lifecycle == "planned":
         if enabled_formats:
