@@ -377,21 +377,14 @@ class CatalogService:
                 prefix=".active-", suffix=".tmp", dir=self.cache_dir
             )
             active_temp = Path(active_temp_name)
-            try:
-                with os.fdopen(fd, "w", encoding="utf-8") as stream:
-                    json.dump(pointer, stream, ensure_ascii=False, sort_keys=True)
-                    stream.write("\n")
-                    stream.flush()
-                    os.fsync(stream.fileno())
-                os.chmod(active_temp, 0o600)
-                os.replace(active_temp, self.cache_dir / "active.json")
-                active_temp = None
-            except Exception:
-                try:
-                    os.close(fd)
-                except OSError:
-                    pass
-                raise
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(pointer, stream, ensure_ascii=False, sort_keys=True)
+                stream.write("\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.chmod(active_temp, 0o600)
+            os.replace(active_temp, self.cache_dir / "active.json")
+            active_temp = None
         finally:
             if stage_dir.exists():
                 shutil.rmtree(stage_dir, ignore_errors=True)
