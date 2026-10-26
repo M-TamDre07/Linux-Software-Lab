@@ -39,3 +39,7 @@ After database changes, inspect migration history and Supabase security/performa
 ## Scope and limitations
 
 This mirror is a catalogue backend, not authentication, analytics, user storage, package downloads, or a server-side search service. Any future authenticated feature needs a separate data model, RLS policies, and security review.
+
+## Private admin dashboard
+
+The read-only admin workspace lives at `/admin/`. It authenticates against Supabase Auth, verifies an active server-managed membership in `public.lsl_admin_users`, then reads the catalogue under RLS. The page does not expose other Auth users, secrets, or write privileges. The initial membership is created by the maintainer in the trusted Supabase Dashboard; follow [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md). Catalogue changes remain GitHub pull requests and are mirrored by CI.
