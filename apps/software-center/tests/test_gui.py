@@ -11,7 +11,6 @@ from lsl_center.catalog import CatalogService
 from lsl_center.gui import MainWindow
 from lsl_center.models import SystemProfile
 
-
 APP_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = APP_ROOT / "lsl_center" / "data"
 
