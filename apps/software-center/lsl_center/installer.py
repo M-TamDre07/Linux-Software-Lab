@@ -281,6 +281,10 @@ def can_install_with_current_adapter(artifact: Artifact, profile: SystemProfile)
 
 
 def _require_debian_installation(artifact: Artifact, profile: SystemProfile) -> tuple[str, str]:
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        raise InstallError(
+            "Jangan jalankan launcher sebagai root. Jalankan sebagai pengguna biasa agar Polkit dapat meminta otorisasi."
+        )
     compatible, reason = artifact_compatibility(artifact, profile)
     if not compatible:
         raise InstallError(reason)
