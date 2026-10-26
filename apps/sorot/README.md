@@ -17,6 +17,15 @@ The repository currently contains **Sorot 0.5.0 Beta** as an immutable audit/rel
 
 See [the version archive index](releases/README.md) for how versions are kept side-by-side and how to verify their artifacts.
 
+For distro selection, verified download links, and the separate terminal installer, see [DISTRIBUTION.md](DISTRIBUTION.md). Use the installer only after reviewing it; it refuses to install a package format that is absent from the selected version manifest.
+
+```bash
+bash apps/sorot/install.sh --detect
+bash apps/sorot/install.sh --list
+```
+
+The public package download remains version-specific. The terminal helper does not build the application or replace the maintainer's release process.
+
 ## What Sorot provides
 
 Based on the included 0.5.0 Beta test report and extension documentation, the archived beta includes:
