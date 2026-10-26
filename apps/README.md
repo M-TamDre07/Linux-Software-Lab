@@ -16,7 +16,7 @@ From the repository root, start with the shared technology-neutral template:
 python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "A short description of the problem it solves."
 ```
 
-The helper rejects unsafe IDs, refuses to overwrite an existing directory, and does not add catalogue records, choose a licence, register executable commands, or create releases. Review every placeholder before implementation. See [templates/README.md](../templates/README.md).
+The helper rejects unsafe IDs, refuses to overwrite an existing directory, and does not add catalogue records, choose a licence, register executable commands, or create releases. Review every placeholder before implementation, then validate `application.json` with `python scripts/validate_app_manifest.py apps/<slug>/application.json`. See [templates/README.md](../templates/README.md) and [the technology policy](../docs/TECH_STACK_AND_RUNTIME_POLICY.md).
 
 ## Expected structure for an implemented application
 
