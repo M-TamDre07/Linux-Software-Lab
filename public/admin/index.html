@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Admin — Linux Software Lab</title>
+<meta name="description" content="Dashboard operasional privat Linux Software Lab.">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="canonical" href="https://linux-software-lab.vercel.app/admin/">
+<link rel="icon" href="/assets/images/linux-software-lab.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/experience.css">
+<link rel="stylesheet" href="/assets/css/admin.css">
+<script src="/assets/js/supabase-config.js" defer></script>
+<script src="/assets/js/admin.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg></span>
+      <span class="brand-copy"><strong>Linux Software Lab</strong><small>Ruang admin</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Navigasi">
+      <a href="/">Website</a>
+      <a href="/software/">Katalog</a>
+      <a href="/launcher/">Launcher</a>
+      <a href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/></svg></button>
+      <button class="menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Buka menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+<main id="main" class="admin-main">
+  <section class="admin-hero">
+    <div class="container">
+      <span class="eyebrow"><span class="status-dot" aria-hidden="true"></span> PRIVATE WORKSPACE · NOINDEX</span>
+      <h1>Panel operasional <span>Linux Software Lab.</span></h1>
+      <p class="admin-lead">Pantau katalog dan kesehatan koneksi Supabase. Akses hanya diberikan kepada akun yang tercatat aktif pada daftar admin di database.</p>
+    </div>
+  </section>
+
+  <section class="container admin-content" aria-label="Panel administrasi">
+    <div class="admin-message" id="adminMessage" role="status" aria-live="polite">Memeriksa konfigurasi...</div>
+
+    <section class="admin-login-card" id="loginPanel" aria-labelledby="loginTitle" hidden>
+      <div class="admin-section-kicker">AUTHENTICATION REQUIRED</div>
+      <h2 id="loginTitle">Masuk sebagai admin</h2>
+      <p>Gunakan akun Supabase Auth yang sudah didaftarkan dan telah diaktifkan pada tabel <code>lsl_admin_users</code>.</p>
+      <form id="loginForm" class="admin-login-form">
+        <label for="adminEmail">Email admin</label>
+        <input id="adminEmail" name="email" type="email" autocomplete="username" required maxlength="254" inputmode="email">
+        <label for="adminPassword">Kata sandi</label>
+        <input id="adminPassword" name="password" type="password" autocomplete="current-password" required minlength="6">
+        <button class="btn btn-primary" id="loginButton" type="submit">Masuk dengan Supabase Auth</button>
+      </form>
+      <p class="admin-small-note">Belum terdaftar sebagai admin? Lihat panduan bootstrap akses di dokumentasi repository. Tidak ada pendaftaran admin publik.</p>
+    </section>
+
+    <section id="dashboardPanel" hidden aria-labelledby="dashboardTitle">
+      <div class="admin-toolbar">
+        <div>
+          <div class="admin-section-kicker">ADMINISTRATOR SESSION</div>
+          <h2 id="dashboardTitle">Ringkasan sistem</h2>
+          <p class="admin-muted" id="adminIdentity">Sesi terverifikasi</p>
+        </div>
+        <div class="admin-toolbar-actions">
+          <button class="btn btn-secondary" id="refreshButton" type="button">Muat ulang data</button>
+          <button class="btn btn-secondary" id="logoutButton" type="button">Keluar</button>
+        </div>
+      </div>
+
+      <div class="admin-status-grid" aria-label="Status integrasi">
+        <article class="admin-status-card">
+          <span class="admin-card-label">Database</span>
+          <strong id="databaseStatus">Memeriksa…</strong>
+          <small id="databaseDetail">Koneksi Supabase</small>
+        </article>
+        <article class="admin-status-card">
+          <span class="admin-card-label">Sumber katalog</span>
+          <strong>GitHub</strong>
+          <small>JSON repository adalah sumber kebenaran</small>
+        </article>
+        <article class="admin-status-card">
+          <span class="admin-card-label">Jalur perubahan</span>
+          <strong>Pull request</strong>
+          <small>Mirror Supabase tidak dapat diedit dari halaman publik</small>
+        </article>
+      </div>
+
+      <div class="admin-metrics" aria-label="Ringkasan katalog">
+        <article class="admin-metric"><span>Total rekaman</span><strong id="metricTotal">—</strong></article>
+        <article class="admin-metric"><span>Dipublikasikan</span><strong id="metricPublished">—</strong></article>
+        <article class="admin-metric"><span>Belum dipublikasikan</span><strong id="metricUnpublished">—</strong></article>
+        <article class="admin-metric"><span>Dalam pengujian</span><strong id="metricTesting">—</strong></article>
+      </div>
+
+      <section class="admin-table-card" aria-labelledby="catalogTitle">
+        <div class="admin-table-heading">
+          <div>
+            <div class="admin-section-kicker">CATALOG MIRROR</div>
+            <h2 id="catalogTitle">Data katalog</h2>
+            <p class="admin-muted">Tampilan ini membaca metadata yang tersedia bagi admin; tidak mengubah database.</p>
+          </div>
+          <div class="admin-filter-controls">
+            <label for="catalogSearch">Cari aplikasi</label>
+            <input id="catalogSearch" type="search" placeholder="Nama, slug, versi..." autocomplete="off">
+            <label for="publishFilter">Status publikasi</label>
+            <select id="publishFilter">
+              <option value="all">Semua rekaman</option>
+              <option value="published">Dipublikasikan</option>
+              <option value="unpublished">Belum dipublikasikan</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-table-scroll">
+          <table class="admin-catalog-table">
+            <thead><tr><th scope="col">Aplikasi</th><th scope="col">Versi</th><th scope="col">Status</th><th scope="col">Publikasi</th><th scope="col">Update katalog</th><th scope="col">Sinkronisasi</th></tr></thead>
+            <tbody id="catalogRows"><tr><td colspan="6">Belum ada data.</td></tr></tbody>
+          </table>
+        </div>
+        <p class="admin-table-caption" id="catalogCount" aria-live="polite">Menunggu data katalog.</p>
+      </section>
+
+      <section class="admin-boundary-note">
+        <h2>Aturan pengelolaan data</h2>
+        <p>Dashboard ini sengaja bersifat baca-saja untuk katalog. Perubahan katalog harus melewati file <code>public/data/software.json</code>, validasi, review, dan merge ke GitHub. Sinkronisasi CI akan memperbarui mirror Supabase. Informasi rahasia, data autentikasi pengguna lain, dan kredensial server tidak ditampilkan di sini.</p>
+        <div class="admin-resource-links">
+          <a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/docs/SUPABASE_INTEGRATION.md" target="_blank" rel="noopener noreferrer">Dokumentasi integrasi ↗</a>
+          <a href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/supabase/migrations" target="_blank" rel="noopener noreferrer">Skema dan migration ↗</a>
+          <a href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">Repository ↗</a>
+        </div>
+      </section>
+    </section>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="container footer-main">
+    <p>Linux Software Lab · Panel privat · <a href="/">Kembali ke website ↗</a></p>
+  </div>
+</footer>
+</body>
+</html>
