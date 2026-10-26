@@ -74,7 +74,7 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         sorot_row = next(
             index
             for index in range(window.app_list.count())
-            if window.app_list.item(index).data(0x0100) == "sorot"
+            if window.app_list.item(index).data(Qt.ItemDataRole.UserRole) == "sorot"
         )
         window.app_list.setCurrentRow(sorot_row)
         self.assertTrue(window.install_button.isEnabled())
