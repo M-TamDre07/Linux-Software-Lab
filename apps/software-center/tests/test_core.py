@@ -145,10 +145,10 @@ class DistributionDetectionTests(unittest.TestCase):
 
     def test_distribution_family_hints_cover_fedora_and_suse_without_guessing_unknowns(self) -> None:
         fixtures = (
-            ('ID=fedora\\nPRETTY_NAME="Fedora Linux"\\n', "fedora-family"),
-            ('ID=opensuse-tumbleweed\\nPRETTY_NAME="openSUSE Tumbleweed"\\n', "suse-family"),
-            ('ID=customlinux\\nID_LIKE="debian"\\nPRETTY_NAME="Custom Linux"\\n', "debian-family"),
-            ('ID=customlinux\\nPRETTY_NAME="Custom Linux"\\n', "unknown"),
+            ('ID=fedora\nPRETTY_NAME="Fedora Linux"\n', "fedora-family"),
+            ('ID=opensuse-tumbleweed\nPRETTY_NAME="openSUSE Tumbleweed"\n', "suse-family"),
+            ('ID=customlinux\nID_LIKE="debian"\nPRETTY_NAME="Custom Linux"\n', "debian-family"),
+            ('ID=customlinux\nPRETTY_NAME="Custom Linux"\n', "unknown"),
         )
         for content, expected in fixtures:
             with self.subTest(expected=expected, content=content):
