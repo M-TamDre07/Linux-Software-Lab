@@ -91,13 +91,23 @@ def detect_system_profile(
     os_release_path: Path = Path("/etc/os-release"),
     machine: str | None = None,
     which: Callable[[str], str | None] | None = None,
+    os_name: str | None = None,
 ) -> SystemProfile:
-    """Read /etc/os-release locally; never infer the exact distro from the browser."""
+    """Detect the host OS and architecture locally; distro files may be unavailable."""
     lookup = which or shutil.which
+    detected_os = (os_name or platform_module.system() or "unknown").strip()
     values = _read_os_release(os_release_path)
-    distro_id = values.get("ID", "unknown").casefold()
+    distro_id = values.get("ID", "unknown").casefold() or "unknown"
     id_like = values.get("ID_LIKE", "").casefold()
-    family = _distribution_family(distro_id, id_like)
+    family = _distribution_family(distro_id, id_like) if detected_os.casefold() == "linux" else "unknown"
+    pretty_name = values.get("PRETTY_NAME", "").strip()
+    if not pretty_name:
+        if detected_os.casefold() == "linux" and distro_id not in {"", "unknown"}:
+            pretty_name = distro_id
+        elif detected_os.casefold() == "linux":
+            pretty_name = "Linux (distribution unknown)"
+        else:
+            pretty_name = f"{detected_os or 'Operating system'} (distribution detection unavailable)"
     manager_name = {
         "debian-family": "apt-get",
         "arch-family": "pacman",
@@ -106,7 +116,7 @@ def detect_system_profile(
     }.get(family)
     return SystemProfile(
         distro_id=distro_id,
-        pretty_name=values.get("PRETTY_NAME") or distro_id or "Linux (distro unknown)",
+        pretty_name=pretty_name,
         version_id=values.get("VERSION_ID", ""),
         family=family,
         architecture=canonical_architecture(machine),
@@ -114,6 +124,7 @@ def detect_system_profile(
         package_manager_path=lookup(manager_name) if manager_name else None,
         pkexec_path=lookup("pkexec"),
         flatpak_path=lookup("flatpak"),
+        os_name=detected_os or "unknown",
     )
 
 
