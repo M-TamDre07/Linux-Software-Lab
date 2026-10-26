@@ -5,8 +5,8 @@ from __future__ import annotations
 import platform as platform_module
 import shlex
 import shutil
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from .models import Artifact, SystemProfile
 
