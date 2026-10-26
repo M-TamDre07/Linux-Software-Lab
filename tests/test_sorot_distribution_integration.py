@@ -98,7 +98,7 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn('/assets/js/sorot-downloads.js', page)
         self.assertIn("Browsers do not reliably expose", json.dumps(json.loads((PUBLIC / "data" / "sorot-downloads.json").read_text(encoding="utf-8"))))
         self.assertIn("distro.status === 'available' && format === distro.packageFormat", script)
-        self.assertIn("distro.status === 'available' && artifact.format === distro.packageFormat", script)
+        self.assertIn("distro.status === 'available' ? artifacts.find(item => item.format === distro.packageFormat) : null", script)
         self.assertIn("BUKAN", (PUBLIC / "assets" / "images" / "sorot-preview.svg").read_text(encoding="utf-8"))
 
     def test_terminal_helper_checks_os_release_manifest_and_checksum(self):
