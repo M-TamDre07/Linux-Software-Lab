@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from .models import Application, Artifact, CatalogSnapshot
+from .models import Application, Artifact, CatalogSnapshot, PlannedTarget
 
 OWNER = "M-TamDre07"
 REPOSITORY = "Linux-Software-Lab"
@@ -548,6 +548,17 @@ class CatalogService:
                 )
                 product_artifacts.setdefault(product_id, []).append(artifact)
 
+        product_targets: dict[str, tuple[PlannedTarget, ...]] = {
+            product["id"]: tuple(
+                PlannedTarget(
+                    distribution_id=target["distribution_id"],
+                    version=target["version"],
+                    note=target["note"],
+                )
+                for target in product.get("planned_targets", [])
+            )
+            for product in index_data["products"]
+        }
         assets_dir = data_dir / "assets"
         if not assets_dir.is_dir():
             assets_dir = bundled_data_dir() / "assets"
@@ -560,6 +571,7 @@ class CatalogService:
                     record,
                     tuple(product_artifacts.get(app_id, [])),
                     icon_path if icon_path.is_file() else None,
+                    product_targets.get(app_id, ()),
                 )
             )
 
