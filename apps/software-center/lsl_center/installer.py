@@ -17,7 +17,6 @@ from urllib.parse import urlsplit
 from .distro import artifact_compatibility
 from .models import Artifact, InstallPreview, InstallResult, SystemProfile
 
-
 OWNER = "M-TamDre07"
 REPOSITORY = "Linux-Software-Lab"
 RAW_PATH_PREFIX = f"/{OWNER}/{REPOSITORY}/main/apps/"
