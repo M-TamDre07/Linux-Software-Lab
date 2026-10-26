@@ -42,7 +42,14 @@ from .installer import (
     install_verified_artifact,
     preview_installation,
 )
-from .models import Application, Artifact, CatalogSnapshot, InstallPreview, InstallResult, SystemProfile
+from .models import (
+    Application,
+    Artifact,
+    CatalogSnapshot,
+    InstallPreview,
+    InstallResult,
+    SystemProfile,
+)
 from .selection import select_artifact, source_artifacts
 
 
