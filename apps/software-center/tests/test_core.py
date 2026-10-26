@@ -14,7 +14,7 @@ from lsl_center.catalog import (
     CatalogError,
     CatalogService,
     validate_catalog_payload,
-    validate_download_payload,
+    validate_distribution_index,
 )
 from lsl_center.cli import main
 from lsl_center.distro import (
@@ -113,12 +113,12 @@ class CatalogTests(unittest.TestCase):
         self.service = CatalogService(data_dir=DATA_DIR)
         self.snapshot = self.service.load()
 
-    def test_offline_catalog_loads_both_current_apps(self) -> None:
+    def test_offline_catalog_loads_products_from_the_bundled_snapshot(self) -> None:
         self.assertEqual({app.id for app in self.snapshot.applications}, {"paketscope", "sorot"})
         self.assertEqual(self.snapshot.data_source, "bundled")
         self.assertTrue(self.snapshot.updated_at)
 
-    def test_only_sorot_has_real_archived_downloads(self) -> None:
+    def test_only_manifest_indexed_sorot_artifacts_are_available(self) -> None:
         sorot = self.snapshot.find("sorot")
         paketscope = self.snapshot.find("paketscope")
         self.assertIsNotNone(sorot)
@@ -129,28 +129,36 @@ class CatalogTests(unittest.TestCase):
             {("0.5.0", "deb"), ("0.5.0", "tar.gz"), ("0.5.0", "zip")},
         )
         self.assertEqual(paketscope.artifacts, ())
+        self.assertTrue(any(
+            target.distribution_id == "arch" and target.version == "0.6.0"
+            for target in sorot.planned_targets
+        ))
 
-    def test_catalogue_and_download_data_are_valid(self) -> None:
+    def test_catalog_index_and_release_manifest_are_valid(self) -> None:
         catalog = json.loads((DATA_DIR / "catalog.json").read_text(encoding="utf-8"))
-        downloads = json.loads((DATA_DIR / "sorot-downloads.json").read_text(encoding="utf-8"))
+        index = json.loads((DATA_DIR / "distribution-index.json").read_text(encoding="utf-8"))
         validate_catalog_payload(catalog)
-        validate_download_payload(downloads)
+        validate_distribution_index(index)
+        # CatalogService.load also parses and validates every referenced release manifest.
+        self.assertEqual(len(self.snapshot.find("sorot").artifacts), 3)
 
-    def test_bundled_metadata_is_kept_in_sync_with_public_catalog(self) -> None:
+    def test_bundled_metadata_and_assets_match_the_public_website_sources(self) -> None:
         self.assertEqual(
             (DATA_DIR / "catalog.json").read_bytes(),
             (REPO_ROOT / "public" / "data" / "software.json").read_bytes(),
         )
         self.assertEqual(
-            (DATA_DIR / "sorot-downloads.json").read_bytes(),
-            (REPO_ROOT / "public" / "data" / "sorot-downloads.json").read_bytes(),
+            (DATA_DIR / "distribution-index.json").read_bytes(),
+            (REPO_ROOT / "public" / "data" / "distribution-index.json").read_bytes(),
         )
         for app_id in ("paketscope", "sorot"):
             self.assertEqual(
                 (DATA_DIR / "assets" / f"{app_id}-icon.svg").read_bytes(),
                 (REPO_ROOT / "public" / "assets" / "images" / f"{app_id}-icon.svg").read_bytes(),
             )
-
+        bundled_manifest = DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json"
+        release_manifest = REPO_ROOT / "apps" / "sorot" / "releases" / "0.5.0" / "release.json"
+        self.assertEqual(bundled_manifest.read_bytes(), release_manifest.read_bytes())
 
     def test_invalid_catalog_duplicate_id_is_rejected(self) -> None:
         catalog = json.loads((DATA_DIR / "catalog.json").read_text(encoding="utf-8"))
@@ -158,41 +166,56 @@ class CatalogTests(unittest.TestCase):
         with self.assertRaises(CatalogError):
             validate_catalog_payload(catalog)
 
-    def test_invalid_download_url_is_rejected(self) -> None:
-        data = json.loads((DATA_DIR / "sorot-downloads.json").read_text(encoding="utf-8"))
-        data["versions"][0]["artifacts"][0]["url"] = "https://example.invalid/sorot.deb"
+    def test_distribution_index_rejects_a_foreign_manifest_url(self) -> None:
+        data = json.loads((DATA_DIR / "distribution-index.json").read_text(encoding="utf-8"))
+        data["products"][1]["manifests"][0]["url"] = "https://example.invalid/sorot/release.json"
         with self.assertRaises(CatalogError):
-            validate_download_payload(data)
+            validate_distribution_index(data)
 
     def test_refresh_activates_one_complete_snapshot(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
-        downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+        index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
+        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
-        def fetch(url: str) -> bytes:
-            return catalog_bytes if url.endswith("software.json") else downloads_bytes
+        def fetch_metadata(url: str) -> bytes:
+            if url.endswith("software.json"):
+                return catalog_bytes
+            if url.endswith("distribution-index.json"):
+                return index_bytes
+            raise AssertionError(f"Unexpected metadata URL: {url}")
 
         with tempfile.TemporaryDirectory() as temp:
             cache = Path(temp) / "cache"
             service = CatalogService(cache_dir=cache)
-            with patch("lsl_center.catalog._fetch_metadata", side_effect=fetch):
+            with (
+                patch("lsl_center.catalog._fetch_metadata", side_effect=fetch_metadata),
+                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+            ):
                 refreshed = service.refresh()
 
             pointer = json.loads((cache / "active.json").read_text(encoding="utf-8"))
             snapshot_dir = cache / "snapshots" / pointer["snapshot"]
+            manifest_path = snapshot_dir / "manifests" / "sorot" / "0.5.0" / "release.json"
             self.assertEqual(refreshed.data_source, "cache")
             self.assertEqual(len(refreshed.applications), 2)
             self.assertTrue((snapshot_dir / "catalog.json").is_file())
-            self.assertTrue((snapshot_dir / "sorot-downloads.json").is_file())
+            self.assertTrue((snapshot_dir / "distribution-index.json").is_file())
+            self.assertTrue(manifest_path.is_file())
             self.assertEqual(
                 hashlib.sha256((snapshot_dir / "catalog.json").read_bytes()).hexdigest(),
                 pointer["catalog_sha256"],
             )
             self.assertEqual(
-                hashlib.sha256((snapshot_dir / "sorot-downloads.json").read_bytes()).hexdigest(),
-                pointer["downloads_sha256"],
+                hashlib.sha256((snapshot_dir / "distribution-index.json").read_bytes()).hexdigest(),
+                pointer["index_sha256"],
+            )
+            manifest_key = next(iter(pointer["manifest_sha256s"]))
+            self.assertEqual(
+                hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+                pointer["manifest_sha256s"][manifest_key],
             )
             self.assertFalse((cache / "catalog.json").exists())
-            self.assertFalse((cache / "sorot-downloads.json").exists())
+            self.assertFalse((cache / "distribution-index.json").exists())
             sorot = refreshed.find("sorot")
             self.assertIsNotNone(sorot)
             assert sorot is not None
@@ -200,18 +223,28 @@ class CatalogTests(unittest.TestCase):
 
     def test_failed_refresh_preserves_the_previous_active_snapshot(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
-        downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+        index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
+        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
         def valid_fetch(url: str) -> bytes:
-            return catalog_bytes if url.endswith("software.json") else downloads_bytes
+            if url.endswith("software.json"):
+                return catalog_bytes
+            if url.endswith("distribution-index.json"):
+                return index_bytes
+            raise AssertionError(f"Unexpected metadata URL: {url}")
 
         def invalid_fetch(url: str) -> bytes:
-            return catalog_bytes if url.endswith("software.json") else b'{"schemaVersion": 1}'
+            if url.endswith("software.json"):
+                return catalog_bytes
+            return b'{"schema_version": 0}'
 
         with tempfile.TemporaryDirectory() as temp:
             cache = Path(temp) / "cache"
             service = CatalogService(cache_dir=cache)
-            with patch("lsl_center.catalog._fetch_metadata", side_effect=valid_fetch):
+            with (
+                patch("lsl_center.catalog._fetch_metadata", side_effect=valid_fetch),
+                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+            ):
                 service.refresh()
             active_before = (cache / "active.json").read_bytes()
 
@@ -228,18 +261,23 @@ class CatalogTests(unittest.TestCase):
 
     def test_corrupt_cache_snapshot_falls_back_to_the_bundled_catalog(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
-        downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+        index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
+        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
         def fetch(url: str) -> bytes:
-            return catalog_bytes if url.endswith("software.json") else downloads_bytes
+            return catalog_bytes if url.endswith("software.json") else index_bytes
 
         with tempfile.TemporaryDirectory() as temp:
             cache = Path(temp) / "cache"
-            with patch("lsl_center.catalog._fetch_metadata", side_effect=fetch):
+            with (
+                patch("lsl_center.catalog._fetch_metadata", side_effect=fetch),
+                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+            ):
                 CatalogService(cache_dir=cache).refresh()
             pointer = json.loads((cache / "active.json").read_text(encoding="utf-8"))
             snapshot_dir = cache / "snapshots" / pointer["snapshot"]
-            (snapshot_dir / "sorot-downloads.json").write_text("{}", encoding="utf-8")
+            manifest_path = snapshot_dir / "manifests" / "sorot" / "0.5.0" / "release.json"
+            manifest_path.write_text("{}", encoding="utf-8")
 
             fallback = CatalogService(cache_dir=cache).load()
             self.assertEqual(fallback.data_source, "bundled fallback (cache invalid)")
