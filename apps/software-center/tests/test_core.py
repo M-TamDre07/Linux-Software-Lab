@@ -271,6 +271,17 @@ class SelectionTests(unittest.TestCase):
         self.assertIsNone(select_artifact(self.paketscope, debian_profile(), install_only=True))
         self.assertIsNone(select_artifact(self.paketscope, debian_profile()))
 
+    def test_sorot_arch_target_is_data_driven_and_not_an_installable_package(self) -> None:
+        sorot = self.snapshot.find("sorot")
+        assert sorot is not None
+        targets = getattr(sorot, "planned_targets", ())
+        self.assertTrue(any(
+            getattr(target, "distribution_id", None) == "arch"
+            and getattr(target, "version", None) == "0.6.0"
+            for target in targets
+        ))
+        self.assertIsNone(select_artifact(sorot, arch_profile(), install_only=True))
+
     def test_source_archives_are_separate_from_native_install_artifacts(self) -> None:
         archives = source_artifacts(self.sorot)
         self.assertEqual({item.format for item in archives}, {"tar.gz", "zip"})
