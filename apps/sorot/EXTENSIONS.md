@@ -75,7 +75,7 @@ def activate(api):
 
 Isi naskah hanya sampai ke ekstensi saat **kamu menjalankan** transformasi/aksi/ekspor miliknya.
 
-Contoh siap pakai: [`examples/extensions/`](../examples/extensions) (terpasang juga di `/usr/share/doc/sorot/examples/extensions/` pada paket `.deb`).
+Contoh ekstensi siap pakai belum disertakan dalam repositori ini. Gunakan struktur manifest dan API di atas sebagai kontrak, lalu tambahkan contoh hanya setelah berkasnya benar-benar tersedia dan diuji.
 
 ## Model keamanan (baca ini)
 
