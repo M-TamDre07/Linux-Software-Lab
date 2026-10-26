@@ -210,6 +210,9 @@ def download_artifact(
             if (
                 final_url.scheme != "https"
                 or final_url.hostname != expected_url.hostname
+                or final_url.port not in (None, 443)
+                or final_url.username is not None
+                or final_url.password is not None
                 or final_url.path != expected_url.path
                 or final_url.query
                 or final_url.fragment
