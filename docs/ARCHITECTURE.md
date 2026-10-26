@@ -54,7 +54,7 @@ The Supabase mirror is limited to public catalogue metadata. Do not expand it in
 
 ## Application contribution contract
 
-New applications start from `templates/application/` via `python scripts/scaffold_app.py`. The scaffold is intentionally runtime-neutral; each product chooses its own runtime, licence, OS matrix, and real package formats. The helper never mutates the catalogue, public pages, release index, or launcher allowlist. User-facing error messages follow [ERROR_HANDLING_STANDARD.md](ERROR_HANDLING_STANDARD.md).
+New applications start from `templates/application/` via `python scripts/scaffold_app.py`. The scaffold is intentionally runtime-neutral; each product chooses its own runtime, licence, OS matrix, and real package formats. The helper never mutates the catalogue, public pages, release index, or launcher allowlist. User-facing error messages follow [ERROR_HANDLING_STANDARD.md](ERROR_HANDLING_STANDARD.md). Runtime/framework and OS support decisions follow [TECH_STACK_AND_RUNTIME_POLICY.md](TECH_STACK_AND_RUNTIME_POLICY.md).
 
 ## Security boundaries
 
