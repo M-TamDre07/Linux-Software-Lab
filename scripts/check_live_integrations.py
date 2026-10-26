@@ -38,17 +38,17 @@ def load_public_supabase_config(path: Path = SUPABASE_CONFIG) -> tuple[str, str]
     except (OSError, UnicodeDecodeError) as exc:
         raise IntegrationCheckError("Supabase browser configuration cannot be read as UTF-8.") from exc
 
-    url_match = re.search(r'\burl\s*:\s*(["\'])(.*?)\1', source)
-    key_match = re.search(r'\bpublishableKey\s*:\s*(["\'])(.*?)\1', source)
-    if not url_match or not key_match:
-        raise IntegrationCheckError("Expected url and publishableKey entries were not found in browser configuration.")
+    url_matches = re.findall(r'\burl\s*:\s*(["\'])(.*?)\1', source)
+    key_matches = re.findall(r'\bpublishableKey\s*:\s*(["\'])(.*?)\1', source)
+    if len(url_matches) != 1 or len(key_matches) != 1:
+        raise IntegrationCheckError("Browser configuration must contain exactly one url and publishableKey.")
 
     try:
-        url = validate_supabase_url(url_match.group(2))
+        url = validate_supabase_url(url_matches[0][1])
     except ValueError as exc:
         raise IntegrationCheckError("Browser configuration points to an unexpected Supabase project.") from exc
 
-    key = key_match.group(2).strip()
+    key = key_matches[0][1].strip()
     if not key.startswith("sb_publishable_"):
         raise IntegrationCheckError("Only the modern public sb_publishable_ key is permitted for read-only checks.")
     if any(ord(char) < 33 or ord(char) == 127 for char in key):
@@ -56,10 +56,20 @@ def load_public_supabase_config(path: Path = SUPABASE_CONFIG) -> tuple[str, str]
     return url, key
 
 
+class _NoRedirect(HTTPRedirectHandler):
+    """Never forward the Supabase publishable key to a redirect target."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_HTTP_OPENER = build_opener(_NoRedirect)
+
+
 def _http_get_json(url: str, *, headers: dict[str, str] | None = None) -> Any:
     request = Request(url, headers={"Accept": "application/json", **(headers or {})}, method="GET")
     try:
-        with urlopen(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
+        with _HTTP_OPENER.open(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
             if response.status != 200:
                 raise IntegrationCheckError(f"Read-only GET returned HTTP {response.status}.")
             raw = response.read()
@@ -81,7 +91,7 @@ def _catalogue_diff(expected: Any, actual: Any) -> list[str]:
     for key in sorted(set(expected) | set(actual)):
         if key == "software":
             continue
-        if expected.get(key) != actual.get(key):
+        if key not in expected or key not in actual or expected[key] != actual[key]:
             issues.append(f"top-level field '{key}' differs")
 
     expected_rows = expected.get("software")
@@ -111,7 +121,7 @@ def _catalogue_diff(expected: Any, actual: Any) -> list[str]:
     for identifier in sorted(set(expected_by_id) & set(actual_by_id)):
         left, right = expected_by_id[identifier], actual_by_id[identifier]
         for field in sorted(set(left) | set(right)):
-            if left.get(field) != right.get(field):
+            if field not in left or field not in right or left[field] != right[field]:
                 issues.append(f"application '{identifier}' field '{field}' differs")
                 if len(issues) >= 50:
                     issues.append("difference report truncated at 50 issues")
