@@ -101,6 +101,7 @@ class ApplicationScaffoldTests(unittest.TestCase):
         self.assertEqual(metadata["integrity"]["publisher_signature"], "not-implemented")
         schema = json.loads((target / "application.schema.json").read_text(encoding="utf-8"))
         self.assertEqual(validate_manifest(metadata), [])
+        self.assertEqual(validate_manifest_file(target / "application.json"), [])
         self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
         self.assertIn("lifecycle", schema["required"])
         self.assertTrue((target / "LICENSE-REQUIRED.md").is_file())
