@@ -29,6 +29,7 @@ from lsl_center.installer import (
     validate_artifact_for_download,
     validate_release_metadata,
 )
+from lsl_center.integrations import LOCAL_INTEGRATIONS, executable_for, integration_for
 from lsl_center.models import InstallPreview, SystemProfile
 from lsl_center.selection import select_artifact, source_artifacts
 
@@ -106,6 +107,45 @@ class DistributionDetectionTests(unittest.TestCase):
         self.assertTrue(architecture_matches("amd64", "x86_64"))
         self.assertTrue(architecture_matches("aarch64", "arm64"))
         self.assertFalse(architecture_matches("aarch64", "x86_64"))
+
+
+class LocalIntegrationRegistryTests(unittest.TestCase):
+    def test_existing_apps_use_reviewed_fixed_executable_candidates(self) -> None:
+        self.assertEqual(
+            LOCAL_INTEGRATIONS["paketscope"].executable_candidates,
+            ("paketscope",),
+        )
+        self.assertEqual(
+            LOCAL_INTEGRATIONS["sorot"].executable_candidates,
+            ("sorot",),
+        )
+
+    def test_known_app_resolves_only_its_registered_executable(self) -> None:
+        looked_up: list[str] = []
+
+        def lookup(command: str) -> str | None:
+            looked_up.append(command)
+            return f"/usr/bin/{command}" if command == "sorot" else None
+
+        self.assertEqual(executable_for("sorot", which=lookup), "/usr/bin/sorot")
+        self.assertEqual(looked_up, ["sorot"])
+        self.assertIsNotNone(integration_for("SOROT"))
+
+    def test_unknown_catalog_item_cannot_choose_an_arbitrary_command(self) -> None:
+        looked_up: list[str] = []
+
+        def lookup(command: str) -> str:
+            looked_up.append(command)
+            return f"/usr/bin/{command}"
+
+        self.assertIsNone(executable_for("unregistered-app", which=lookup))
+        self.assertEqual(looked_up, [])
+
+    def test_malformed_ids_fail_closed(self) -> None:
+        for application_id in ("../apt", "sudo apt", "sorot;sh", ""):
+            with self.subTest(application_id=application_id):
+                self.assertIsNone(integration_for(application_id))
+                self.assertIsNone(executable_for(application_id, which=lambda _name: "/bin/true"))
 
 
 class CatalogTests(unittest.TestCase):
