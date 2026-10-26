@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://linux-software-lab.vercel.app/schemas/distribution-manifest.schema.json",
   "title": "Linux Software Lab distribution manifest",
-  "description": "Version-specific metadata for packages that have actually been built and verified. The installer derives package-manager invocations from the artifact format; arbitrary shell commands are forbidden.",
+  "description": "Version-specific metadata for packages that have actually been built and verified. The installer derives package-manager invocations from the artifact format; arbitrary shell commands are forbidden. The schema intentionally accepts the existing Sorot 0.5.0 manifest format (relative artifact URLs and legacy kind names).",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -61,9 +61,7 @@
         "file",
         "kind",
         "format",
-        "architecture",
-        "sha256",
-        "download_url"
+        "sha256"
       ],
       "properties": {
         "file": {
@@ -74,6 +72,9 @@
         "kind": {
           "enum": [
             "native-package",
+            "debian-package",
+            "rpm-package",
+            "arch-package",
             "flatpak-bundle",
             "flatpak-ref",
             "appimage",
@@ -102,7 +103,8 @@
             "aarch64",
             "arm64",
             "armv7l"
-          ]
+          ],
+          "description": "Required for binary packages in new manifests; optional for legacy/source artifacts."
         },
         "sha256": {
           "type": "string",
@@ -111,7 +113,8 @@
         "download_url": {
           "type": "string",
           "format": "uri",
-          "pattern": "^https://"
+          "pattern": "^https://",
+          "description": "Optional explicit HTTPS URL; when absent, the installer derives the URL from the trusted release directory and filename."
         },
         "signature_url": {
           "type": "string",
@@ -131,6 +134,100 @@
         }
       },
       "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "debian-package"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "const": "deb"
+              },
+              "architecture": {
+                "enum": [
+                  "all",
+                  "any",
+                  "noarch",
+                  "x86_64",
+                  "amd64",
+                  "aarch64",
+                  "arm64",
+                  "armv7l"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "rpm-package"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "const": "rpm"
+              },
+              "architecture": {
+                "enum": [
+                  "noarch",
+                  "x86_64",
+                  "amd64",
+                  "aarch64",
+                  "arm64",
+                  "armv7l"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "arch-package"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "const": "pkg.tar.zst"
+              },
+              "architecture": {
+                "enum": [
+                  "any",
+                  "x86_64",
+                  "aarch64",
+                  "arm64",
+                  "armv7l"
+                ]
+              }
+            }
+          }
+        },
         {
           "if": {
             "properties": {
@@ -208,6 +305,31 @@
                 "const": "AppImage"
               }
             }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "native-package",
+                  "debian-package",
+                  "rpm-package",
+                  "arch-package",
+                  "flatpak-bundle",
+                  "flatpak-ref",
+                  "appimage"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "architecture"
+            ]
           }
         }
       ]
