@@ -4,10 +4,8 @@ from __future__ import annotations
 
 import re
 import shutil
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
-from types import MappingProxyType
-from typing import Final
 
 
 _APPLICATION_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -22,17 +20,17 @@ class LocalApplicationIntegration:
 
 
 # Keep executable names in reviewed application code, never in GitHub JSON.
-# Add an entry only after verifying the app's actual desktop/package integration.
-LOCAL_INTEGRATIONS: Final[Mapping[str, LocalApplicationIntegration]] = MappingProxyType({
-    "paketscope": LocalApplicationIntegration(
+# A tuple prevents callers from changing the registry at runtime.
+LOCAL_INTEGRATIONS: tuple[LocalApplicationIntegration, ...] = (
+    LocalApplicationIntegration(
         application_id="paketscope",
         executable_candidates=("paketscope",),
     ),
-    "sorot": LocalApplicationIntegration(
+    LocalApplicationIntegration(
         application_id="sorot",
         executable_candidates=("sorot",),
     ),
-})
+)
 
 
 def integration_for(application_id: str) -> LocalApplicationIntegration | None:
@@ -42,7 +40,10 @@ def integration_for(application_id: str) -> LocalApplicationIntegration | None:
     normalized = application_id.casefold()
     if not _APPLICATION_ID.fullmatch(normalized):
         return None
-    return LOCAL_INTEGRATIONS.get(normalized)
+    return next(
+        (item for item in LOCAL_INTEGRATIONS if item.application_id == normalized),
+        None,
+    )
 
 
 def executable_for(
