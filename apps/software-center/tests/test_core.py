@@ -214,9 +214,11 @@ class CatalogTests(unittest.TestCase):
                 service.refresh()
             active_before = (cache / "active.json").read_bytes()
 
-            with patch("lsl_center.catalog._fetch_metadata", side_effect=invalid_fetch):
-                with self.assertRaises(CatalogError):
-                    service.refresh()
+            with (
+                patch("lsl_center.catalog._fetch_metadata", side_effect=invalid_fetch),
+                self.assertRaises(CatalogError),
+            ):
+                service.refresh()
 
             self.assertEqual((cache / "active.json").read_bytes(), active_before)
             snapshot = CatalogService(cache_dir=cache).load()
