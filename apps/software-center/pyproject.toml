@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linux-software-lab-center"
+version = "0.1.0.dev1"
+description = "A shared desktop launcher and CLI for the Linux Software Lab catalogue"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-only"
+authors = [{ name = "Linux Software Lab" }]
+dependencies = []
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.7"]
+test = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+lsl = "lsl_center.cli:main"
+lsl-center = "lsl_center.gui:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lsl_center*"]
+
+[tool.setuptools.package-data]
+lsl_center = ["data/*.json", "data/assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
