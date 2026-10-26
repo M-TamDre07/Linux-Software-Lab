@@ -345,9 +345,25 @@ class CatalogService:
             ).hexdigest()
             snapshot_dir = snapshots_dir / snapshot_id
 
-            if snapshot_dir.exists():
+            existing_snapshot_valid = False
+            if snapshot_dir.is_dir() and not snapshot_dir.is_symlink():
+                try:
+                    existing_catalog = (snapshot_dir / "catalog.json").read_bytes()
+                    existing_downloads = (snapshot_dir / "sorot-downloads.json").read_bytes()
+                    existing_snapshot_valid = (
+                        hashlib.sha256(existing_catalog).hexdigest() == catalog_sha
+                        and hashlib.sha256(existing_downloads).hexdigest() == downloads_sha
+                    )
+                except OSError:
+                    existing_snapshot_valid = False
+
+            if existing_snapshot_valid:
                 shutil.rmtree(stage_dir, ignore_errors=True)
             else:
+                if snapshot_dir.is_dir() and not snapshot_dir.is_symlink():
+                    shutil.rmtree(snapshot_dir)
+                elif snapshot_dir.exists() or snapshot_dir.is_symlink():
+                    snapshot_dir.unlink(missing_ok=True)
                 os.chmod(stage_dir, 0o700)
                 os.replace(stage_dir, snapshot_dir)
 
