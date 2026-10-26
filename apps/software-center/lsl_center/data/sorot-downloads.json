@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "product": "Sorot",
+  "updatedAt": "2026-10-26",
+  "detectionPolicy": {
+    "browserCanDetect": "operating-system family only",
+    "cannotReliablyDetect": "exact Linux distribution",
+    "note": "Browsers do not reliably expose /etc/os-release. The website may identify Linux, but asks users to choose their distro instead of guessing."
+  },
+  "distributions": [
+    {
+      "id": "debian-family",
+      "label": "Debian / Ubuntu dan turunannya",
+      "status": "available",
+      "packageFormat": "deb",
+      "packageManager": "apt",
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Paket .deb Sorot 0.5.0 Beta tersedia. Pengujian instalasi bersih Debian 13 belum dinyatakan lulus."
+    },
+    {
+      "id": "arch",
+      "label": "Arch Linux",
+      "status": "planned",
+      "packageFormat": "pkg.tar.zst",
+      "packageManager": "pacman",
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "targetVersion": "0.6.0",
+      "note": "Dukungan paket Arch ditargetkan untuk 0.6.0. Saat ini belum ada paket .pkg.tar.zst atau PKGBUILD resmi untuk dipasang; arsip sumber hanya untuk peninjauan/build manual."
+    },
+    {
+      "id": "fedora",
+      "label": "Fedora / RHEL dan turunannya",
+      "status": "source-only",
+      "packageFormat": "rpm",
+      "packageManager": "dnf",
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Belum ada paket RPM Sorot yang dipublikasikan. Jangan mencoba memasang paket .deb pada distro ini."
+    },
+    {
+      "id": "opensuse",
+      "label": "openSUSE / SUSE",
+      "status": "source-only",
+      "packageFormat": "rpm",
+      "packageManager": "zypper",
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Belum ada paket RPM Sorot yang dipublikasikan. Arsip sumber tersedia untuk ditinjau."
+    },
+    {
+      "id": "other-linux",
+      "label": "Linux lain / distro belum diketahui",
+      "status": "source-only",
+      "packageFormat": null,
+      "packageManager": null,
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Belum ada paket native yang dinyatakan cocok untuk pilihan ini. Pilih keluarga distro di atas bila sesuai dengan sistemmu."
+    },
+    {
+      "id": "non-linux",
+      "label": "Windows / macOS / sistem non-Linux",
+      "status": "unsupported",
+      "packageFormat": null,
+      "packageManager": null,
+      "sourceFormats": [
+        "tar.gz",
+        "zip"
+      ],
+      "note": "Sorot adalah aplikasi desktop native untuk Linux. Arsip sumber dapat ditinjau, tetapi bukan installer Windows/macOS."
+    }
+  ],
+  "versions": [
+    {
+      "version": "0.5.0",
+      "label": "Sorot 0.5.0 Beta",
+      "channel": "beta",
+      "status": "testing",
+      "architectureNote": "Paket Debian menggunakan Architecture: all.",
+      "manifestUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.5.0/release.json",
+      "checksumsUrl": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/SHA256SUMS",
+      "releaseNotesUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.5.0/RELEASE-NOTES.md",
+      "testReportUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.5.0/TEST-REPORT.md",
+      "artifacts": [
+        {
+          "file": "sorot_0.5.0_all.deb",
+          "kind": "debian-package",
+          "format": "deb",
+          "architecture": "all",
+          "sha256": "3a9a95a5646f30b6f071cedfea17915c7fc290c338702ba1547566217416f357",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot_0.5.0_all.deb"
+        },
+        {
+          "file": "sorot-0.5.0.tar.gz",
+          "kind": "source-archive",
+          "format": "tar.gz",
+          "sha256": "5e8f68b84ab5b2b1cc668205483a759202cfd5f380754f251031bb2f62c623f6",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot-0.5.0.tar.gz"
+        },
+        {
+          "file": "sorot-0.5.0.zip",
+          "kind": "source-archive",
+          "format": "zip",
+          "sha256": "cf660084fb56e413cb1fba4599bb4e703e551873121f21d602d88ce65b2b6533",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot-0.5.0.zip"
+        }
+      ]
+    }
+  ]
+}
