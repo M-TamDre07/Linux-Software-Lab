@@ -58,6 +58,8 @@ jobs:
         run: python scripts/validate_app_manifest.py
       - name: Check local links, canonical metadata, robots and sitemap
         run: python scripts/check_site_links.py
+      - name: Check repository documentation links
+        run: python scripts/check_docs_links.py
       - name: Check website JavaScript syntax
         run: node --check public/assets/js/site.js
       - name: Validate website JSON and Vercel configuration
