@@ -442,7 +442,7 @@ class MainWindow(QMainWindow):
                 f"Direncanakan · {target.distribution_id} · versi {target.version}: {target.note}"
                 for target in app.planned_targets
             ]
-            notice += "\\n\\n" + "\\n".join(planned_lines)
+            notice += "\n\n" + "\n".join(planned_lines)
         self.compatibility_label.setText(notice)
 
         self.source_combo.clear()
@@ -698,8 +698,9 @@ class MainWindow(QMainWindow):
         app = self.current_application
         if not app or not app.artifacts:
             return
-        # The distribution index is maintained oldest-first; the final manifest is the newest entry.
-        manifest_url = app.artifacts[-1].manifest_url
+        # Select using the same version-ordering rule as the GUI and CLI artifact selector.
+        selected = select_artifact(app, self.profile) or app.artifacts[-1]
+        manifest_url = selected.manifest_url
         if manifest_url.startswith("https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/"):
             QDesktopServices.openUrl(QUrl(manifest_url))
 
