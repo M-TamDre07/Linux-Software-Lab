@@ -30,7 +30,6 @@ from lsl_center.installer import (
 from lsl_center.models import SystemProfile
 from lsl_center.selection import select_artifact, source_artifacts
 
-
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
 DATA_DIR = APP_ROOT / "lsl_center" / "data"
