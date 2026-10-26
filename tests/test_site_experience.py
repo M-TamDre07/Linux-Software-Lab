@@ -18,6 +18,7 @@ CORE_PAGES = (
     "software/index.html",
     "software/paketscope.html",
     "software/sorot.html",
+    "launcher/index.html",
 )
 
 
@@ -105,6 +106,22 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("prefers-reduced-motion:reduce", css)
         self.assertIn(":focus-visible", css)
         self.assertIn("minmax(0,1fr)", css)
+
+    def test_launcher_menu_is_shared_across_primary_pages(self) -> None:
+        for relative in CORE_PAGES:
+            with self.subTest(page=relative):
+                source, _ = self.parse_page(relative)
+                self.assertIn('href="/launcher/"', source)
+                self.assertIn('id="navLinks"', source)
+        launcher, page = self.parse_page("launcher/index.html")
+        self.assertIn('href="/launcher/" aria-current="page"', launcher)
+        self.assertIn("Linux Software Lab Center", launcher)
+        self.assertIn("Development preview", launcher)
+        self.assertIn("Belum dipublikasikan", launcher) if "Belum dipublikasikan" in launcher else self.assertIn("belum dipublikasikan", launcher.casefold())
+        self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center", launcher)
+        self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/pull/22", launcher)
+        self.assertIn("/assets/css/launcher.css", launcher)
+        self.assertEqual(page.canonicals, ["https://linux-software-lab.vercel.app/launcher/"])
 
     def test_catalogue_has_operable_search_and_filters(self) -> None:
         source, _ = self.parse_page("software/index.html")
