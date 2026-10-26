@@ -385,15 +385,41 @@ def build_install_command(
     )
 
 
+def _transaction_plan_signature(output: str) -> tuple[str, ...]:
+    """Keep only package actions so non-deterministic apt progress messages do not matter."""
+    return tuple(
+        line.strip()
+        for line in output.splitlines()
+        if re.match(r"^(?:Inst|Remv|Conf)\\s+", line.strip())
+    )
+
+
+def _same_preview_plan(expected: InstallPreview, current: InstallPreview) -> bool:
+    return (
+        expected.package_path.resolve() == current.package_path.resolve()
+        and expected.command == current.command
+        and expected.package_manager == current.package_manager
+        and expected.removal_detected == current.removal_detected
+        and _transaction_plan_signature(expected.output)
+        == _transaction_plan_signature(current.output)
+    )
+
+
 def install_verified_artifact(
     artifact: Artifact,
     package_path: Path,
     profile: SystemProfile,
     timeout_seconds: int = 1800,
+    expected_preview: InstallPreview | None = None,
 ) -> InstallResult:
-    """Execute only after caller has shown the APT preview and received confirmation."""
+    """Execute only if the package still matches the displayed APT preview."""
     verify_local_artifact(artifact, package_path)
-    preview_installation(artifact, package_path, profile)
+    current_preview = preview_installation(artifact, package_path, profile)
+    if expected_preview is not None and not _same_preview_plan(expected_preview, current_preview):
+        raise InstallError(
+            "APT's package plan changed after confirmation. No installation was started; "
+            "review a fresh transaction preview."
+        )
     command = build_install_command(artifact, package_path, profile)
     try:
         result = subprocess.run(
