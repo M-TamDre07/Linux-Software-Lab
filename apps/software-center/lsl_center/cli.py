@@ -6,11 +6,22 @@ import argparse
 import json
 import shutil
 import sys
+from collections import Counter
 from collections.abc import Sequence
+from importlib.metadata import PackageNotFoundError, version as distribution_version
 from pathlib import Path
 
-from .catalog import WEBSITE_ROOT, CatalogError, CatalogService
+from .catalog import (
+    CATALOG_URL,
+    DISTRIBUTION_INDEX_URL,
+    OWNER,
+    REPOSITORY,
+    WEBSITE_ROOT,
+    CatalogError,
+    CatalogService,
+)
 from .distro import artifact_compatibility, detect_system_profile, executable_for
+from .integrations import LOCAL_INTEGRATIONS
 from .installer import (
     InstallError,
     download_artifact,
@@ -20,6 +31,107 @@ from .installer import (
 )
 from .models import Application, SystemProfile
 from .selection import select_artifact
+
+
+def _launcher_version() -> str:
+    """Return the installed distribution version, with a source-checkout fallback."""
+    try:
+        return distribution_version("linux-software-lab-center")
+    except PackageNotFoundError:
+        return "0.1.0.dev1 (source checkout)"
+
+
+def _ecosystem_payload(service: CatalogService, profile: SystemProfile) -> dict[str, object]:
+    """Build local diagnostics without making network calls or trusting remote commands."""
+    snapshot = service.load()
+    integration_ids = [application_id for application_id, _commands in LOCAL_INTEGRATIONS]
+    installed_ids = [
+        app.id for app in snapshot.applications if executable_for(app.id)
+    ]
+    status_counts = dict(sorted(Counter(app.status for app in snapshot.applications).items()))
+    return {
+        "launcher": {
+            "name": "Linux Software Lab Center",
+            "version": _launcher_version(),
+            "mode": "local diagnostic; no remote health probe performed",
+        },
+        "source_of_truth": {
+            "provider": "GitHub",
+            "repository": f"https://github.com/{OWNER}/{REPOSITORY}",
+            "website": WEBSITE_ROOT,
+            "launcher_portal": f"{WEBSITE_ROOT}/launcher/",
+            "catalog": CATALOG_URL,
+            "distribution_index": DISTRIBUTION_INDEX_URL,
+        },
+        "local_catalog": {
+            "source": snapshot.data_source,
+            "updated_at": snapshot.updated_at,
+            "entry_count": len(snapshot.applications),
+            "status_counts": status_counts,
+        },
+        "system": {
+            "distro_id": profile.distro_id,
+            "pretty_name": profile.pretty_name,
+            "family": profile.family,
+            "architecture": profile.architecture,
+            "package_manager": profile.package_manager,
+        },
+        "local_integrations": {
+            "reviewed_allowlist": integration_ids,
+            "registered_count": len(integration_ids),
+            "detected_applications": installed_ids,
+        },
+        "installation": {
+            "native_adapter": ".deb via APT",
+            "enabled_for_detected_system": profile.family == "debian-family",
+            "rpm_enabled": False,
+            "arch_enabled": False,
+            "flatpak_enabled": False,
+            "appimage_enabled": False,
+            "signed_release_metadata_available": False,
+            "sha256_boundary": "SHA-256 compares bytes with trusted metadata; it is not a publisher signature.",
+        },
+    }
+
+
+def _show_ecosystem(service: CatalogService, profile: SystemProfile, as_json: bool) -> int:
+    """Show how this local launcher connects to the public Linux Software Lab ecosystem."""
+    try:
+        payload = _ecosystem_payload(service, profile)
+    except CatalogError as exc:
+        print(f"Diagnostik ekosistem gagal: katalog lokal tidak valid: {exc}", file=sys.stderr)
+        return 1
+
+    if as_json:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    launcher = payload["launcher"]
+    source = payload["source_of_truth"]
+    catalog = payload["local_catalog"]
+    system = payload["system"]
+    integrations = payload["local_integrations"]
+    installation = payload["installation"]
+    assert isinstance(launcher, dict)
+    assert isinstance(source, dict)
+    assert isinstance(catalog, dict)
+    assert isinstance(system, dict)
+    assert isinstance(integrations, dict)
+    assert isinstance(installation, dict)
+
+    print(f"{launcher['name']} · versi {launcher['version']}")
+    print(f"Sumber kebenaran : {source['provider']} · {source['repository']}")
+    print(f"Website           : {source['website']}")
+    print(f"Portal launcher   : {source['launcher_portal']}")
+    print(f"Katalog lokal     : {catalog['entry_count']} aplikasi · {catalog['updated_at']} · {catalog['source']}")
+    print(f"Status katalog    : {catalog['status_counts']}")
+    print(f"Sistem            : {system['pretty_name']} · {system['family']} · {system['architecture']}")
+    print(f"Integrasi lokal   : {integrations['registered_count']} target allowlist · terdeteksi: {', '.join(integrations['detected_applications']) or 'tidak ada'}")
+    print(f"Adapter native    : {installation['native_adapter']} · {'tersedia untuk keluarga distro ini' if installation['enabled_for_detected_system'] else 'tidak aktif untuk distro ini'}")
+    print("Adapter lain      : RPM / Arch / Flatpak / AppImage belum diaktifkan.")
+    print("Kepercayaan rilis : metadata bertanda tangan belum tersedia; SHA-256 bukan tanda tangan penerbit.")
+    print("Catatan           : diagnosa ini bersifat lokal; tidak melakukan probe jaringan atau mengubah sistem.")
+    return 0
 
 
 def _print_profile(profile: SystemProfile) -> None:
@@ -88,8 +200,23 @@ def build_parser() -> argparse.ArgumentParser:
         prog="lsl",
         description="Linux Software Lab Center — katalog desktop dan CLI berbagi core kompatibilitas.",
     )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_launcher_version()}",
+        help="Tampilkan versi launcher.",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
+    ecosystem_parser = sub.add_parser(
+        "ecosystem",
+        help="Diagnostik lokal untuk integrasi website, katalog, dan adapter launcher.",
+    )
+    ecosystem_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Keluarkan diagnostik dalam JSON untuk skrip/tooling.",
+    )
     sub.add_parser("detect", help="Deteksi distro, package manager, dan arsitektur lokal.")
     list_parser = sub.add_parser("list", help="Tampilkan aplikasi katalog dan status paket.")
     list_parser.add_argument("--json", action="store_true", help="Keluarkan data mesin dalam JSON.")
@@ -130,6 +257,9 @@ def main(
     args = build_parser().parse_args(argv)
     catalog_service = service or CatalogService()
     system_profile = profile or detect_system_profile()
+
+    if args.command == "ecosystem":
+        return _show_ecosystem(catalog_service, system_profile, args.json)
 
     if args.command == "detect":
         _print_profile(system_profile)
