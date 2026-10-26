@@ -390,7 +390,7 @@ def _transaction_plan_signature(output: str) -> tuple[str, ...]:
     return tuple(
         line.strip()
         for line in output.splitlines()
-        if re.match(r"^(?:Inst|Remv|Conf)\\s+", line.strip())
+        if re.match(r"^(?:Inst|Remv|Conf)\s+", line.strip())
     )
 
 
@@ -415,7 +415,10 @@ def install_verified_artifact(
     """Execute only if the package still matches the displayed APT preview."""
     verify_local_artifact(artifact, package_path)
     current_preview = preview_installation(artifact, package_path, profile)
-    if expected_preview is not None and not _same_preview_plan(expected_preview, current_preview):
+    if (
+        expected_preview is not None
+        and not _same_preview_plan(expected_preview, current_preview)
+    ):
         raise InstallError(
             "APT's package plan changed after confirmation. No installation was started; "
             "review a fresh transaction preview."
