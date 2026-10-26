@@ -34,13 +34,13 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 └── vercel.json                   # Konfigurasi output dan header keamanan
 ~~~
 
-## Menjalankan website secara lokal
+## Admin Control Room\n\nDashboard /admin/ adalah alat inspeksi katalog yang dibatasi oleh Supabase Auth + RLS. GitHub tetap menjadi sumber data resmi; panduan provisioning akses dan batas keamanan ada di [docs/ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).\n\n## Menjalankan website secara lokal
 
 ~~~bash
 python3 -m http.server 8000 --directory public
 ~~~
 
-Buka http://localhost:8000 untuk halaman utama, http://localhost:8000/software/ untuk direktori pencarian, dan http://localhost:8000/launcher/ untuk portal Linux Software Lab Center.
+Buka http://localhost:8000 untuk halaman utama, http://localhost:8000/software/ untuk direktori pencarian, dan http://localhost:8000/launcher/ untuk portal Linux Software Lab Center. Route admin lokal tersedia di http://localhost:8000/admin/ dan memerlukan akun Supabase Auth yang sudah diizinkan.
 
 ## Pemeriksaan sebelum merge
 
