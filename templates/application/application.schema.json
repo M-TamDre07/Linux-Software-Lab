@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/templates/application/application.schema.json",
+  "title": "Linux Software Lab Application Manifest",
+  "description": "Technology-neutral metadata contract for an app maintained in apps/<slug>/; not a release manifest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "slug",
+    "name",
+    "description",
+    "lifecycle",
+    "runtime",
+    "supported_os",
+    "supported_architectures",
+    "entrypoints",
+    "distribution",
+    "integrity",
+    "integration"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "const": "./application.schema.json" },
+    "schema_version": { "type": "integer", "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64 },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 64 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 320 },
+    "lifecycle": { "type": "string", "enum": ["planned", "testing", "released", "archived"] },
+    "runtime": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "supported_os": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "supported_architectures": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gui", "cli"],
+      "properties": {
+        "gui": { "type": ["string", "null"], "minLength": 1 },
+        "cli": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled_formats", "release_manifest"],
+      "properties": {
+        "enabled_formats": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip"] }
+        },
+        "release_manifest": { "type": ["string", "null"], "minLength": 1 }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256_checksums", "publisher_signature"],
+      "properties": {
+        "sha256_checksums": { "type": "string", "enum": ["not-published", "published"] },
+        "publisher_signature": { "type": "string", "enum": ["not-implemented", "implemented"] }
+      }
+    },
+    "integration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["website_page", "launcher_allowlist", "catalogue_record"],
+      "properties": {
+        "website_page": { "type": "string", "pattern": "^/software/[a-z0-9-]+\\.html$" },
+        "launcher_allowlist": { "type": "string", "enum": ["not-registered", "registered"] },
+        "catalogue_record": { "type": "string", "enum": ["not-registered", "registered"] }
+      }
+    }
+  }
+}
