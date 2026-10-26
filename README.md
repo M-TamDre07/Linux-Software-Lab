@@ -25,6 +25,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 ├── apps/
 │   ├── README.md                 # Pedoman folder per aplikasi
 │   ├── paketscope/               # Source desktop native; bukan direktori website
+│   ├── software-center/          # Launcher GUI + CLI preview, berbagi core katalog dan installer
 │   └── sorot/         # Sorot 0.5.0 Beta; paket dan dokumentasi beta
 ├── scripts/                      # Validator katalog dan pemeriksaan website
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
@@ -92,6 +93,10 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 ## Sorot 0.5.0 Beta
 
 Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.5.0 Beta`](apps/sorot/releases/0.5.0/RELEASE-NOTES.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot masih beta; pengujian instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu dilakukan. Arsip versi lama tidak ditimpa oleh versi baru.
+
+## Linux Software Lab Center (pratinjau launcher)
+
+Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya menyediakan pengalaman klik untuk pemula dan alur terminal yang cepat untuk pengguna profesional, dengan satu core metadata, deteksi distro/arsitektur, pemilihan artefak, dan verifikasi. Untuk saat ini hanya adapter instalasi .deb berbasis APT yang diaktifkan; RPM, Arch, Flatpak, AppImage, paket launcher native, serta metadata rilis bertanda tangan belum tersedia. Jangan jalankan launcher dengan sudo. Lihat panduan pengembangan apps/software-center/README.md dan arsitektur docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md.
 
 ## PaketScope 3 (pratinjau pengembangan)
 
