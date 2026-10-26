@@ -48,7 +48,7 @@ The `application.json` contract is validated against `application.schema.json` b
 
 ## Getting from scaffold to integrated application
 
-1. Choose a licence and runtime, then document the supported OS families and minimum versions in `application.json` and `docs/ARCHITECTURE.md`.
+1. Choose a licence and runtime, then document the supported OS families and minimum versions in `application.json` and `docs/ARCHITECTURE.md`. Validate metadata using `python scripts/validate_app_manifest.py apps/{{APP_SLUG}}/application.json`.
 2. Implement the app in `src/`; add unit, integration, and security regression tests. Do not add secrets, generated environments, local caches, or real user data to Git.
 3. Write setup, run, recovery, and troubleshooting instructions in `docs/DEVELOPMENT.md`. Every user-facing error should explain what happened, whether the system changed, and the safe next step.
 4. Add a CI workflow that installs pinned dependencies and runs the project's real lint, build, and test commands. The base template intentionally does not invent a framework or fake passing test.
