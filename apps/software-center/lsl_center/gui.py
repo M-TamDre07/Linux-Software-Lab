@@ -616,7 +616,12 @@ class MainWindow(QMainWindow):
 
             self._run_task(
                 "Instalasi melalui Polkit",
-                lambda: install_verified_artifact(artifact, path, self.profile),
+                lambda: install_verified_artifact(
+                    artifact,
+                    path,
+                    self.profile,
+                    expected_preview=preview,
+                ),
                 self._installation_finished,
                 lambda error: QMessageBox.warning(self, "Instalasi dihentikan", error),
             )
