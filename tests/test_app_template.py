@@ -91,7 +91,7 @@ class ApplicationScaffoldTests(unittest.TestCase):
                 all_text.append(path.read_text(encoding="utf-8"))
         merged = "\n".join(all_text)
         self.assertNotRegex(merged, r"\{\{[A-Z][A-Z0-9_]*\}\}")
-        self.assertIn(r"Demo \`\[Lab\]\` \& Tools", (target / "README.md").read_text(encoding="utf-8"))
+        self.assertIn(r"Demo \`\[Lab\]\` & Tools", (target / "README.md").read_text(encoding="utf-8"))
         self.assertIn("2026-10-27", (target / "CHANGELOG.md").read_text(encoding="utf-8"))
         metadata = json.loads((target / "application.json").read_text(encoding="utf-8"))
         self.assertEqual(metadata["id"], "demo-tool")
