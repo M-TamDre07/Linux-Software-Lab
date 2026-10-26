@@ -341,7 +341,7 @@ class CatalogService:
             catalog_sha = hashlib.sha256(catalog_bytes).hexdigest()
             downloads_sha = hashlib.sha256(downloads_bytes).hexdigest()
             snapshot_id = hashlib.sha256(
-                catalog_bytes + b"\\0" + downloads_bytes
+                catalog_bytes + b"\0" + downloads_bytes
             ).hexdigest()
             snapshot_dir = snapshots_dir / snapshot_id
 
@@ -364,7 +364,7 @@ class CatalogService:
             try:
                 with os.fdopen(fd, "w", encoding="utf-8") as stream:
                     json.dump(pointer, stream, ensure_ascii=False, sort_keys=True)
-                    stream.write("\\n")
+                    stream.write("\n")
                     stream.flush()
                     os.fsync(stream.fileno())
                 os.chmod(active_temp, 0o600)
