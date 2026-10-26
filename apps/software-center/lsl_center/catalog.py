@@ -19,6 +19,7 @@ from .models import Application, Artifact, CatalogSnapshot, PlannedTarget
 
 OWNER = "M-TamDre07"
 REPOSITORY = "Linux-Software-Lab"
+WEBSITE_ROOT = "https://linux-software-lab.vercel.app"
 RAW_ROOT = f"https://raw.githubusercontent.com/{OWNER}/{REPOSITORY}/main"
 CATALOG_URL = f"{RAW_ROOT}/public/data/software.json"
 DISTRIBUTION_INDEX_URL = f"{RAW_ROOT}/public/data/distribution-index.json"
