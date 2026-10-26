@@ -52,7 +52,6 @@ from .models import (
 )
 from .selection import select_artifact, source_artifacts
 
-
 STYLE = """
 QMainWindow, QWidget#rootWidget { background: #11110f; color: #ece9e0; }
 QWidget { color: #ece9e0; font-size: 12px; }
