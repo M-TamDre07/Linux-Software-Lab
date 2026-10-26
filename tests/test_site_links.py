@@ -14,6 +14,7 @@ class SiteLinksTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         (self.root / "software").mkdir()
+        (self.root / "launcher").mkdir()
         (self.root / "data").mkdir()
         (self.root / "assets").mkdir()
         (self.root / "index.html").write_text(
@@ -24,6 +25,11 @@ class SiteLinksTests(unittest.TestCase):
         (self.root / "software" / "index.html").write_text(
             '<!doctype html><html><head><link rel="canonical" href="https://example.test/software/"></head>'
             '<body><a href="/software/demo.html">Demo</a></body></html>',
+            encoding="utf-8",
+        )
+        (self.root / "launcher" / "index.html").write_text(
+            '<!doctype html><html><head><link rel="canonical" href="https://example.test/launcher/"></head>'
+            '<body><a href="/">Home</a></body></html>',
             encoding="utf-8",
         )
         (self.root / "software" / "demo.html").write_text(
@@ -44,6 +50,7 @@ class SiteLinksTests(unittest.TestCase):
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
             '<url><loc>https://example.test/</loc></url>'
             '<url><loc>https://example.test/software/</loc></url>'
+            '<url><loc>https://example.test/launcher/</loc></url>'
             '<url><loc>https://example.test/software/demo.html</loc></url>'
             '</urlset>',
             encoding="utf-8",
