@@ -9,9 +9,37 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_DIRS = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__"}
-FENCED_CODE = re.compile(r"^\s*```.*?^\s*```\s*$", re.MULTILINE | re.DOTALL)
+FENCE_LINE = re.compile(r"^\\s*(`{3,}|~{3,})(.*)$")
 INLINE_CODE = re.compile(r"`[^`]*`")
-MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
+MARKDOWN_LINK = re.compile(r"(?<!!)\\[[^\\]]*\\]\\(([^)]+)\\)")
+
+
+def _without_fenced_code(source: str) -> str:
+    """Blank backtick and tilde fenced blocks while preserving line numbers."""
+    output: list[str] = []
+    fence_char: str | None = None
+    fence_size = 0
+    for line in source.splitlines(keepends=True):
+        content = line.rstrip("\\r\\n")
+        match = FENCE_LINE.match(content)
+        if fence_char is None and match:
+            marker = match.group(1)
+            fence_char, fence_size = marker[0], len(marker)
+            output.append("\\n" if line.endswith("\\n") else "")
+            continue
+        if fence_char is not None:
+            if (
+                match
+                and match.group(1)[0] == fence_char
+                and len(match.group(1)) >= fence_size
+                and not match.group(2).strip()
+            ):
+                fence_char = None
+                fence_size = 0
+            output.append("\\n" if line.endswith("\\n") else "")
+            continue
+        output.append(line)
+    return "".join(output)
 
 
 def markdown_files(root: Path = ROOT) -> list[Path]:
@@ -41,7 +69,7 @@ def check_markdown_file(path: Path, *, root: Path = ROOT) -> list[str]:
     except (OSError, UnicodeDecodeError) as exc:
         return [f"{path.relative_to(root)}: cannot read Markdown as UTF-8 ({exc})"]
 
-    source = FENCED_CODE.sub("", source)
+    source = _without_fenced_code(source)
     source = INLINE_CODE.sub("", source)
     problems: list[str] = []
     for match in MARKDOWN_LINK.finditer(source):
@@ -50,7 +78,12 @@ def check_markdown_file(path: Path, *, root: Path = ROOT) -> list[str]:
         if not target:
             continue
         parsed = urlsplit(target)
-        if parsed.scheme or parsed.netloc or target.startswith("#"):
+        if parsed.scheme:
+            if parsed.scheme.casefold() in {"http", "https", "mailto", "tel", "ftp"}:
+                continue
+            problems.append(f"{path.relative_to(root)}: unsafe link scheme in {target!r}")
+            continue
+        if parsed.netloc or target.startswith("#"):
             continue
         path_part = unquote(parsed.path)
         if not path_part:
