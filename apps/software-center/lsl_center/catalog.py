@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import date
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import tempfile
-from typing import Any
 import urllib.error
-from urllib.parse import urlsplit
 import urllib.request
+from datetime import date
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlsplit
 
 from .models import Application, Artifact, CatalogSnapshot
-
 
 OWNER = "M-TamDre07"
 REPOSITORY = "Linux-Software-Lab"
