@@ -392,8 +392,8 @@ class MainWindow(QMainWindow):
         if app.icon_path and app.icon_path.is_file():
             self.product_icon.setPixmap(QIcon(str(app.icon_path)).pixmap(62, 62))
         else:
+            self.product_icon.clear()
             self.product_icon.setText(app.name[:1].upper())
-            self.product_icon.setPixmap(QIcon())
         compatible = [
             artifact for artifact in app.artifacts
             if artifact.is_native_package and artifact_compatibility(artifact, self.profile)[0]
