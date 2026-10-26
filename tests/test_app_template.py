@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from datetime import date
@@ -54,7 +55,7 @@ class ApplicationScaffoldTests(unittest.TestCase):
         self.assertEqual(target, self.apps_dir / "demo-tool")
         required = (
             "README.md",
-            "application.yaml",
+            "application.json",\n            "application.schema.json",
             "CHANGELOG.md",
             "LICENSE-REQUIRED.md",
             ".gitignore",
@@ -90,12 +91,16 @@ class ApplicationScaffoldTests(unittest.TestCase):
         self.assertNotRegex(merged, r"\{\{[A-Z][A-Z0-9_]*\}\}")
         self.assertIn(r"Demo \`\[Lab\]\` \& Tools", (target / "README.md").read_text(encoding="utf-8"))
         self.assertIn("2026-10-27", (target / "CHANGELOG.md").read_text(encoding="utf-8"))
-        metadata = (target / "application.yaml").read_text(encoding="utf-8")
-        self.assertIn("id: demo-tool", metadata)
-        self.assertIn('name: "Demo `[Lab]` & Tools"', metadata)
-        self.assertIn('description: "A [safe] app scaffold for local testing."', metadata)
-        self.assertIn("lifecycle: planned", metadata)
-        self.assertIn("publisher_signature: not-implemented", metadata)
+        metadata = json.loads((target / "application.json").read_text(encoding="utf-8"))
+        self.assertEqual(metadata["id"], "demo-tool")
+        self.assertEqual(metadata["slug"], "demo-tool")
+        self.assertEqual(metadata["name"], app_name)
+        self.assertEqual(metadata["description"], description)
+        self.assertEqual(metadata["lifecycle"], "planned")
+        self.assertEqual(metadata["integrity"]["publisher_signature"], "not-implemented")
+        schema = json.loads((target / "application.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
+        self.assertIn("lifecycle", schema["required"])
         self.assertTrue((target / "LICENSE-REQUIRED.md").is_file())
         self.assertFalse(any(path.suffix.lower() in {".deb", ".rpm", ".flatpak", ".appimage"} for path in target.rglob("*")))
 
