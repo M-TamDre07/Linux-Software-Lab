@@ -170,8 +170,8 @@ def validate_manifest(data: Any, *, base_dir: Path | None = None) -> list[str]:
 def validate_manifest_file(path: Path, *, template: bool = False) -> list[str]:
     try:
         source = path.read_text(encoding="utf-8")
-    except OSError as exc:
-        return [f"Manifest tidak dapat dibaca: {exc}"]
+    except (OSError, UnicodeDecodeError) as exc:
+        return [f"Manifest tidak dapat dibaca sebagai UTF-8: {exc}"]
     if template:
         # Use inert sample values only in memory; never rewrite the committed template.
         source = source.replace('"{{APP_SLUG}}"', '"template-app"')
