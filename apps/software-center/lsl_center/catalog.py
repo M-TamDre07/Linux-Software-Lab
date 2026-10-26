@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import date
 import hashlib
 import json
 import os
+from pathlib import Path
 import re
 import shutil
 import tempfile
-import urllib.error
-import urllib.request
-from datetime import date
-from pathlib import Path
 from typing import Any
+import urllib.error
 from urllib.parse import urlsplit
+import urllib.request
 
 from .models import Application, Artifact, CatalogSnapshot
 
@@ -311,9 +311,12 @@ def validate_distribution_manifest(
             raise CatalogError(f"{filename}: unsupported CPU architecture.")
         if kind != "source-archive" and "architecture" not in artifact:
             raise CatalogError(f"{filename}: native artifacts must declare their architecture.")
-        if kind != "source-archive" and package_format in {"deb", "rpm", "pkg.tar.zst"}:
-            if architecture == "all" and package_format == "pkg.tar.zst":
-                raise CatalogError(f"{filename}: Arch packages must declare any or a CPU architecture.")
+        if (
+            kind != "source-archive"
+            and package_format == "pkg.tar.zst"
+            and architecture == "all"
+        ):
+            raise CatalogError(f"{filename}: Arch packages must declare any or a CPU architecture.")
 
         allowed_artifact_fields = {
             "file", "kind", "format", "architecture", "sha256", "download_url",
