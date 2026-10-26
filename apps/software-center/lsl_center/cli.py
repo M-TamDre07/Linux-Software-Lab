@@ -6,8 +6,8 @@ import argparse
 import json
 import shutil
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from .catalog import CatalogError, CatalogService
 from .distro import artifact_compatibility, detect_system_profile, executable_for
