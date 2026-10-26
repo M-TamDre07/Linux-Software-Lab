@@ -14,7 +14,6 @@ from urllib.parse import urlsplit
 
 from .models import Application, Artifact, CatalogSnapshot
 
-
 OWNER = "M-TamDre07"
 REPOSITORY = "Linux-Software-Lab"
 RAW_ROOT = f"https://raw.githubusercontent.com/{OWNER}/{REPOSITORY}/main"
