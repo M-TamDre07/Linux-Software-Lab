@@ -63,6 +63,12 @@ def _ecosystem_payload(service: CatalogService, profile: SystemProfile) -> dict[
             "catalog": CATALOG_URL,
             "distribution_index": DISTRIBUTION_INDEX_URL,
         },
+        "data_services": {
+            "supabase_role": "read-only catalogue mirror",
+            "sync_path": "GitHub Actions synchronizes the canonical repository catalogue after main changes.",
+            "website_fallback": "Static JSON from the public website; local launcher also has a bundled fallback.",
+            "runtime_status": "not checked by this local diagnostic",
+        },
         "local_catalog": {
             "source": snapshot.data_source,
             "updated_at": snapshot.updated_at,
@@ -123,6 +129,9 @@ def _show_ecosystem(service: CatalogService, profile: SystemProfile, as_json: bo
     print(f"Sumber kebenaran : {source['provider']} · {source['repository']}")
     print(f"Website           : {source['website']}")
     print(f"Portal launcher   : {source['launcher_portal']}")
+    data_services = payload["data_services"]
+    assert isinstance(data_services, dict)
+    print(f"Supabase          : {data_services['supabase_role']} · status tidak diperiksa")
     print(f"Katalog lokal     : {catalog['entry_count']} aplikasi · {catalog['updated_at']} · {catalog['source']}")
     print(f"Status katalog    : {catalog['status_counts']}")
     print(f"Sistem            : {system['pretty_name']} · {system['family']} · {system['architecture']}")
