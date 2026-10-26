@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
+import shutil
 import tempfile
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -205,16 +208,57 @@ class CatalogService:
     ) -> None:
         self._explicit_data_dir = data_dir
         self.cache_dir = cache_dir or default_cache_dir()
+        self._cache_issue: str | None = None
+
+    def _cached_snapshot_dir(self) -> Path | None:
+        """Return the active immutable cache snapshot only when its hashes match the pointer."""
+        pointer_path = self.cache_dir / "active.json"
+        if not pointer_path.is_file():
+            legacy_files = (
+                self.cache_dir / "catalog.json",
+                self.cache_dir / "sorot-downloads.json",
+            )
+            if any(path.exists() for path in legacy_files):
+                self._cache_issue = "Legacy or incomplete cache ignored; using the bundled snapshot."
+            return None
+
+        try:
+            pointer = _read_json(pointer_path, maximum_bytes=4096)
+            snapshot_id = pointer.get("snapshot")
+            if (
+                pointer.get("schema_version") != 1
+                or not isinstance(snapshot_id, str)
+                or not re.fullmatch(r"[a-f0-9]{64}", snapshot_id)
+            ):
+                raise CatalogError("Cache pointer schema or snapshot ID is invalid.")
+
+            snapshots_root = (self.cache_dir / "snapshots").resolve()
+            snapshot_dir = (snapshots_root / snapshot_id).resolve()
+            snapshot_dir.relative_to(snapshots_root)
+            catalog_path = snapshot_dir / "catalog.json"
+            downloads_path = snapshot_dir / "sorot-downloads.json"
+            catalog_bytes = catalog_path.read_bytes()
+            downloads_bytes = downloads_path.read_bytes()
+
+            if len(catalog_bytes) > MAX_METADATA_BYTES or len(downloads_bytes) > MAX_METADATA_BYTES:
+                raise CatalogError("Cached metadata exceeds the configured size limit.")
+            actual_catalog_sha = hashlib.sha256(catalog_bytes).hexdigest()
+            actual_downloads_sha = hashlib.sha256(downloads_bytes).hexdigest()
+            if (
+                pointer.get("catalog_sha256") != actual_catalog_sha
+                or pointer.get("downloads_sha256") != actual_downloads_sha
+            ):
+                raise CatalogError("Cached metadata does not match its active snapshot pointer.")
+            return snapshot_dir
+        except (CatalogError, OSError, ValueError) as exc:
+            self._cache_issue = f"Cache snapshot ignored ({exc}); using the bundled snapshot."
+            return None
 
     @property
     def data_dir(self) -> Path:
         if self._explicit_data_dir is not None:
             return self._explicit_data_dir
-        cached_catalog = self.cache_dir / "catalog.json"
-        cached_downloads = self.cache_dir / "sorot-downloads.json"
-        if cached_catalog.is_file() and cached_downloads.is_file():
-            return self.cache_dir
-        return bundled_data_dir()
+        return self._cached_snapshot_dir() or bundled_data_dir()
 
     def load(self) -> CatalogSnapshot:
         data_dir = self.data_dir
@@ -266,22 +310,78 @@ class CatalogService:
                 )
             )
 
+        is_cache_snapshot = (
+            self._explicit_data_dir is None and data_dir != bundled_data_dir()
+        )
+        data_source = "cache" if is_cache_snapshot else "bundled"
+        if self._cache_issue and not is_cache_snapshot:
+            data_source = "bundled fallback (cache invalid)"
         return CatalogSnapshot(
             applications=tuple(applications),
             updated_at=catalog_data["catalog"]["updatedAt"],
-            data_source="cache" if data_dir == self.cache_dir else "bundled",
+            data_source=data_source,
         )
 
     def refresh(self) -> CatalogSnapshot:
-        """Fetch the two public JSON documents, validate them together, and replace cache atomically."""
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        with tempfile.TemporaryDirectory(prefix="lsl-refresh-", dir=self.cache_dir) as tmp:
-            temp_dir = Path(tmp)
-            (temp_dir / "catalog.json").write_bytes(_fetch_metadata(CATALOG_URL))
-            (temp_dir / "sorot-downloads.json").write_bytes(_fetch_metadata(DOWNLOADS_URL))
-            CatalogService(data_dir=temp_dir).load()
-            os.replace(temp_dir / "catalog.json", self.cache_dir / "catalog.json")
-            os.replace(temp_dir / "sorot-downloads.json", self.cache_dir / "sorot-downloads.json")
+        """Validate a complete new snapshot, then atomically switch one active pointer."""
+        self.cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+        snapshots_dir = self.cache_dir / "snapshots"
+        snapshots_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+        stage_dir = Path(tempfile.mkdtemp(prefix=".staging-", dir=snapshots_dir))
+        active_temp: Path | None = None
+        try:
+            catalog_bytes = _fetch_metadata(CATALOG_URL)
+            downloads_bytes = _fetch_metadata(DOWNLOADS_URL)
+            (stage_dir / "catalog.json").write_bytes(catalog_bytes)
+            (stage_dir / "sorot-downloads.json").write_bytes(downloads_bytes)
+
+            # Validate both metadata documents together before making them visible.
+            CatalogService(data_dir=stage_dir).load()
+            catalog_sha = hashlib.sha256(catalog_bytes).hexdigest()
+            downloads_sha = hashlib.sha256(downloads_bytes).hexdigest()
+            snapshot_id = hashlib.sha256(
+                catalog_bytes + b"\\0" + downloads_bytes
+            ).hexdigest()
+            snapshot_dir = snapshots_dir / snapshot_id
+
+            if snapshot_dir.exists():
+                shutil.rmtree(stage_dir, ignore_errors=True)
+            else:
+                os.chmod(stage_dir, 0o700)
+                os.replace(stage_dir, snapshot_dir)
+
+            pointer = {
+                "schema_version": 1,
+                "snapshot": snapshot_id,
+                "catalog_sha256": catalog_sha,
+                "downloads_sha256": downloads_sha,
+            }
+            fd, active_temp_name = tempfile.mkstemp(
+                prefix=".active-", suffix=".tmp", dir=self.cache_dir
+            )
+            active_temp = Path(active_temp_name)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                    json.dump(pointer, stream, ensure_ascii=False, sort_keys=True)
+                    stream.write("\\n")
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.chmod(active_temp, 0o600)
+                os.replace(active_temp, self.cache_dir / "active.json")
+                active_temp = None
+            except Exception:
+                try:
+                    os.close(fd)
+                except OSError:
+                    pass
+                raise
+        finally:
+            if stage_dir.exists():
+                shutil.rmtree(stage_dir, ignore_errors=True)
+            if active_temp is not None:
+                active_temp.unlink(missing_ok=True)
+
         return CatalogService(cache_dir=self.cache_dir).load()
 
 
