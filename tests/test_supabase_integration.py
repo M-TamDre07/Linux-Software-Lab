@@ -26,8 +26,8 @@ class SupabaseIntegrationTests(unittest.TestCase):
     def test_catalogue_falls_back_to_static_json_without_remote_search(self):
         js = (ROOT / "public/assets/js/site.js").read_text(encoding="utf-8")
         self.assertIn("fetch('/data/software.json'", js)
-        self.assertIn("const data = await fetchSupabaseCatalog()", js)
-        self.assertIn("const data = await fetchStaticCatalog()", js)
+        self.assertIn("validateCatalogPayload(await fetchSupabaseCatalog())", js)
+        self.assertIn("validateCatalogPayload(await fetchStaticCatalog())", js)
         self.assertIn("Sumber katalog: mirror Supabase tersedia.", js)
         self.assertIn("menggunakan data statis website", js)
         self.assertIn("catch (_)", js)
@@ -67,6 +67,8 @@ class SupabaseIntegrationTests(unittest.TestCase):
         self.assertNotIn("query: query", js)
         self.assertNotIn("searchInput.value", js[js.index("const fetchSupabaseCatalog"):js.index("if (grid) {")])
         self.assertIn("const escapeHTML =", js)
+        self.assertIn("validateCatalogPayload", js)
+        self.assertNotIn(".filter(app => app && typeof app.id", js)
 
     def test_admin_ui_does_not_interpolate_untrusted_data_as_html(self):
         js = (ROOT / "public/assets/js/admin.js").read_text(encoding="utf-8")
