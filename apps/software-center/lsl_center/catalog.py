@@ -231,7 +231,9 @@ class CatalogService:
             ):
                 raise CatalogError("Cache pointer schema or snapshot ID is invalid.")
 
+            cache_root = self.cache_dir.resolve()
             snapshots_root = (self.cache_dir / "snapshots").resolve()
+            snapshots_root.relative_to(cache_root)
             snapshot_dir = (snapshots_root / snapshot_id).resolve()
             snapshot_dir.relative_to(snapshots_root)
             catalog_path = snapshot_dir / "catalog.json"
@@ -243,6 +245,9 @@ class CatalogService:
                 raise CatalogError("Cached metadata exceeds the configured size limit.")
             actual_catalog_sha = hashlib.sha256(catalog_bytes).hexdigest()
             actual_downloads_sha = hashlib.sha256(downloads_bytes).hexdigest()
+            actual_snapshot_id = hashlib.sha256(catalog_bytes + b"\\0" + downloads_bytes).hexdigest()
+            if snapshot_id != actual_snapshot_id:
+                raise CatalogError("Cache snapshot ID does not match its metadata contents.")
             if (
                 pointer.get("catalog_sha256") != actual_catalog_sha
                 or pointer.get("downloads_sha256") != actual_downloads_sha
@@ -414,6 +419,7 @@ def _fetch_metadata(url: str) -> bytes:
             if (
                 final_url.scheme != "https"
                 or final_url.hostname != "raw.githubusercontent.com"
+                or final_url.port not in (None, 443)
                 or final_url.path != parsed.path
                 or final_url.query
                 or final_url.fragment
