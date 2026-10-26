@@ -49,7 +49,7 @@ The Supabase mirror is limited to public catalogue metadata. Do not expand it in
 - archived: no longer actively maintained.
 - The catalogue must never present concept artwork as a screenshot of a released app.
 - Avoid compatibility claims that have not been tested on the stated platform.
-- New product pages must have canonical URLs and be added to public/sitemap.xml.
+- New product pages must have canonical URLs and be added to public/sitemap.xml. Follow [SEO_MAINTENANCE.md](SEO_MAINTENANCE.md) for the complete crawlability and content quality contract.
 - Search filters are client-side; search terms stay in the browser.
 
 ## Application contribution contract
