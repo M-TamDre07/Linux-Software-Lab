@@ -503,6 +503,53 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 3)
         self.assertIn("Belum ada paket native", output.getvalue())
 
+    def test_ecosystem_command_json_reports_links_limits_and_local_source(self) -> None:
+        output = StringIO()
+        with (
+            redirect_stdout(output),
+            patch("lsl_center.catalog._fetch_metadata", side_effect=AssertionError("must not use network")),
+        ):
+            code = main(["ecosystem", "--json"], service=self.service, profile=arch_profile())
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(
+            payload["source_of_truth"]["repository"],
+            "https://github.com/M-TamDre07/Linux-Software-Lab",
+        )
+        self.assertEqual(
+            payload["source_of_truth"]["launcher_portal"],
+            "https://linux-software-lab.vercel.app/launcher/",
+        )
+        self.assertEqual(payload["local_catalog"]["entry_count"], 2)
+        self.assertEqual(payload["local_catalog"]["source"], "bundled")
+        self.assertEqual(payload["system"]["family"], "arch-family")
+        self.assertFalse(payload["installation"]["enabled_for_detected_system"])
+        self.assertFalse(payload["installation"]["arch_enabled"])
+        self.assertFalse(payload["installation"]["signed_release_metadata_available"])
+        self.assertEqual(payload["local_integrations"]["reviewed_allowlist"], ["paketscope", "sorot"])
+
+    def test_ecosystem_command_human_output_explains_integration_boundaries(self) -> None:
+        output = StringIO()
+        with redirect_stdout(output):
+            code = main(["ecosystem"], service=self.service, profile=debian_profile())
+        self.assertEqual(code, 0)
+        self.assertIn("https://linux-software-lab.vercel.app/launcher/", output.getvalue())
+        self.assertIn("SHA-256 bukan tanda tangan penerbit", output.getvalue())
+        self.assertIn("Adapter lain", output.getvalue())
+        self.assertIn("tidak melakukan probe jaringan", output.getvalue())
+
+    def test_cli_version_flag_exits_without_loading_catalogue(self) -> None:
+        output = StringIO()
+        with (
+            redirect_stdout(output),
+            patch("lsl_center.catalog.CatalogService.load", side_effect=AssertionError("must not load catalog")),
+        ):
+            with self.assertRaises(SystemExit) as raised:
+                main(["--version"], service=self.service, profile=arch_profile())
+        self.assertEqual(raised.exception.code, 0)
+        self.assertIn("lsl", output.getvalue())
+        self.assertIn("0.1.0.dev1", output.getvalue())
+
     def test_info_command_does_not_claim_paketscope_has_a_release_package(self) -> None:
         output = StringIO()
         with redirect_stdout(output):
