@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -162,21 +163,85 @@ class CatalogTests(unittest.TestCase):
         with self.assertRaises(CatalogError):
             validate_download_payload(data)
 
-    def test_refresh_writes_cache_only_after_both_documents_validate(self) -> None:
+    def test_refresh_activates_one_complete_snapshot(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
         downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+
         def fetch(url: str) -> bytes:
             return catalog_bytes if url.endswith("software.json") else downloads_bytes
 
         with tempfile.TemporaryDirectory() as temp:
-            service = CatalogService(cache_dir=Path(temp) / "cache")
+            cache = Path(temp) / "cache"
+            service = CatalogService(cache_dir=cache)
             with patch("lsl_center.catalog._fetch_metadata", side_effect=fetch):
                 refreshed = service.refresh()
+
+            pointer = json.loads((cache / "active.json").read_text(encoding="utf-8"))
+            snapshot_dir = cache / "snapshots" / pointer["snapshot"]
             self.assertEqual(refreshed.data_source, "cache")
             self.assertEqual(len(refreshed.applications), 2)
-            self.assertTrue((Path(temp) / "cache" / "catalog.json").is_file())
-            self.assertTrue((Path(temp) / "cache" / "sorot-downloads.json").is_file())
-            self.assertIsNotNone(refreshed.find("sorot").icon_path)
+            self.assertTrue((snapshot_dir / "catalog.json").is_file())
+            self.assertTrue((snapshot_dir / "sorot-downloads.json").is_file())
+            self.assertEqual(
+                hashlib.sha256((snapshot_dir / "catalog.json").read_bytes()).hexdigest(),
+                pointer["catalog_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256((snapshot_dir / "sorot-downloads.json").read_bytes()).hexdigest(),
+                pointer["downloads_sha256"],
+            )
+            self.assertFalse((cache / "catalog.json").exists())
+            self.assertFalse((cache / "sorot-downloads.json").exists())
+            sorot = refreshed.find("sorot")
+            self.assertIsNotNone(sorot)
+            assert sorot is not None
+            self.assertIsNotNone(sorot.icon_path)
+
+    def test_failed_refresh_preserves_the_previous_active_snapshot(self) -> None:
+        catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
+        downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+
+        def valid_fetch(url: str) -> bytes:
+            return catalog_bytes if url.endswith("software.json") else downloads_bytes
+
+        def invalid_fetch(url: str) -> bytes:
+            return catalog_bytes if url.endswith("software.json") else b'{"schemaVersion": 1}'
+
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / "cache"
+            service = CatalogService(cache_dir=cache)
+            with patch("lsl_center.catalog._fetch_metadata", side_effect=valid_fetch):
+                service.refresh()
+            active_before = (cache / "active.json").read_bytes()
+
+            with patch("lsl_center.catalog._fetch_metadata", side_effect=invalid_fetch):
+                with self.assertRaises(CatalogError):
+                    service.refresh()
+
+            self.assertEqual((cache / "active.json").read_bytes(), active_before)
+            snapshot = CatalogService(cache_dir=cache).load()
+            self.assertEqual(snapshot.data_source, "cache")
+            self.assertEqual(len(snapshot.applications), 2)
+
+    def test_corrupt_cache_snapshot_falls_back_to_the_bundled_catalog(self) -> None:
+        catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
+        downloads_bytes = (DATA_DIR / "sorot-downloads.json").read_bytes()
+
+        def fetch(url: str) -> bytes:
+            return catalog_bytes if url.endswith("software.json") else downloads_bytes
+
+        with tempfile.TemporaryDirectory() as temp:
+            cache = Path(temp) / "cache"
+            with patch("lsl_center.catalog._fetch_metadata", side_effect=fetch):
+                CatalogService(cache_dir=cache).refresh()
+            pointer = json.loads((cache / "active.json").read_text(encoding="utf-8"))
+            snapshot_dir = cache / "snapshots" / pointer["snapshot"]
+            (snapshot_dir / "sorot-downloads.json").write_text("{}", encoding="utf-8")
+
+            fallback = CatalogService(cache_dir=cache).load()
+            self.assertEqual(fallback.data_source, "bundled fallback (cache invalid)")
+            self.assertEqual({app.id for app in fallback.applications}, {"paketscope", "sorot"})
+            self.assertIsNotNone(fallback.find("sorot").icon_path)
 
 
 class SelectionTests(unittest.TestCase):
