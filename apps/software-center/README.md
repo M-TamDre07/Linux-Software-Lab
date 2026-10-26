@@ -80,6 +80,14 @@ The catalogue can grow from the shared GitHub metadata without granting remote r
 
 The source-of-truth flow, local integration boundary, new-product checklist, and release-readiness limits are documented in [APP_CONTAINER_AND_INTEGRATIONS.md](../../docs/APP_CONTAINER_AND_INTEGRATIONS.md).
 
+## Data backend boundaries
+
+The native launcher does **not** need a Supabase key to read the public catalogue. It fetches the canonical GitHub raw catalogue, distribution index, and version manifests, validates them, and swaps in a complete cache snapshot atomically. If the network is unavailable or a refreshed snapshot fails validation, it falls back to the bundled metadata.
+
+Supabase serves the website's read-only catalogue mirror and the website's maintainer control room. It is not the install backend, a source for shell commands, or a place to store desktop credentials. The maintainer control room reads catalogue rows; official catalogue edits continue through GitHub review and the trusted synchronization workflow, so mirror changes cannot silently diverge from the repository. See [ADMIN_DASHBOARD.md](../../docs/ADMIN_DASHBOARD.md) and [SUPABASE_INTEGRATION.md](../../docs/SUPABASE_INTEGRATION.md).
+
+“Container” means the app hub/catalogue in this product's current scope—not an OS container runtime or sandbox. Actual per-app isolation would require a separate reviewed runtime and permission model.
+
 ## Tests
 
 From this directory:
