@@ -303,8 +303,14 @@ def _fetch_metadata(url: str) -> bytes:
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
             final_url = urlsplit(response.geturl())
-            if final_url.scheme != "https" or final_url.hostname != "raw.githubusercontent.com":
-                raise CatalogError("Metadata download redirected to an untrusted host.")
+            if (
+                final_url.scheme != "https"
+                or final_url.hostname != "raw.githubusercontent.com"
+                or final_url.path != parsed.path
+                or final_url.query
+                or final_url.fragment
+            ):
+                raise CatalogError("Metadata download redirected to an untrusted resource.")
             content_length = response.headers.get("Content-Length")
             if content_length and int(content_length) > MAX_METADATA_BYTES:
                 raise CatalogError("Metadata response is too large.")
