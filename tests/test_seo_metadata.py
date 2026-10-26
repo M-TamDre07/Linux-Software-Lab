@@ -79,7 +79,7 @@ class SeoMetadataTests(unittest.TestCase):
         )
 
     def test_json_ld_is_valid_schema_org_data(self):
-        for relative_path in PAGES:
+        for relative_path in self.pages:
             with self.subTest(page=relative_path):
                 html = (PUBLIC / relative_path).read_text(encoding="utf-8")
                 blocks = re.findall(
