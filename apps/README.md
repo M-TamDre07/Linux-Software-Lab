@@ -5,6 +5,7 @@ Every product maintained by Linux Software Lab has its own directory under `apps
 ## Current projects
 
 - `paketscope/` — native Python/PySide6 desktop application for Linux. The active v3 work lives on the dedicated `feature/paketscope-v3-native` branch until its code and release checks are ready to merge.
+- `software-center/` — Linux Software Lab Center launcher preview. Its Qt GUI and `lsl` CLI share the same metadata, distro detection, artifact selection, and installation-safety core. Only Debian .deb installation is enabled in the MVP; no launcher release package has been published. See `software-center/README.md` for development and test instructions.
 - `sorot/` — native Linux desktop teleprompter. Shared product documentation and maintenance patches stay at the product root; immutable package/source artifacts and version-specific test reports are archived under `sorot/releases/<version>/`, starting with [`0.5.0 Beta`](sorot/releases/0.5.0/RELEASE-NOTES.md). See [`sorot/README.md`](sorot/README.md) and [`sorot/releases/README.md`](sorot/releases/README.md). Never replace an existing version's files with a different build.
 
 ## Expected structure for an implemented application
