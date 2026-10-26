@@ -69,7 +69,7 @@ def _safe_https_url(value: Any) -> bool:
         return False
     try:
         parsed = urlsplit(value)
-        parsed.port
+        port = parsed.port
     except ValueError:
         return False
     return (
@@ -77,6 +77,7 @@ def _safe_https_url(value: Any) -> bool:
         and parsed.hostname is not None
         and parsed.username is None
         and parsed.password is None
+        and port in (None, 443)
         and not parsed.fragment
     )
 
