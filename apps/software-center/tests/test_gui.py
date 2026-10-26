@@ -4,8 +4,7 @@ import os
 import unittest
 from pathlib import Path
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from lsl_center.catalog import CatalogService
@@ -46,6 +45,7 @@ def profile(family: str) -> SystemProfile:
 class LauncherGuiSmokeTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
         cls.qt_app = QApplication.instance() or QApplication([])
 
     def test_catalogue_renders_products_and_keeps_arch_fail_closed(self) -> None:
@@ -57,7 +57,7 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         sorot_row = next(
             index
             for index in range(window.app_list.count())
-            if window.app_list.item(index).data(0x0100) == "sorot"
+            if window.app_list.item(index).data(Qt.ItemDataRole.UserRole) == "sorot"
         )
         window.app_list.setCurrentRow(sorot_row)
         self.assertEqual(window.current_application.id, "sorot")
