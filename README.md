@@ -40,7 +40,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 python3 -m http.server 8000 --directory public
 ~~~
 
-Buka http://localhost:8000 untuk halaman utama dan http://localhost:8000/software/ untuk direktori pencarian.
+Buka http://localhost:8000 untuk halaman utama, http://localhost:8000/software/ untuk direktori pencarian, dan http://localhost:8000/launcher/ untuk portal Linux Software Lab Center.
 
 ## Pemeriksaan sebelum merge
 
@@ -97,7 +97,9 @@ Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia 
 
 ## Linux Software Lab Center (pratinjau launcher)
 
-Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya menyediakan pengalaman klik untuk pemula dan alur terminal yang cepat untuk pengguna profesional, dengan satu core metadata, deteksi distro/arsitektur, pemilihan artefak, dan verifikasi. Untuk saat ini hanya adapter instalasi .deb berbasis APT yang diaktifkan; RPM, Arch, Flatpak, AppImage, paket launcher native, serta metadata rilis bertanda tangan belum tersedia. Jangan jalankan launcher dengan sudo. Lihat panduan pengembangan apps/software-center/README.md dan arsitektur docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md.
+Portal web launcher tersedia di [linux-software-lab.vercel.app/launcher/](https://linux-software-lab.vercel.app/launcher/) dan dapat diakses dari menu utama website. Halaman ini merangkum status, ekosistem GitHub–website–launcher, cara mencoba source, dan roadmap tanpa mengiklankan installer yang belum ada.
+
+Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya menyediakan pengalaman klik untuk pemula dan alur terminal yang cepat untuk pengguna profesional, dengan satu core metadata, deteksi distro/arsitektur, pemilihan artefak, dan verifikasi. Untuk saat ini hanya adapter instalasi .deb berbasis APT yang diaktifkan; RPM, Arch, Flatpak, AppImage, paket launcher native, serta metadata rilis bertanda tangan belum tersedia. Jangan jalankan launcher dengan sudo. Lihat panduan pengembangan apps/software-center/README.md, [dokumen integrasi ekosistem](docs/APP_CONTAINER_AND_INTEGRATIONS.md), dan arsitektur docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md.
 
 ## PaketScope 3 (pratinjau pengembangan)
 
