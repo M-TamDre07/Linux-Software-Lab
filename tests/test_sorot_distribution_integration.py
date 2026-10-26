@@ -108,6 +108,7 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("release.json", source)
         self.assertIn("sha256sum", source)
         self.assertIn("pacman -U", source)
+        self.assertIn('"x86_64": {"x86_64", "amd64"}', source)
         self.assertIn("No .pkg.tar.zst artifact is published", source)
         if shutil.which("bash"):
             syntax = subprocess.run(["bash", "-n", str(helper)], capture_output=True, text=True, check=False)
@@ -135,11 +136,15 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn(".software-preview", styles)
         self.assertIn("cardMarkup()", standard)
 
-        for filename in ("sorot.html", "paketscope.html"):
-            page = (PUBLIC / "software" / filename).read_text(encoding="utf-8")
-            self.assertIn('/assets/css/experience.css', page)
-            self.assertIn('class="container detail-layout"', page)
-            self.assertIn('class="detail-art"', page)
+        self.assertIn("PRODUCT_UI_STANDARD.md", (ROOT / "docs" / "ADDING_SOFTWARE.md").read_text(encoding="utf-8"))
+        detail_pages = sorted(path for path in (PUBLIC / "software").glob("*.html") if path.name != "index.html")
+        self.assertTrue(detail_pages, "At least one product detail page must exist.")
+        for path in detail_pages:
+            with self.subTest(page=path.name):
+                page = path.read_text(encoding="utf-8")
+                self.assertIn('/assets/css/experience.css', page)
+                self.assertIn('class="container detail-layout"', page)
+                self.assertIn('class="detail-art"', page)
 
     def test_paketscope_terminal_guidance_distinguishes_source_mode_from_release(self):
         page = (PUBLIC / "software" / "paketscope.html").read_text(encoding="utf-8")
