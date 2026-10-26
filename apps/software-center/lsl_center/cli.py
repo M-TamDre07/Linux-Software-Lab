@@ -9,7 +9,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from .catalog import CatalogError, CatalogService
+from .catalog import CatalogError, CatalogService, WEBSITE_ROOT
 from .distro import artifact_compatibility, detect_system_profile, executable_for
 from .installer import (
     InstallError,
@@ -54,6 +54,8 @@ def _show_list(service: CatalogService, profile: SystemProfile, as_json: bool) -
                     "version": app.version,
                     "status": app.status,
                     "installed": bool(installed_executable),
+                    "website_url": f"{WEBSITE_ROOT}{app.detail_url}",
+                    "source_url": app.source_url,
                     "available_artifacts": available,
                 }
             )
@@ -75,6 +77,9 @@ def _show_list(service: CatalogService, profile: SystemProfile, as_json: bool) -
         print(f"  aplikasi      : {installed}")
         print(f"  paket         : {formats}")
         print(f"  ringkasan     : {app.summary}")
+        print(f"  website       : {WEBSITE_ROOT}{app.detail_url}")
+        if app.source_url:
+            print(f"  repositori    : {app.source_url}")
     return 0
 
 
@@ -205,6 +210,9 @@ def main(
         print(f"Kategori      : {app.category}")
         print(f"Ringkasan     : {app.summary}")
         print(f"Detail        : {app.description}")
+        print(f"Halaman web  : {WEBSITE_ROOT}{app.detail_url}")
+        if app.source_url:
+            print(f"Sumber GitHub: {app.source_url}")
         print("Artefak:")
         if not app.artifacts:
             print("  Belum ada paket/arsip rilis yang terdaftar.")
