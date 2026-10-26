@@ -236,8 +236,14 @@ allowed_kinds = {
 suffixes = {"deb": ".deb", "pkg.tar.zst": ".pkg.tar.zst", "rpm": ".rpm"}
 import platform
 machine = platform.machine().lower()
-aliases = {"x86_64": "amd64", "amd64": "amd64", "aarch64": "arm64", "arm64": "arm64"}
-machine = aliases.get(machine, machine)
+architecture_aliases = {
+    "x86_64": {"x86_64", "amd64"},
+    "amd64": {"amd64", "x86_64"},
+    "aarch64": {"aarch64", "arm64"},
+    "arm64": {"arm64", "aarch64"},
+    "armv7l": {"armv7l", "armhf"},
+}
+compatible_architectures = architecture_aliases.get(machine, {machine})
 for item in data["artifacts"]:
     if not isinstance(item, dict) or item.get("format") != wanted_format:
         continue
@@ -253,7 +259,7 @@ for item in data["artifacts"]:
         raise SystemExit("artifact SHA-256 is invalid")
     if kind not in allowed_kinds[wanted_format]:
         raise SystemExit("artifact kind does not match the native package format")
-    if architecture not in {"all", "any", "noarch", machine}:
+    if architecture not in {"all", "any", "noarch"} and architecture not in compatible_architectures:
         continue
     print("\t".join([filename, digest, status, str(data.get("channel", "unknown")), kind, architecture]))
     raise SystemExit(0)
