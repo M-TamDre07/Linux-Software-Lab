@@ -103,7 +103,7 @@ def scaffold_application(
     staging = Path(tempfile.mkdtemp(prefix=".lsl-scaffold-", dir=target_apps))
     try:
         staging.rmdir()
-        shutil.copytree(source_template, staging)
+        shutil.copytree(source_template, staging, symlinks=True)
         for path in staging.rglob("*"):
             if path.is_symlink():
                 raise ScaffoldError(f"Template tidak boleh berisi symlink: {path.relative_to(staging)}")
