@@ -8,18 +8,29 @@ import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 from typing import Any
 
-from sync_supabase_catalog import (
-    CATALOG_PATH,
-    EXPECTED_SUPABASE_URL,
-    VERIFY_COLUMNS,
-    catalog_rows_match,
-    load_catalog,
-    to_record,
-    validate_supabase_url,
-)
+try:
+    from sync_supabase_catalog import (
+        CATALOG_PATH,
+        VERIFY_COLUMNS,
+        catalog_rows_match,
+        load_catalog,
+        to_record,
+        validate_supabase_url,
+    )
+except ModuleNotFoundError as exc:
+    if exc.name != "sync_supabase_catalog":
+        raise
+    from scripts.sync_supabase_catalog import (
+        CATALOG_PATH,
+        VERIFY_COLUMNS,
+        catalog_rows_match,
+        load_catalog,
+        to_record,
+        validate_supabase_url,
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 SUPABASE_CONFIG = ROOT / "public" / "assets" / "js" / "supabase-config.js"
