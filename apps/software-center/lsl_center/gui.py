@@ -35,7 +35,7 @@ except ImportError as exc:  # pragma: no cover - depends on optional GUI extra
         "python -m pip install -e '.[gui]'"
     ) from exc
 
-from .catalog import CatalogError, CatalogService
+from .catalog import CatalogError, CatalogService, WEBSITE_ROOT
 from .distro import artifact_compatibility, detect_system_profile, executable_for
 from .installer import (
     download_artifact,
@@ -51,8 +51,6 @@ from .models import (
     SystemProfile,
 )
 from .selection import select_artifact, source_artifacts
-
-WEBSITE_ROOT = "https://linux-software-lab.vercel.app"
 
 STYLE = """
 QMainWindow, QWidget#rootWidget { background: #11110f; color: #ece9e0; }
