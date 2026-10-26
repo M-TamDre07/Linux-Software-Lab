@@ -36,7 +36,9 @@ Run locally:
     python scripts/sync_supabase_catalog.py --check
     python -m unittest discover -s tests -v
 
-After database changes, inspect migration history and Supabase security/performance advisors. The intended public query is a filtered SELECT on software_catalog; it must never accept writes from an anonymous browser. If the Data API is disabled for this project, enable it deliberately in the Supabase dashboard or keep static JSON as the operational path.
+After database changes, inspect migration history and Supabase security/performance advisors. The intended public query is a filtered SELECT on software_catalog; it must never accept writes from an anonymous browser.
+
+The public catalogue is validated in the browser by `public/assets/js/catalog-contract.js` before display. For a live read-only comparison of the deployed Vercel `software.json` and the published Supabase mirror against GitHub, run `python scripts/check_live_integrations.py` from a networked checkout. The command uses only the committed public publishable key, fixed endpoints and fixed SELECT columns. It does not run SQL writes, migrate the schema, or change Vercel. A daily scheduled/manual GitHub Actions workflow performs the same parity audit; drift is reported as a failed check so the maintainer can inspect the deployment/sync path. If the Data API is disabled for this project, enable it deliberately in the Supabase dashboard or keep static JSON as the operational path.
 
 ## Scope and limitations
 
