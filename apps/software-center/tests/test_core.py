@@ -368,6 +368,22 @@ class InstallerIntegrityTests(unittest.TestCase):
         with self.assertRaises(InstallError):
             validate_artifact_for_download(hostile)
 
+    def test_release_redirect_policy_rejects_nonstandard_ports_and_credentials(self) -> None:
+        from lsl_center.installer import _validate_trusted_release_url
+
+        with self.assertRaises(InstallError):
+            _validate_trusted_release_url(
+                "https://raw.githubusercontent.com:8443/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot_0.5.0_all.deb",
+                self.artifact,
+                self.artifact.file,
+            )
+        with self.assertRaises(InstallError):
+            _validate_trusted_release_url(
+                "https://user@raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot_0.5.0_all.deb",
+                self.artifact,
+                self.artifact.file,
+            )
+
     def test_package_command_is_an_argument_list_and_forbids_removals(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             package = Path(temp) / self.artifact.file
