@@ -54,6 +54,8 @@ jobs:
         run: node --version
       - name: Validate catalog metadata and release-state rules
         run: python scripts/validate_catalog.py
+      - name: Validate the standard application scaffold manifest
+        run: python scripts/validate_app_manifest.py
       - name: Check local links, canonical metadata, robots and sitemap
         run: python scripts/check_site_links.py
       - name: Check website JavaScript syntax
@@ -62,6 +64,7 @@ jobs:
         run: |
           python -m json.tool public/data/software.json > /dev/null
           python -m json.tool public/data/software.schema.json > /dev/null
+          python -m json.tool templates/application/application.schema.json > /dev/null
           python -m json.tool vercel.json > /dev/null
       - name: Run metadata, sitemap and link regression tests
         run: python -m unittest discover -s tests -v
