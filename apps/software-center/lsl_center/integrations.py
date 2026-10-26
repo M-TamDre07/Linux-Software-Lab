@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+import collections.abc
+import dataclasses
 import re
 import shutil
-from collections.abc import Callable
-from dataclasses import dataclass
 
 
 _APPLICATION_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
-@dataclass(frozen=True, slots=True)
+@dataclasses.dataclass(frozen=True, slots=True)
 class LocalApplicationIntegration:
     """A small, code-reviewed bridge from a catalog ID to local executable names."""
 
@@ -48,7 +48,7 @@ def integration_for(application_id: str) -> LocalApplicationIntegration | None:
 
 def executable_for(
     application_id: str,
-    which: Callable[[str], str | None] | None = None,
+    which: collections.abc.Callable[[str], str | None] | None = None,
 ) -> str | None:
     """Resolve only executable candidates registered in trusted local code."""
     integration = integration_for(application_id)
