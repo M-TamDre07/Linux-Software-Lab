@@ -71,7 +71,7 @@ class AdminDashboardTests(unittest.TestCase):
         self.assertNotIn("method: 'PUT'", script)
         self.assertNotIn("method: 'DELETE'", script)
         self.assertIn("public/data/software.json", docs)
-        self.assertIn("Pull request", docs)
+        self.assertIn("pull request", docs.casefold())
         self.assertIn("REPLACE_WITH_AUTH_USER_UUID", docs)
         self.assertIn("active", docs.casefold())
 
