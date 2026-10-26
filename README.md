@@ -28,6 +28,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 │   ├── software-center/          # Launcher GUI + CLI preview, berbagi core katalog dan installer
 │   └── sorot/         # Sorot 0.5.0 Beta; paket dan dokumentasi beta
 ├── scripts/                      # Validator katalog dan pemeriksaan website
+├── templates/application/         # Kontrak scaffold lintas aplikasi, tanpa runtime palsu
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
 ├── docs/                         # Arsitektur, struktur software, rilis, deployment
 ├── .github/workflows/            # Pemeriksaan otomatis
@@ -81,6 +82,8 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.
 - [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
 - [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
+- [Template aplikasi dan generator](templates/README.md) menyediakan tata letak proyek konsisten; jalankan `python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "Tujuan aplikasi."` untuk membuat scaffold tanpa mengubah katalog.
+- [Standar pesan error](docs/ERROR_HANDLING_STANDARD.md) menetapkan pesan aman dan mudah dipahami, fallback katalog, dan pemisahan pesan pengguna dari detail teknis.
 - Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
 
 ## Prinsip
