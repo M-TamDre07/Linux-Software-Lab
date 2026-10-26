@@ -213,11 +213,18 @@ async function initialize() {
     setNotice('Tidak dapat memulihkan sesi. Silakan masuk kembali. Detail: ' + error.message, 'error');
     return;
   }
-  if (data.session?.user) {
-    await resolveAccess(data.session.user);
-  } else {
+  if (!data.session) {
     showView('login');
+    return;
   }
+  const { data: verified, error: verifyError } = await state.client.auth.getUser();
+  if (verifyError || !verified.user) {
+    await state.client.auth.signOut();
+    showView('login');
+    setNotice('Sesi tidak dapat diverifikasi oleh Supabase Auth. Silakan masuk kembali.', 'error');
+    return;
+  }
+  await resolveAccess(verified.user);
 }
 
 els.loginForm.addEventListener('submit', async (event) => {
@@ -276,7 +283,15 @@ els.recordDialog.addEventListener('click', (event) => {
   if (event.target === els.recordDialog) els.recordDialog.close();
 });
 
-initialize().catch((error) => {
-  showView('login');
-  setNotice('Inisialisasi dashboard gagal. Detail: ' + (error?.message || 'kesalahan tidak diketahui'), 'error');
-});
+const startDashboard = () => {
+  initialize().catch((error) => {
+    showView('login');
+    setNotice('Inisialisasi dashboard gagal. Detail: ' + (error?.message || 'kesalahan tidak diketahui'), 'error');
+  });
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startDashboard, { once: true });
+} else {
+  startDashboard();
+}
