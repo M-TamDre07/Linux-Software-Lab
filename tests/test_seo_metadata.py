@@ -97,9 +97,13 @@ class SeoMetadataTests(unittest.TestCase):
                 elif data.get("@type") == "WebPage":
                     self.assertIn("url", data)
                     self.assertIn("isPartOf", data)
-                    self.assertEqual(data["url"], re.search(
-                        r'<link\\s+rel="canonical"\\s+href="([^"]+)"', html, flags=re.IGNORECASE
-                    ).group(1))
+                    canonicals = re.findall(
+                        r'<link\s+rel="canonical"\s+href="([^"]+)"\s*/?>',
+                        html,
+                        flags=re.IGNORECASE,
+                    )
+                    self.assertEqual(len(canonicals), 1)
+                    self.assertEqual(data["url"], canonicals[0])
                 else:
                     self.assertEqual(data.get("@type"), "BreadcrumbList")
 
