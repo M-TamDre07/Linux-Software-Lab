@@ -52,6 +52,8 @@ from .models import (
 )
 from .selection import select_artifact, source_artifacts
 
+WEBSITE_ROOT = "https://linux-software-lab.vercel.app"
+
 STYLE = """
 QMainWindow, QWidget#rootWidget { background: #11110f; color: #ece9e0; }
 QWidget { color: #ece9e0; font-size: 12px; }
@@ -314,15 +316,26 @@ class MainWindow(QMainWindow):
         source_row.addWidget(self.download_button)
         actions_layout.addLayout(source_row)
         link_row = QHBoxLayout()
+        self.website_button = QPushButton("Halaman website")
+        self.website_button.setObjectName("secondaryButton")
+        self.website_button.clicked.connect(self._open_website)
+        self.source_button = QPushButton("Repositori GitHub")
+        self.source_button.setObjectName("secondaryButton")
+        self.source_button.clicked.connect(self._open_source)
+        link_row.addWidget(self.website_button)
+        link_row.addWidget(self.source_button)
+        actions_layout.addLayout(link_row)
+
+        launch_row = QHBoxLayout()
         self.open_button = QPushButton("Buka aplikasi")
         self.open_button.setObjectName("secondaryButton")
         self.open_button.clicked.connect(self._open_application)
-        self.source_button = QPushButton("Lihat source")
-        self.source_button.setObjectName("secondaryButton")
-        self.source_button.clicked.connect(self._open_source)
-        link_row.addWidget(self.open_button)
-        link_row.addWidget(self.source_button)
-        actions_layout.addLayout(link_row)
+        self.manifest_button = QPushButton("Manifest rilis")
+        self.manifest_button.setObjectName("secondaryButton")
+        self.manifest_button.clicked.connect(self._open_manifest)
+        launch_row.addWidget(self.open_button)
+        launch_row.addWidget(self.manifest_button)
+        actions_layout.addLayout(launch_row)
         details_layout.addWidget(actions)
         details_layout.addStretch(1)
         details_scroll.setWidget(details_widget)
@@ -440,7 +453,9 @@ class MainWindow(QMainWindow):
             )
         if self.source_combo.count():
             self.source_combo.setCurrentIndex(self.source_combo.count() - 1)
+        self.website_button.setEnabled(bool(app.detail_url) and not self._busy)
         self.source_button.setEnabled(bool(app.source_url) and not self._busy)
+        self.manifest_button.setEnabled(bool(app.artifacts) and not self._busy)
 
         executable = executable_for(app.id)
         self.open_button.setVisible(bool(executable))
@@ -472,7 +487,9 @@ class MainWindow(QMainWindow):
         self.install_button.setText("Belum tersedia")
         self.install_button.setEnabled(False)
         self.download_button.setEnabled(False)
+        self.website_button.setEnabled(False)
         self.source_button.setEnabled(False)
+        self.manifest_button.setEnabled(False)
         self.open_button.setVisible(False)
         self.source_combo.clear()
 
@@ -669,6 +686,22 @@ class MainWindow(QMainWindow):
         started = result[0] if isinstance(result, tuple) else bool(result)
         if not started:
             QMessageBox.warning(self, "Tidak bisa membuka aplikasi", f"Gagal menjalankan {executable}.")
+
+    def _open_website(self) -> None:
+        app = self.current_application
+        if not app or not app.detail_url.startswith("/software/"):
+            return
+        url = WEBSITE_ROOT + app.detail_url
+        QDesktopServices.openUrl(QUrl(url))
+
+    def _open_manifest(self) -> None:
+        app = self.current_application
+        if not app or not app.artifacts:
+            return
+        # The distribution index is maintained oldest-first; the final manifest is the newest entry.
+        manifest_url = app.artifacts[-1].manifest_url
+        if manifest_url.startswith("https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/"):
+            QDesktopServices.openUrl(QUrl(manifest_url))
 
     def _open_source(self) -> None:
         app = self.current_application
