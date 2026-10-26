@@ -16,6 +16,7 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 │   ├── data/
 │   │   ├── software.json         # Sumber data katalog
 │   │   └── software.schema.json  # Kontrak metadata katalog versi 2
+│   ├── admin/                    # Control room privat berbasis Supabase Auth + RLS
 │   ├── software/
 │   │   ├── index.html            # Direktori software lengkap
 │   │   └── <slug>.html           # Halaman detail tiap aplikasi
@@ -34,7 +35,11 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 └── vercel.json                   # Konfigurasi output dan header keamanan
 ~~~
 
-## Admin Control Room\n\nDashboard /admin/ adalah alat inspeksi katalog yang dibatasi oleh Supabase Auth + RLS. GitHub tetap menjadi sumber data resmi; panduan provisioning akses dan batas keamanan ada di [docs/ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).\n\n## Menjalankan website secara lokal
+## Admin Control Room
+
+Dashboard /admin/ adalah alat inspeksi katalog yang dibatasi oleh Supabase Auth + RLS. GitHub tetap menjadi sumber data resmi; panduan provisioning akses dan batas keamanan ada di [docs/ADMIN_DASHBOARD.md](docs/ADMIN_DASHBOARD.md).
+
+## Menjalankan website secara lokal
 
 ~~~bash
 python3 -m http.server 8000 --directory public
