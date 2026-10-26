@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from scripts.scaffold_app import ScaffoldError, scaffold_application, validate_slug
+from scripts.validate_app_manifest import validate_manifest, validate_manifest_file
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,10 +100,32 @@ class ApplicationScaffoldTests(unittest.TestCase):
         self.assertEqual(metadata["lifecycle"], "planned")
         self.assertEqual(metadata["integrity"]["publisher_signature"], "not-implemented")
         schema = json.loads((target / "application.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(validate_manifest(metadata), [])
         self.assertEqual(schema["properties"]["schema_version"]["const"], 1)
         self.assertIn("lifecycle", schema["required"])
         self.assertTrue((target / "LICENSE-REQUIRED.md").is_file())
         self.assertFalse(any(path.suffix.lower() in {".deb", ".rpm", ".flatpak", ".appimage"} for path in target.rglob("*")))
+
+    def test_manifest_validator_rejects_unknown_fields_and_fake_release_state(self) -> None:
+        baseline = json.loads((TEMPLATE / "application.json").read_text(encoding="utf-8"))
+        baseline["id"] = "unsafe slug"
+        self.assertTrue(validate_manifest(baseline))
+
+        baseline = json.loads((TEMPLATE / "application.json").read_text(encoding="utf-8"))
+        baseline["unexpected"] = "should be rejected"
+        self.assertTrue(any("Field tidak dikenal" in error for error in validate_manifest(baseline)))
+
+        baseline = json.loads((TEMPLATE / "application.json").read_text(encoding="utf-8"))
+        baseline["lifecycle"] = "released"
+        baseline["distribution"]["enabled_formats"] = ["deb"]
+        baseline["distribution"]["release_manifest"] = "releases/1.0.0/release.json"
+        baseline["integrity"]["sha256_checksums"] = "published"
+        self.assertTrue(any("Manifest rilis yang dirujuk tidak ditemukan" in error for error in validate_manifest(baseline, base_dir=self.apps_dir)))
+
+    def test_default_manifest_validator_checks_template_without_writing_sample_values(self) -> None:
+        before = (TEMPLATE / "application.json").read_bytes()
+        self.assertEqual(validate_manifest_file(TEMPLATE / "application.json", template=True), [])
+        self.assertEqual((TEMPLATE / "application.json").read_bytes(), before)
 
     def test_scaffold_never_overwrites_existing_application(self) -> None:
         target = self.apps_dir / "existing-app"
