@@ -23,7 +23,6 @@ from lsl_center.distro import (
 from lsl_center.installer import (
     InstallError,
     _removal_detected,
-    build_install_command,
     validate_artifact_for_download,
     validate_release_metadata,
 )
