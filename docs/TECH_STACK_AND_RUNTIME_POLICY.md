@@ -39,4 +39,4 @@ This policy records the current boundaries. It is not a mandate to use one frame
 3. Pin runtime/dependencies or commit the lockfile, use a supported runtime, and audit dependencies that actually exist.
 4. Build and package from a clean environment. Test on the declared OS/distro and verify checksums/signatures only according to a real documented process.
 5. Check the application manifest, catalogue schema, product page, navigation, canonical URLs, sitemap, and accessibility/error states.
-6. Run relevant GitHub Actions and review Vercel/Supabase status separately; green unit tests do not prove that the remote service or deployment is healthy.
+6. Run relevant GitHub Actions and review Vercel/Supabase status separately; green unit tests do not prove that the remote service or deployment is healthy. Before a catalogue release, also run `python scripts/check_live_integrations.py` or the `Live integration integrity` workflow to compare production Vercel and Supabase with the canonical GitHub source.
