@@ -151,8 +151,9 @@ const releaseMarkup = (release, distro) => {
 const render = () => {
   const distro = getDistro();
   const versions = data && Array.isArray(data.versions) ? data.versions : [];
-  const supportAvailable = distro.status === 'available' && versions.some(release =>
-    Array.isArray(release.artifacts) && release.artifacts.some(artifact => artifact.format === distro.packageFormat)
+  const supportAvailable = distro.status === 'available' && (data
+    ? versions.some(release => Array.isArray(release.artifacts) && release.artifacts.some(artifact => artifact.format === distro.packageFormat))
+    : Boolean(root.querySelector('.sorot-artifact-link[data-format="' + distro.packageFormat + '"]'))
   );
   let message = distro.note || '';
   if (distro.status === 'available' && !supportAvailable) {
@@ -196,8 +197,8 @@ if (dataPath.startsWith('/data/') && !dataPath.includes('..')) {
       render();
     })
     .catch(() => {
-      status.textContent += ' Metadata dinamis tidak dapat dimuat; kartu fallback tetap digunakan.';
       render();
+      status.textContent += ' Metadata dinamis tidak dapat dimuat; kartu fallback tetap digunakan.';
     });
 }
 })();
