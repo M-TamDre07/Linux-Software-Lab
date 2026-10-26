@@ -226,7 +226,10 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("createClient", script)
         self.assertNotIn("sb_secret_", script)
         self.assertNotIn("service_role", script)
-        self.assertNotRegex(script, r"\\.from\\(['\\\"]software_catalog['\\\"]\\)\\.(insert|update|upsert|delete)\\(")
+        self.assertNotIn(".insert(", script)
+        self.assertNotIn(".update(", script)
+        self.assertNotIn(".upsert(", script)
+        self.assertNotIn(".delete(", script)
 
         migration = (ROOT / "supabase" / "migrations" / "20261026105902_add_admin_catalog_read_access.sql").read_text(encoding="utf-8")
         self.assertIn("create policy software_catalog_admin_read", migration)
