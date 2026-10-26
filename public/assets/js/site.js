@@ -50,6 +50,7 @@ window.addEventListener('resize', () => { if (window.innerWidth > 700) closeMenu
 const grid = $('#softwareGrid');
 const searchInput = $('#softwareSearch');
 const resultCount = $('#resultCount');
+const catalogSourceStatus = $('#catalogSourceStatus');
 const statusButtons = $$('.filter-btn[data-filter]');
 const categorySelect = $('#categoryFilter');
 const platformSelect = $('#platformFilter');
@@ -437,14 +438,29 @@ const fetchSupabaseCatalog = async () => {
   };
 };
 
+const setCatalogSourceStatus = (message, kind = 'info') => {
+  if (!catalogSourceStatus) return;
+  catalogSourceStatus.textContent = message;
+  catalogSourceStatus.dataset.kind = kind;
+};
+
 if (grid) {
   const loadCatalog = async () => {
     try {
-      return await fetchSupabaseCatalog();
+      const data = await fetchSupabaseCatalog();
+      setCatalogSourceStatus('Sumber katalog: mirror Supabase tersedia.', 'success');
+      return data;
     } catch (_) {
-      // Preserve resilience: use the committed static catalogue when the API is unavailable.
-      console.warn('[Linux Software Lab] Supabase catalogue unavailable; using static JSON fallback.');
-      return await fetchStaticCatalog();
+      // Do not expose response bodies or service internals to visitors.
+      console.warn('[Linux Software Lab] Catalogue mirror unavailable; trying the committed static JSON fallback.');
+      try {
+        const data = await fetchStaticCatalog();
+        setCatalogSourceStatus('Mirror katalog sedang tidak tersedia; memakai data statis website. Data mungkin tertinggal sampai sinkronisasi pulih.', 'warning');
+        return data;
+      } catch (_) {
+        setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
+        throw new Error('Katalog tidak tersedia dari sumber online maupun fallback lokal.');
+      }
     }
   };
   loadCatalog()
@@ -462,9 +478,9 @@ if (grid) {
       applyURLState();
       refresh(false);
     })
-    .catch(error => {
-      grid.innerHTML = '<div class="empty-state"><strong>Katalog belum dapat dimuat.</strong><span>' +
-        escapeHTML(error.message || 'Periksa koneksi dan coba muat ulang halaman.') + '</span></div>';
+    .catch(() => {
+      setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
+      grid.innerHTML = '<div class="empty-state" role="alert"><strong>Katalog belum dapat dimuat.</strong><span>Periksa koneksi internet, lalu muat ulang halaman. Tidak ada perubahan data yang dilakukan.</span></div>';
       if (resultCount) resultCount.textContent = 'Katalog tidak tersedia';
       if (paginationSummary) paginationSummary.textContent = '';
       if (loadMoreButton) loadMoreButton.hidden = true;
