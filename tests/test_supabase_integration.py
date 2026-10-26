@@ -26,8 +26,10 @@ class SupabaseIntegrationTests(unittest.TestCase):
     def test_catalogue_falls_back_to_static_json_without_remote_search(self):
         js = (ROOT / "public/assets/js/site.js").read_text(encoding="utf-8")
         self.assertIn("fetch('/data/software.json'", js)
-        self.assertIn("return await fetchSupabaseCatalog()", js)
-        self.assertIn("return await fetchStaticCatalog()", js)
+        self.assertIn("const data = await fetchSupabaseCatalog()", js)
+        self.assertIn("const data = await fetchStaticCatalog()", js)
+        self.assertIn("Sumber katalog: mirror Supabase tersedia.", js)
+        self.assertIn("menggunakan data statis website", js)
         self.assertIn("catch (_)", js)
         self.assertIn("getFilteredRows()", js)
 
