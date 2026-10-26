@@ -116,6 +116,12 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
             self.assertEqual(help_result.returncode, 0, help_result.stderr)
             self.assertIn("--detect", help_result.stdout)
             self.assertIn("--list", help_result.stdout)
+        if shutil.which("node"):
+            js_check = subprocess.run(
+                ["node", "--check", str(PUBLIC / "assets" / "js" / "sorot-downloads.js")],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(js_check.returncode, 0, js_check.stderr)
 
     def test_product_catalogue_uses_the_shared_card_renderer_and_styles(self):
         catalogue = (PUBLIC / "software" / "index.html").read_text(encoding="utf-8")
