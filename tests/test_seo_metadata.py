@@ -13,6 +13,7 @@ PAGES = (
     "software/index.html",
     "software/paketscope.html",
     "software/sorot.html",
+    "launcher/index.html",
 )
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 
@@ -56,6 +57,13 @@ class SeoMetadataTests(unittest.TestCase):
                 self.assertEqual(image_url.netloc, canonical_parts.netloc)
                 image_path = PUBLIC / image_url.path.lstrip("/")
                 self.assertTrue(image_path.is_file(), f"social image does not exist: {image_path}")
+
+    def test_catalogue_schema_id_uses_canonical_website_host(self):
+        schema = json.loads((PUBLIC / "data" / "software.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            schema.get("$id"),
+            "https://linux-software-lab.vercel.app/data/software.schema.json",
+        )
 
     def test_json_ld_is_valid_schema_org_data(self):
         for relative_path in PAGES:
