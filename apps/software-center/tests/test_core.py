@@ -546,9 +546,9 @@ class CliTests(unittest.TestCase):
         with (
             redirect_stdout(output),
             patch("lsl_center.catalog.CatalogService.load", side_effect=AssertionError("must not load catalog")),
+            self.assertRaises(SystemExit) as raised,
         ):
-            with self.assertRaises(SystemExit) as raised:
-                main(["--version"], service=self.service, profile=arch_profile())
+            main(["--version"], service=self.service, profile=arch_profile())
         self.assertEqual(raised.exception.code, 0)
         self.assertIn("lsl", output.getvalue())
         self.assertIn("0.1.0.dev1", output.getvalue())
