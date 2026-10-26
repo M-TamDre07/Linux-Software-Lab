@@ -45,7 +45,7 @@ class DistributionArchitectureTests(unittest.TestCase):
     def test_supported_package_families_and_flatpak_are_distinguished(self):
         formats = set(self.properties["format"]["enum"])
         self.assertTrue({"deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip"} <= formats)
-        self.assertIn("Flatpak/AppImage/source archives are separate formats", self.architecture)
+        self.assertIn("Desktop-oriented cross-distro option", self.architecture)
         self.assertIn("native packages plus optional Flatpak delivery", self.architecture)
         index = json.loads((ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8"))
         arch_target = next(x for x in index["planned_targets"] if x["distribution"] == "Arch Linux")
