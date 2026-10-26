@@ -456,7 +456,7 @@ if (grid) {
       console.warn('[Linux Software Lab] Catalogue mirror unavailable; trying the committed static JSON fallback.');
       try {
         const data = await fetchStaticCatalog();
-        setCatalogSourceStatus('Mirror katalog sedang tidak tersedia; memakai data statis website. Data mungkin tertinggal sampai sinkronisasi pulih.', 'warning');
+        setCatalogSourceStatus('Mirror katalog sedang tidak tersedia; menggunakan data statis website. Data mungkin tertinggal sampai sinkronisasi pulih.', 'warning');
         return data;
       } catch (_) {
         setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
