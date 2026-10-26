@@ -10,7 +10,6 @@ import shutil
 import tempfile
 import urllib.error
 import urllib.request
-import uuid
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
