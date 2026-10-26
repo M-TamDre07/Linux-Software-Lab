@@ -87,6 +87,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - [Template aplikasi dan generator](templates/README.md) menyediakan tata letak proyek konsisten; jalankan `python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "Tujuan aplikasi."` untuk membuat scaffold tanpa mengubah katalog.
 - [Standar pesan error](docs/ERROR_HANDLING_STANDARD.md) menetapkan pesan aman dan mudah dipahami, fallback katalog, dan pemisahan pesan pengguna dari detail teknis.
 - [Kebijakan teknologi dan runtime](docs/TECH_STACK_AND_RUNTIME_POLICY.md) menjelaskan alasan stack statis, aturan framework, deteksi OS lokal, dan quality gates.
+- [Standar SEO dan crawlability](docs/SEO_MAINTENANCE.md) menjelaskan canonical, sitemap, metadata, konten, Core Web Vitals, dan pemeriksaan Search Console tanpa menjanjikan peringkat.
 - Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
 
 ## Prinsip
