@@ -5,6 +5,7 @@ on:
     branches: [main, "feature/linux-software-lab-global"]
     paths:
       - "public/**"
+      - "templates/**"
       - ".gitignore"
       - "scripts/**"
       - "tests/**"
@@ -19,6 +20,7 @@ on:
   pull_request:
     paths:
       - "public/**"
+      - "templates/**"
       - ".gitignore"
       - "scripts/**"
       - "tests/**"
