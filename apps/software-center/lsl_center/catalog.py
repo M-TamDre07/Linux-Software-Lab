@@ -258,6 +258,28 @@ def validate_distribution_index(data: dict[str, Any]) -> None:
             seen_versions.add(version)
             _validate_manifest_url(release.get("url"), product_id, version)
 
+        planned_targets = product.get("planned_targets", [])
+        if not isinstance(planned_targets, list):
+            raise CatalogError(f"{product_id}: planned_targets must be a list.")
+        seen_planned_targets: set[tuple[str, str]] = set()
+        for target in planned_targets:
+            if not isinstance(target, dict):
+                raise CatalogError(f"{product_id}: planned targets must be objects.")
+            distribution_id = target.get("distribution_id")
+            target_version = target.get("version")
+            if distribution_id not in seen_distributions:
+                raise CatalogError(f"{product_id}: planned target references an unknown distribution.")
+            if not isinstance(target_version, str) or not VERSION_PATTERN.fullmatch(target_version):
+                raise CatalogError(f"{product_id}: planned target has an invalid version.")
+            target_key = (distribution_id, target_version)
+            if target_key in seen_planned_targets:
+                raise CatalogError(f"{product_id}: duplicate planned target {target_key}.")
+            seen_planned_targets.add(target_key)
+            if target.get("status") != "planned":
+                raise CatalogError(f"{product_id}: planned target status must be 'planned'.")
+            if not isinstance(target.get("note"), str) or not target["note"].strip():
+                raise CatalogError(f"{product_id}: planned targets need a user-facing note.")
+
 
 def validate_distribution_manifest(
     data: dict[str, Any],
