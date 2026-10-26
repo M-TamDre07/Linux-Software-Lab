@@ -157,10 +157,7 @@ def artifact_compatibility(
 
 
 def executable_for(application_id: str, which: Callable[[str], str | None] | None = None) -> str | None:
-    lookup = which or shutil.which
-    known_commands = {
-        "paketscope": "paketscope",
-        "sorot": "sorot",
-    }
-    command = known_commands.get(application_id.casefold())
-    return lookup(command) if command else None
+    """Resolve a launch target from the reviewed local registry, not remote JSON."""
+    from .integrations import executable_for as resolve_local_executable
+
+    return resolve_local_executable(application_id, which=which)
