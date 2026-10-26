@@ -117,9 +117,7 @@ if [[ "$ACTION" == "detect" ]]; then
   if [[ -n "$PACKAGE_FORMAT" ]]; then
     note "Distribution family: $DISTRO_FAMILY; expected native package format: .$PACKAGE_FORMAT; package manager: $PACKAGE_MANAGER."
     note "Detection is only a distro-family hint. The version manifest must still contain a compatible package before installation can proceed."
-    if [[ "$DISTRO_FAMILY" == "arch-family" ]]; then
-      note "Arch package support targets Sorot 0.6.0; no Arch package is published in the current version archive."
-    fi
+    note "Run --list to inspect real indexed artifacts; detection does not mean that a compatible package has been published."
   else
     note "No package-manager mapping is implemented for this distribution. No native installer will be selected."
   fi
@@ -271,7 +269,20 @@ done
 
 if [[ -z "$SELECTED_VERSION" ]]; then
   if [[ "$DISTRO_FAMILY" == "arch-family" ]]; then
-    die "No .pkg.tar.zst artifact is published for this distribution. Arch support targets Sorot 0.6.0 but is not available yet; source archives are for manual review/build only."
+    planned_target="$(python3 - "$TMP_DIR/index.json" <<'PY'
+import json, sys
+with open(sys.argv[1], encoding="utf-8") as stream:
+    data = json.load(stream)
+for item in data.get("planned_targets", []):
+    if str(item.get("distribution", "")).casefold() == "arch linux" and item.get("status") == "planned":
+        print(f"{item.get('version', 'future version')} (planned, not downloadable)")
+        break
+PY
+)"
+    if [[ -n "$planned_target" ]]; then
+      die "No .pkg.tar.zst artifact is published for this distribution. Roadmap: Arch Linux $planned_target. Source archives are for manual review/build only."
+    fi
+    die "No .pkg.tar.zst artifact is published for this distribution in the indexed versions. Do not install a .deb as a fallback."
   fi
   die "No compatible .$PACKAGE_FORMAT package is published for $DISTRO_NAME in the indexed versions. Check --list for available formats."
 fi
