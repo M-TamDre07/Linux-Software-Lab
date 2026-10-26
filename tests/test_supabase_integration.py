@@ -28,7 +28,7 @@ class SupabaseIntegrationTests(unittest.TestCase):
         self.assertIn("fetch('/data/software.json'", js)
         self.assertIn("validateCatalogPayload(await fetchSupabaseCatalog())", js)
         self.assertIn("validateCatalogPayload(await fetchStaticCatalog())", js)
-        self.assertIn("Sumber katalog: mirror Supabase tersedia.", js)
+        self.assertIn("Sumber katalog: mirror Supabase tersedia dan lolos validasi.", js)
         self.assertIn("menggunakan data statis website", js)
         self.assertIn("catch (_)", js)
         self.assertIn("getFilteredRows()", js)
