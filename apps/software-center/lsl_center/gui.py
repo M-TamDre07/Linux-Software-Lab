@@ -360,8 +360,12 @@ class MainWindow(QMainWindow):
             ).casefold()
             if query and query not in haystack:
                 continue
+            local_state = (
+                "TERDETEKSI LOKAL" if executable_for(app.id) else "BELUM TERDETEKSI"
+            )
             item = QListWidgetItem(
-                f"{app.name}\n{app.summary}\n{app.category} · {app.status.upper()}"
+                f"{app.name}\n{app.summary}\n"
+                f"{app.category} · {app.status.upper()} · {local_state}"
             )
             item.setData(Qt.ItemDataRole.UserRole, app.id)
             item.setToolTip(app.summary)
@@ -400,8 +404,19 @@ class MainWindow(QMainWindow):
         self.product_status.setText(f"{app.status.upper()} · {app.app_type.upper()}")
         self.product_summary.setText(app.summary)
         self.product_description.setText(app.description)
+        local_executable = executable_for(app.id)
+        local_state = (
+            f"Status lokal: terdeteksi dan bisa dibuka ({local_executable})"
+            if local_executable
+            else (
+                "Status lokal: perintah aplikasi belum terdeteksi. "
+                "Ini bukan bukti pasti bahwa paket tidak terpasang."
+            )
+        )
         self.version_label.setText(
-            f"Versi katalog: {app.version}\nPlatform tercatat: {'; '.join(app.platforms) or 'belum dicatat'}"
+            f"Versi katalog: {app.version}\n"
+            f"Platform tercatat: {'; '.join(app.platforms) or 'belum dicatat'}\n"
+            f"{local_state}"
         )
         self.features.clear()
         for feature in app.features:
