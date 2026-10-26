@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
-
 import re
 import shutil
+from collections.abc import Callable
+from dataclasses import dataclass
 
 
 _APPLICATION_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
