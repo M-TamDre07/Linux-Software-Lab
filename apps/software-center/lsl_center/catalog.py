@@ -245,7 +245,7 @@ class CatalogService:
                 raise CatalogError("Cached metadata exceeds the configured size limit.")
             actual_catalog_sha = hashlib.sha256(catalog_bytes).hexdigest()
             actual_downloads_sha = hashlib.sha256(downloads_bytes).hexdigest()
-            actual_snapshot_id = hashlib.sha256(catalog_bytes + b"\\0" + downloads_bytes).hexdigest()
+            actual_snapshot_id = hashlib.sha256(catalog_bytes + b"\0" + downloads_bytes).hexdigest()
             if snapshot_id != actual_snapshot_id:
                 raise CatalogError("Cache snapshot ID does not match its metadata contents.")
             if (
