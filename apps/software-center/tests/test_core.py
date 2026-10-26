@@ -136,6 +136,22 @@ class CatalogTests(unittest.TestCase):
         validate_catalog_payload(catalog)
         validate_download_payload(downloads)
 
+    def test_bundled_metadata_is_kept_in_sync_with_public_catalog(self) -> None:
+        self.assertEqual(
+            (DATA_DIR / "catalog.json").read_bytes(),
+            (REPO_ROOT / "public" / "data" / "software.json").read_bytes(),
+        )
+        self.assertEqual(
+            (DATA_DIR / "sorot-downloads.json").read_bytes(),
+            (REPO_ROOT / "public" / "data" / "sorot-downloads.json").read_bytes(),
+        )
+        for app_id in ("paketscope", "sorot"):
+            self.assertEqual(
+                (DATA_DIR / "assets" / f"{app_id}-icon.svg").read_bytes(),
+                (REPO_ROOT / "public" / "assets" / "images" / f"{app_id}-icon.svg").read_bytes(),
+            )
+
+
     def test_invalid_catalog_duplicate_id_is_rejected(self) -> None:
         catalog = json.loads((DATA_DIR / "catalog.json").read_text(encoding="utf-8"))
         catalog["software"].append(dict(catalog["software"][0]))
