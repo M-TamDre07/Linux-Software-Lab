@@ -95,8 +95,8 @@ def scaffold_application(
         "APP_SLUG": slug,
         "APP_NAME": _markdown_text(name),
         "APP_DESCRIPTION": _markdown_text(description),
-        "APP_NAME_JSON": json.dumps(name, ensure_ascii=False),
-        "APP_DESCRIPTION_JSON": json.dumps(description, ensure_ascii=False),
+        "APP_NAME_JSON": json.dumps(name, ensure_ascii=False)[1:-1],
+        "APP_DESCRIPTION_JSON": json.dumps(description, ensure_ascii=False)[1:-1],
         "APP_CREATED_DATE": created.isoformat(),
     }
 
