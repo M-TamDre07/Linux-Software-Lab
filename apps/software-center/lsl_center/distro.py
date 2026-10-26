@@ -10,7 +10,6 @@ from pathlib import Path
 
 from .models import Artifact, SystemProfile
 
-
 DEBIAN_IDS = {
     "debian", "ubuntu", "linuxmint", "pop", "pop_os", "elementary",
     "zorin", "kali", "raspbian", "deepin", "kdeneon",
