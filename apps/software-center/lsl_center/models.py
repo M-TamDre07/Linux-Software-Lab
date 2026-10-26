@@ -21,7 +21,8 @@ class SystemProfile:
 
     @property
     def is_linux(self) -> bool:
-        return self.family != "unknown"
+        # An unknown family can still be a Linux distro; installation then fails closed.
+        return self.distro_id not in {"", "unknown"}
 
 
 @dataclass(frozen=True, slots=True)
