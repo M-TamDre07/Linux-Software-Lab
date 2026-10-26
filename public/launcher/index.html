@@ -112,25 +112,25 @@
     <div class="container">
       <div class="section-heading">
         <div><span class="eyebrow">01 / SATU EKOSISTEM</span><h2>Repo adalah pusatnya.</h2></div>
-        <p>Website, launcher, dan setiap aplikasi punya tugas berbeda. Metadata dirawat di repositori, lalu dipakai bersama oleh permukaan publik dan launcher.</p>
+        <p>GitHub tetap menjadi sumber resmi katalog dan rilis. Website memakai mirror baca-saja Supabase dengan fallback JSON statis; launcher membaca metadata GitHub yang divalidasi, lalu memakai snapshot bundel atau cache lokal.</p>
       </div>
       <div class="launcher-grid launcher-ecosystem-grid">
         <article class="launcher-card">
           <span class="launcher-card-number">01 / SOURCE OF TRUTH</span>
           <h3>GitHub repository</h3>
-          <p>Kode sumber, katalog JSON, indeks distribusi, manifest per versi, checksum, tes, dan dokumentasi dikendalikan dari satu repositori resmi.</p>
+          <p>Kode, katalog JSON, indeks distribusi, manifest versi, checksum, pengujian, dan dokumentasi menjadi sumber resmi yang ditinjau lewat GitHub. Metadata tidak boleh membawa perintah shell arbitrer.</p>
           <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">Buka repositori ↗</a>
         </article>
         <article class="launcher-card">
           <span class="launcher-card-number">02 / DISCOVERY</span>
           <h3>Website</h3>
-          <p>Tempat pengguna menemukan software, membaca fungsi, memahami status rilis, membuka source, dan mengikuti perkembangan launcher.</p>
+          <p>Vercel menyajikan halaman statis. Supabase menyimpan mirror katalog baca-saja ketika tersedia; website tetap memakai public/data/software.json jika API tidak tersedia. Panel maintainer membaca mirror, sedangkan perubahan resmi tetap melalui GitHub dan workflow sinkronisasi.</p>
           <a class="card-link" href="/software/">Jelajahi katalog ↗</a>
         </article>
         <article class="launcher-card">
           <span class="launcher-card-number">03 / DESKTOP WORKFLOW</span>
           <h3>Launcher GUI + CLI</h3>
-          <p>Antarmuka lokal memakai kontrak metadata yang sama untuk pencarian, deteksi distro, pemilihan artefak, pemeriksaan integritas, dan alur instalasi yang memang didukung.</p>
+          <p>GUI dan CLI berbagi core untuk membaca GitHub raw metadata, fallback snapshot bundel/cache, deteksi distro, pemilihan artefak, pemeriksaan integritas, dan alur instalasi yang benar-benar didukung. Aplikasi desktop tidak memerlukan kredensial Supabase.</p>
           <a class="card-link" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center/lsl_center" target="_blank" rel="noopener noreferrer">Lihat core launcher ↗</a>
         </article>
       </div>
@@ -139,9 +139,9 @@
         <span class="launcher-flow-arrow" aria-hidden="true">→</span>
         <div><span>VALIDASI</span><strong>Katalog + manifest</strong></div>
         <span class="launcher-flow-arrow" aria-hidden="true">→</span>
-        <div><span>KONSUMEN</span><strong>Website + launcher</strong></div>
+        <div><span>WEBSITE DATA</span><strong>Supabase mirror + JSON fallback</strong></div>
         <span class="launcher-flow-arrow" aria-hidden="true">→</span>
-        <div><span>MODE OFFLINE</span><strong>Snapshot lokal</strong></div>
+        <div><span>DESKTOP DATA</span><strong>GitHub raw + bundled/cache</strong></div>
       </div>
     </div>
   </section>
@@ -240,7 +240,7 @@ lsl doctor</code></pre>
   <div class="container launcher-footer">
     <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Alat berguna. Dibangun terbuka.</small></span></a>
     <div class="launcher-footer-links"><a href="/software/">Katalog software</a><a href="/launcher/">Launcher</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
-    <p>Source of truth: repositori GitHub. Website dan launcher menampilkan status rilis secara eksplisit.</p>
+    <p>GitHub adalah sumber utama; Supabase merupakan mirror baca-saja untuk website; launcher memakai sumber GitHub dan cache lokal. Status rilis harus mengikuti artefak dan pengujian nyata.</p>
   </div>
 </footer>
 </body>
