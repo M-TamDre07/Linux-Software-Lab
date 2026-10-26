@@ -42,6 +42,18 @@ PaketScope 3 source is present in the default branch and the website catalogue c
 - Keep Vercel's static output set to `public/`. Application source, packaging metadata, tests, and private maintainer notes must not be published as site assets.
 - Mark planned, testing, released, and archived status honestly. A release URL must point to a real, verified release artifact.
 
+## Canonical starter template
+
+Use `templates/application/` as the baseline rather than copying one existing product's layout. It establishes the shared root contract—`README.md`, `application.yaml`, `CHANGELOG.md`, a licence decision gate, source, unit/integration/security tests, architecture/development/security/release docs, assets/fixtures, packaging placeholders, and immutable release guidance.
+
+Generate the scaffold safely:
+
+```bash
+python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "A concise purpose statement."
+```
+
+The helper writes only `apps/<slug>/`; it refuses to overwrite, rejects malformed slugs, and leaves `public/data/software.json`, product pages, launcher allowlists, and release indexes untouched. The template is intentionally runtime-neutral. Packaging subdirectories are documentation placeholders, not enabled formats. See [templates/README.md](../templates/README.md) and [the error-handling standard](ERROR_HANDLING_STANDARD.md).
+
 ## Debian package directory
 
 When PaketScope is ready for distribution as a Debian package, a `debian/` directory will be prepared within `apps/paketscope/`. Depending on the chosen packaging method, this normally includes a valid `control` file, `changelog`, `copyright`, executable `rules`, and `source/format`, plus any applicable install/service/desktop metadata. Those files must be written against the actual package structure, dependency policy, target distributions, and lifecycle requirements—not copied as untested boilerplate.
