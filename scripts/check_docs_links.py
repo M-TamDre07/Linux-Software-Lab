@@ -9,9 +9,9 @@ from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_DIRS = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__"}
-FENCE_LINE = re.compile(r"^\\s*(`{3,}|~{3,})(.*)$")
+FENCE_LINE = re.compile(r"^\s*(`{3,}|~{3,})(.*)$")
 INLINE_CODE = re.compile(r"`[^`]*`")
-MARKDOWN_LINK = re.compile(r"(?<!!)\\[[^\\]]*\\]\\(([^)]+)\\)")
+MARKDOWN_LINK = re.compile(r"(?<!!)\[[^\]]*\]\(([^)]+)\)")
 
 
 def _without_fenced_code(source: str) -> str:
@@ -20,12 +20,12 @@ def _without_fenced_code(source: str) -> str:
     fence_char: str | None = None
     fence_size = 0
     for line in source.splitlines(keepends=True):
-        content = line.rstrip("\\r\\n")
+        content = line.rstrip("\r\n")
         match = FENCE_LINE.match(content)
         if fence_char is None and match:
             marker = match.group(1)
             fence_char, fence_size = marker[0], len(marker)
-            output.append("\\n" if line.endswith("\\n") else "")
+            output.append("\n" if line.endswith("\n") else "")
             continue
         if fence_char is not None:
             if (
@@ -36,7 +36,7 @@ def _without_fenced_code(source: str) -> str:
             ):
                 fence_char = None
                 fence_size = 0
-            output.append("\\n" if line.endswith("\\n") else "")
+            output.append("\n" if line.endswith("\n") else "")
             continue
         output.append(line)
     return "".join(output)
