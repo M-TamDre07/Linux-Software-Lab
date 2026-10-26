@@ -522,6 +522,8 @@ class CliTests(unittest.TestCase):
         )
         self.assertEqual(payload["local_catalog"]["entry_count"], 2)
         self.assertEqual(payload["local_catalog"]["source"], "bundled")
+        self.assertEqual(payload["data_services"]["supabase_role"], "read-only catalogue mirror")
+        self.assertEqual(payload["data_services"]["runtime_status"], "not checked by this local diagnostic")
         self.assertEqual(payload["system"]["family"], "arch-family")
         self.assertFalse(payload["installation"]["enabled_for_detected_system"])
         self.assertFalse(payload["installation"]["arch_enabled"])
@@ -536,6 +538,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("https://linux-software-lab.vercel.app/launcher/", output.getvalue())
         self.assertIn("SHA-256 bukan tanda tangan penerbit", output.getvalue())
         self.assertIn("Adapter lain", output.getvalue())
+        self.assertIn("Supabase", output.getvalue())
         self.assertIn("tidak melakukan probe jaringan", output.getvalue())
 
     def test_cli_version_flag_exits_without_loading_catalogue(self) -> None:
