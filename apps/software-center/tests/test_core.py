@@ -134,7 +134,7 @@ class DistributionDetectionTests(unittest.TestCase):
             )
         self.assertFalse(profile.is_linux)
         self.assertEqual(profile.family, "unknown")
-        self.assertEqual(profile.pretty_name, "Ubuntu fixture")
+        self.assertEqual(profile.pretty_name, "Windows (distribution detection unavailable)")
 
         app = CatalogService(data_dir=DATA_DIR).load().find("sorot")
         assert app is not None
