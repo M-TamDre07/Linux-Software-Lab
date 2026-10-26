@@ -172,7 +172,7 @@ def validate_catalog_payload(data: dict[str, Any]) -> None:
         detail_url = app.get("detailUrl")
         if (
             not isinstance(detail_url, str)
-            or not re.fullmatch(r"/software/[a-z0-9-]+\\.html", detail_url)
+            or not re.fullmatch(r"/software/[a-z0-9-]+\.html", detail_url)
             or ".." in detail_url.split("/")
         ):
             raise CatalogError(f"{app_id}: detailUrl must point to a local /software/<slug>.html page.")
