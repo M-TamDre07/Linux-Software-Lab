@@ -15,7 +15,8 @@
 ```text
 apps/{{APP_SLUG}}/
 ├── README.md
-├── application.json
+├── application.json         # Product identity/status contract
+├── application.schema.json  # Strict JSON Schema for that contract
 ├── CHANGELOG.md
 ├── LICENSE-REQUIRED.md
 ├── .gitignore
