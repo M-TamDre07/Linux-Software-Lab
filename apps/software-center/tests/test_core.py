@@ -25,10 +25,11 @@ from lsl_center.distro import (
 from lsl_center.installer import (
     InstallError,
     _removal_detected,
+    _same_preview_plan,
     validate_artifact_for_download,
     validate_release_metadata,
 )
-from lsl_center.models import SystemProfile
+from lsl_center.models import InstallPreview, SystemProfile
 from lsl_center.selection import select_artifact, source_artifacts
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -331,6 +332,38 @@ class InstallerIntegrityTests(unittest.TestCase):
         self.assertTrue(_removal_detected("Remv example-pkg [1.0]"))
         self.assertTrue(_removal_detected("The following packages will be REMOVED: libx"))
         self.assertFalse(_removal_detected("Inst sorot (0.5.0 local-deb [all])"))
+
+    def test_install_requires_the_same_package_plan_that_was_shown(self) -> None:
+        package_path = Path("/tmp/sorot_0.5.0_all.deb")
+        expected = InstallPreview(
+            package_path=package_path,
+            command=("/usr/bin/apt-get", "-s", "install", str(package_path)),
+            output=(
+                "Reading package lists...\n"
+                "Inst sorot (0.5.0 local-deb [all])\n"
+                "Conf sorot (0.5.0 local-deb [all])"
+            ),
+            package_manager="apt-get",
+            removal_detected=False,
+        )
+        same_plan_with_progress_messages = replace(
+            expected,
+            output=(
+                "Reading package lists... Done\n"
+                "Building dependency tree... Done\n"
+                "Inst sorot (0.5.0 local-deb [all])\n"
+                "Conf sorot (0.5.0 local-deb [all])"
+            ),
+        )
+        changed_plan = replace(
+            expected,
+            output=(
+                "Inst another-package (1.0 repository [all])\n"
+                "Conf another-package (1.0 repository [all])"
+            ),
+        )
+        self.assertTrue(_same_preview_plan(expected, same_plan_with_progress_messages))
+        self.assertFalse(_same_preview_plan(expected, changed_plan))
 
 
 class CliTests(unittest.TestCase):
