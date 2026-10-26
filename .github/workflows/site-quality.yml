@@ -67,7 +67,11 @@ jobs:
       - name: Check repository documentation links
         run: python scripts/check_docs_links.py
       - name: Check website JavaScript syntax
-        run: node --check public/assets/js/site.js
+        run: |
+          node --check public/assets/js/catalog-contract.js
+          node --check public/assets/js/site.js
+      - name: Test runtime catalogue contract
+        run: node --test tests/test_catalog_contract.cjs
       - name: Validate website JSON and Vercel configuration
         run: |
           python -m json.tool public/data/software.json > /dev/null
