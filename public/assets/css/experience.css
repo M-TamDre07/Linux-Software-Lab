@@ -525,3 +525,7 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 .sorot-terminal-installer code{font:11px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
 .sorot-terminal-warning{padding:10px 12px;border:1px solid var(--line);font-size:11px!important}
 @media(max-width:700px){.sorot-distro-picker{grid-template-columns:1fr}.sorot-detected-note{grid-column:auto}.sorot-terminal-installer pre{padding:12px}}
+
+/* Keep the PaketScope source-mode terminal block aligned with the shared install panel. */
+.terminal-command{margin:12px 0;padding:14px;overflow:auto;border:1px solid var(--line);background:var(--bg);white-space:pre-wrap;overflow-wrap:anywhere}
+.terminal-command code{font:11px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
