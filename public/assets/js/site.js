@@ -113,8 +113,9 @@ const safeExternalURL = value => {
 
 const makeSearchIndex = app => {
   const values = [
-    app.name, app.summary, app.description, app.category, app.status, app.version,
-    app.type, ...(app.tags || []), ...(app.keywords || []), ...(app.features || []),
+    app.id, app.slug, app.name, app.summary, app.description, app.category,
+    app.status, app.version, app.type,
+    ...(app.tags || []), ...(app.keywords || []), ...(app.features || []),
     ...(app.platforms || [])
   ];
   app._searchText = normalise(values.join(' '));
