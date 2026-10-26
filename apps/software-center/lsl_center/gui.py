@@ -518,6 +518,7 @@ class MainWindow(QMainWindow):
     def _refresh_catalog(self) -> None:
         def succeeded(snapshot: CatalogSnapshot) -> None:
             self.snapshot = snapshot
+            self.current_application = None
             self._set_status(f"Katalog diperbarui · {snapshot.updated_at} · {len(snapshot.applications)} aplikasi")
             self._populate_list()
 
