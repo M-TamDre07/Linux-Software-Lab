@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 import shutil
 
-
 _APPLICATION_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 # Executable names stay in reviewed application code, never in GitHub JSON.
