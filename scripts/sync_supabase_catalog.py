@@ -73,6 +73,17 @@ def catalog_rows_match(expected_rows: list[dict[str, Any]], actual_rows: Any) ->
     return expected is not None and actual is not None and expected == actual
 
 
+def build_stale_filter(active_ids: list[str]) -> str:
+    """Build a PostgREST filter only from canonical, validated catalogue slugs."""
+    if not isinstance(active_ids, list) or not active_ids:
+        raise ValueError("At least one validated catalogue ID is required for the stale-row filter.")
+    if any(not isinstance(identifier, str) or not SLUG.fullmatch(identifier) for identifier in active_ids):
+        raise ValueError("Stale-row filter accepts only canonical lowercase application slugs.")
+    if len(active_ids) != len(set(active_ids)):
+        raise ValueError("Stale-row filter cannot contain duplicate application IDs.")
+    return urlencode({"id": f"not.in.({','.join(active_ids)})"})
+
+
 def load_catalog(path: Path = CATALOG_PATH) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -163,8 +174,7 @@ def sync_catalog() -> int:
                  payload=rows, prefer="resolution=merge-duplicates,return=minimal")
 
     # Mark removed entries as unpublished instead of deleting historical data.
-    active_ids = ",".join(row["id"] for row in rows)
-    stale_filter = urlencode({"id": f"not.in.({active_ids})"})
+    stale_filter = build_stale_filter([row["id"] for row in rows])
     request_json(endpoint + "?" + stale_filter, secret_key, method="PATCH",
                  payload={"published": False, "synced_at": synced_at},
                  prefer="return=minimal")
