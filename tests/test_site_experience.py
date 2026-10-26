@@ -134,6 +134,7 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn('aria-live="polite"', source)
         self.assertIn('aria-pressed="true"', source)
         self.assertIn('id="catalogSourceStatus" class="catalog-source-status" role="status"', source)
+        self.assertLess(source.index('src="/assets/js/catalog-contract.js"'), source.index('src="/assets/js/site.js"'))
         self.assertIn("menggunakan data statis website", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
         self.assertIn("Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
 
