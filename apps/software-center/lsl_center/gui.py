@@ -35,7 +35,7 @@ except ImportError as exc:  # pragma: no cover - depends on optional GUI extra
         "python -m pip install -e '.[gui]'"
     ) from exc
 
-from .catalog import CatalogError, CatalogService, WEBSITE_ROOT
+from .catalog import WEBSITE_ROOT, CatalogError, CatalogService
 from .distro import artifact_compatibility, detect_system_profile, executable_for
 from .installer import (
     download_artifact,
