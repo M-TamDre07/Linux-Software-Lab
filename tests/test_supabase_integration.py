@@ -52,7 +52,7 @@ class SupabaseIntegrationTests(unittest.TestCase):
         self.assertIn("grant select on table public.software_catalog to authenticated", migration)
         self.assertIn("where user_id = (select auth.uid())", migration)
         self.assertIn("active is true", migration)
-        self.assertNotRegex(migration, r"grant\\s+(?:insert|update|delete|all)\\s+.*\\bto\\s+anon\\b")
+        self.assertNotRegex(migration, r"grant\s+(?:insert|update|delete|all)\s+.*\bto\s+anon\b")
 
     def test_browser_search_stays_local_and_supabase_filter_is_fixed(self):
         js = (ROOT / "public/assets/js/site.js").read_text(encoding="utf-8")
