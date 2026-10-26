@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Control room privat Linux Software Lab untuk memeriksa katalog Supabase dan alur sinkronisasi resmi.">
+<meta name="author" content="Muhammad Andreatama">
+<title>Admin Control Room — Linux Software Lab</title>
+<link rel="canonical" href="https://linux-software-lab.vercel.app/admin/">
+<link rel="icon" href="/assets/images/linux-software-lab.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/experience.css">
+<link rel="stylesheet" href="/assets/css/admin.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Lewati ke konten</a>
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="Linux Software Lab — halaman utama">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/><path d="m8 9 4 2 4-2"/></svg></span>
+      <span class="brand-copy"><strong>Linux Software Lab</strong><small>Maintainer control room</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="Navigasi utama">
+      <a href="/">Home</a>
+      <a href="/software/">Jelajahi software</a>
+      <a href="/launcher/">Launcher</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-small btn-secondary desktop-github" href="https://github.com/M-TamDre07/Linux-Software-Lab" target="_blank" rel="noopener noreferrer">Repository ↗</a>
+      <button class="icon-btn" id="themeToggle" type="button" aria-label="Aktifkan mode gelap" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z"/></svg></button>
+      <button class="menu-btn" id="menuToggle" type="button" aria-expanded="false" aria-controls="navLinks" aria-label="Buka menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="admin-hero">
+    <div class="container">
+      <p class="eyebrow">PRIVATE / MAINTAINER CONTROL ROOM</p>
+      <h1>Data ekosistem. <span>Terjaga.</span></h1>
+      <p class="hero-lead">Panel privat untuk memeriksa seluruh mirror katalog, termasuk baris yang belum dipublikasikan, memantau sinkronisasi, dan membuka sumber data resmi.</p>
+      <div class="admin-security-line"><span class="admin-security-dot" aria-hidden="true"></span><span>Autentikasi Supabase + izin database RLS. Halaman ini sendiri bukan batas keamanan.</span></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div id="notice" class="admin-notice" role="status" aria-live="polite" hidden></div>
+
+      <section id="loginView" class="admin-auth-card" aria-labelledby="loginTitle">
+        <div class="admin-card-heading">
+          <span class="eyebrow">01 / SIGN IN</span>
+          <h2 id="loginTitle">Masuk sebagai maintainer</h2>
+          <p>Gunakan akun yang sudah dibuat di Supabase Authentication. Pendaftaran publik tidak tersedia dari halaman ini.</p>
+        </div>
+        <form id="loginForm" class="admin-login-form">
+          <label for="loginEmail">Email akun</label>
+          <input id="loginEmail" name="email" type="email" autocomplete="username" inputmode="email" maxlength="254" required>
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+          <button id="loginButton" class="btn btn-primary" type="submit">Masuk ke dashboard</button>
+        </form>
+        <p class="admin-small-note">Login yang berhasil belum otomatis menjadi admin. ID akun harus tercatat aktif di daftar izin database.</p>
+      </section>
+
+      <section id="deniedView" class="admin-auth-card" aria-labelledby="deniedTitle" hidden>
+        <div class="admin-card-heading">
+          <span class="eyebrow">ACCESS CONTROL</span>
+          <h2 id="deniedTitle">Akun belum diberi izin admin.</h2>
+          <p>Akun berhasil diautentikasi, tetapi tidak ditemukan sebagai maintainer aktif. Tidak ada data katalog yang ditampilkan.</p>
+        </div>
+        <div class="admin-id-block">
+          <span class="admin-field-label">UUID akun kamu</span>
+          <code id="currentUserId"></code>
+          <button id="copyUserId" class="btn btn-secondary" type="button">Salin UUID</button>
+        </div>
+        <p class="admin-small-note">Pemilik proyek harus menambahkan UUID ini secara manual ke tabel public.lsl_admin_users melalui SQL Editor Supabase. Jangan membuat policy yang menjadikan semua pengguna admin.</p>
+        <button id="deniedLogoutButton" class="btn btn-secondary" type="button">Keluar</button>
+      </section>
+
+      <section id="dashboardView" hidden aria-labelledby="dashboardTitle">
+        <div class="admin-dashboard-heading">
+          <div>
+            <span class="eyebrow">02 / CATALOG OVERVIEW</span>
+            <h2 id="dashboardTitle">Status ekosistem</h2>
+            <p>Data di bawah dibaca dari mirror Supabase yang dikunci oleh RLS. Konten tetap bersumber dari katalog GitHub.</p>
+          </div>
+          <div class="admin-session">
+            <span class="admin-session-dot" aria-hidden="true"></span>
+            <span id="adminEmail">Maintainer aktif</span>
+            <button id="logoutButton" class="btn btn-secondary" type="button">Keluar</button>
+          </div>
+        </div>
+
+        <div class="admin-stats" aria-label="Statistik katalog">
+          <article class="admin-stat"><span>Total entri</span><strong id="statTotal">—</strong><small>Baris yang bisa dibaca admin</small></article>
+          <article class="admin-stat"><span>Dipublikasikan</span><strong id="statPublished">—</strong><small>Tampil untuk pengunjung</small></article>
+          <article class="admin-stat"><span>Belum dipublikasikan</span><strong id="statHidden">—</strong><small>Tidak tampil di katalog publik</small></article>
+          <article class="admin-stat"><span>Sinkronisasi terakhir</span><strong id="statSync">—</strong><small>Waktu UTC dari mirror</small></article>
+        </div>
+
+        <div class="admin-action-bar" aria-label="Tindakan pengelolaan sumber">
+          <button id="refreshButton" class="btn btn-primary" type="button">Muat ulang data</button>
+          <button id="exportButton" class="btn btn-secondary" type="button">Ekspor JSON</button>
+          <a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/edit/main/public/data/software.json" target="_blank" rel="noopener noreferrer">Edit sumber resmi ↗</a>
+          <a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/actions/workflows/supabase-catalog-sync.yml" target="_blank" rel="noopener noreferrer">Workflow sinkronisasi ↗</a>
+          <a class="btn btn-secondary" href="https://supabase.com/dashboard/project/ttofugaqwthmvhvntdlc/editor" target="_blank" rel="noopener noreferrer">Table Editor ↗</a>
+        </div>
+
+        <div class="admin-source-note">
+          <strong>GitHub tetap menjadi sumber utama.</strong>
+          <p>Perubahan katalog dilakukan pada public/data/software.json melalui proses review, lalu GitHub Actions menyinkronkannya ke Supabase. Panel ini sengaja tidak menulis langsung ke mirror agar perubahan tidak tertimpa sinkronisasi berikutnya.</p>
+        </div>
+
+        <div class="admin-table-heading">
+          <div><span class="eyebrow">03 / DATABASE ROWS</span><h3>Isi katalog</h3></div>
+          <label class="admin-search" for="catalogSearch">
+            <span>Cari katalog</span>
+            <input id="catalogSearch" type="search" autocomplete="off" placeholder="Nama, slug, kategori…">
+          </label>
+          <label class="admin-status-filter" for="publishedFilter">
+            <span>Publikasi</span>
+            <select id="publishedFilter">
+              <option value="all">Semua</option>
+              <option value="published">Dipublikasikan</option>
+              <option value="hidden">Belum dipublikasikan</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Nama / ID</th><th>Versi</th><th>Status</th><th>Publikasi</th><th>Diperbarui</th><th>Data</th></tr></thead>
+            <tbody id="catalogRows"><tr><td colspan="6">Memuat katalog…</td></tr></tbody>
+          </table>
+        </div>
+        <p id="resultCount" class="admin-result-count" aria-live="polite"></p>
+        <p class="admin-privacy-note">Panel ini hanya mengakses tabel katalog dan baris izin milik akun saat ini. Ia tidak membaca data privat lain atau memberi hak tulis ke katalog.</p>
+      </section>
+    </div>
+  </section>
+
+  <dialog id="recordDialog" class="admin-record-dialog" aria-labelledby="recordDialogTitle">
+    <div class="admin-dialog-head">
+      <div><span class="eyebrow">READ-ONLY RECORD</span><h2 id="recordDialogTitle">Detail entri</h2></div>
+      <button id="closeRecordDialog" class="icon-btn" type="button" aria-label="Tutup detail">×</button>
+    </div>
+    <pre id="recordJson"></pre>
+  </dialog>
+</main>
+
+<footer class="site-footer">
+  <div class="container admin-footer">
+    <a class="brand" href="/"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 7 8-4 8 4v10l-8 4-8-4z"/><path d="m4 7 8 4 8-4M12 11v10"/></svg></span><span class="brand-copy"><strong>Linux Software Lab</strong><small>Source of truth: GitHub</small></span></a>
+    <p>Control room privat. Semua izin data tetap ditegakkan oleh Supabase RLS.</p>
+  </div>
+</footer>
+
+<script src="/assets/js/supabase-config.js" defer></script>
+<script src="/assets/js/site.js" defer></script>
+<script type="module" src="/assets/js/admin.js"></script>
+</body>
+</html>
