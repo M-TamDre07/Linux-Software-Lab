@@ -52,14 +52,16 @@ python scripts/validate_catalog.py
 python scripts/check_site_links.py
 python scripts/check_docs_links.py
 python scripts/validate_app_manifest.py
+node --check public/assets/js/catalog-contract.js
 node --check public/assets/js/site.js
+node --test tests/test_catalog_contract.cjs
 python -m json.tool public/data/software.json > /dev/null
 python -m json.tool public/data/software.schema.json > /dev/null
 python -m json.tool vercel.json > /dev/null
 python -m unittest discover -s tests -v
 ~~~
 
-GitHub Actions mengulang pemeriksaan katalog, tautan HTML/aset, canonical URL, sitemap, sintaks JavaScript, JSON, dan tes regresi pada perubahan terkait website.
+GitHub Actions mengulang pemeriksaan katalog, tautan HTML/aset, canonical URL, sitemap, sintaks JavaScript, JSON, dan tes regresi pada perubahan terkait website. Kontrak runtime `public/assets/js/catalog-contract.js` memvalidasi data mirror dan JSON fallback sebelum katalog dirender. Audit lintas layanan baca-saja dapat dijalankan dengan `python scripts/check_live_integrations.py`; perintah ini mengakses endpoint publik produksi tetapi tidak mengubah database atau deployment. Workflow `Live integration integrity` juga berjalan terjadwal dan bisa dijalankan manual.
 
 ## Menambahkan software
 
