@@ -74,6 +74,12 @@ The current source archive does not contain a publisher-signed release manifest.
 
 The app catalogue never treats a planned format as a download. Each family adapter must be implemented and tested before the product card can show installation as available.
 
+## Extending the app container safely
+
+The catalogue can grow from the shared GitHub metadata without granting remote records permission to execute local commands. Local launch targets live in `lsl_center/integrations.py`, a reviewed allowlist used by the GUI and CLI. A product without a local integration remains visible with its website/source links; the launcher does not guess a command from the product name.
+
+The source-of-truth flow, local integration boundary, new-product checklist, and release-readiness limits are documented in [APP_CONTAINER_AND_INTEGRATIONS.md](../../docs/APP_CONTAINER_AND_INTEGRATIONS.md).
+
 ## Tests
 
 From this directory:
