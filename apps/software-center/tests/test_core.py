@@ -142,6 +142,11 @@ class CatalogTests(unittest.TestCase):
         # CatalogService.load also parses and validates every referenced release manifest.
         self.assertEqual(len(self.snapshot.find("sorot").artifacts), 3)
 
+    def test_each_app_record_contains_a_safe_website_detail_route(self) -> None:
+        for app in self.snapshot.applications:
+            self.assertRegex(app.detail_url, r"^/software/[a-z0-9-]+\\.html$")
+            self.assertNotIn("..", app.detail_url.split("/"))
+
     def test_bundled_metadata_and_assets_match_the_public_website_sources(self) -> None:
         self.assertEqual(
             (DATA_DIR / "catalog.json").read_bytes(),
