@@ -37,7 +37,13 @@ Add the page's canonical URL to public/sitemap.xml. public/robots.txt should con
 
 ## 5. Prepare a dedicated product directory
 
-Start from apps/README.md and docs/SOFTWARE_DIRECTORY_LAYOUT.md. Do not reuse another product's license by assumption. A planned product folder may contain its README only, but must not imply that working source, installable packages, or a release exists. Add Debian packaging metadata only once dependencies, package contents, and install/uninstall behaviour can be tested.
+Start from the canonical scaffold rather than copying a different product's technology choices:
+
+~~~bash
+python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "A concise purpose statement."
+~~~
+
+Review and replace the generated placeholders. The helper does not select a runtime or licence, register a launcher command, publish catalogue metadata, or create a release. See [templates/README.md](../templates/README.md), apps/README.md, and docs/SOFTWARE_DIRECTORY_LAYOUT.md. Do not reuse another product's license by assumption. A planned product folder may contain its README only, but must not imply that working source, installable packages, or a release exists. Add Debian packaging metadata only once dependencies, package contents, and install/uninstall behaviour can be tested.
 
 ## 6. Validate before pull request
 
