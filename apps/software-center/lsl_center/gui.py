@@ -700,9 +700,21 @@ class MainWindow(QMainWindow):
             return
         # Select using the same version-ordering rule as the GUI and CLI artifact selector.
         selected = select_artifact(app, self.profile) or app.artifacts[-1]
-        manifest_url = selected.manifest_url
-        if manifest_url.startswith("https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/"):
-            QDesktopServices.openUrl(QUrl(manifest_url))
+        raw_prefix = "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/"
+        if not selected.manifest_url.startswith(raw_prefix):
+            return
+        relative_path = selected.manifest_url[len(raw_prefix):]
+        if (
+            not relative_path.startswith("apps/")
+            or ".." in relative_path.split("/")
+            or not relative_path.endswith("/release.json")
+        ):
+            return
+        manifest_page = (
+            "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/"
+            + relative_path
+        )
+        QDesktopServices.openUrl(QUrl(manifest_page))
 
     def _open_source(self) -> None:
         app = self.current_application
