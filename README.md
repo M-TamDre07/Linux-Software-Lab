@@ -50,6 +50,8 @@ Jalankan perintah berikut dari root repository:
 ~~~bash
 python scripts/validate_catalog.py
 python scripts/check_site_links.py
+python scripts/check_docs_links.py
+python scripts/validate_app_manifest.py
 node --check public/assets/js/site.js
 python -m json.tool public/data/software.json > /dev/null
 python -m json.tool public/data/software.schema.json > /dev/null
