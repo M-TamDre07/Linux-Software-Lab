@@ -78,6 +78,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 
 - [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
 - [Integrasi katalog Supabase](docs/SUPABASE_INTEGRATION.md) menjelaskan mirror baca-saja, sinkronisasi CI, dan batas keamanan.
+- [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.
 - [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
 - [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
 - Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
