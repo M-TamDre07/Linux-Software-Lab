@@ -231,6 +231,11 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertNotIn(".upsert(", script)
         self.assertNotIn(".delete(", script)
 
+        policy = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
+        csp = next(item["value"] for item in policy["headers"][0]["headers"] if item["key"] == "Content-Security-Policy")
+        self.assertIn("https://cdn.jsdelivr.net", csp)
+        self.assertIn("@supabase/supabase-js@2.118.0", script)
+
         migration = (ROOT / "supabase" / "migrations" / "20261026105902_add_admin_catalog_read_access.sql").read_text(encoding="utf-8")
         self.assertIn("create policy software_catalog_admin_read", migration)
         self.assertIn("user_id = (select auth.uid())", migration)
