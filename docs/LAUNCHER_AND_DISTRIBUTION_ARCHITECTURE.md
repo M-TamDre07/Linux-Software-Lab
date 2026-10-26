@@ -8,6 +8,17 @@ Make Linux Software Lab approachable to people migrating from Windows while pres
 
 The planned launcher is a working name, **Linux Software Lab Center**; the final product name can be selected separately. The command-line entry point can be `lsl`. GUI and CLI must call the same metadata, compatibility, download, verification, and install services. They must not maintain separate lists or separate compatibility rules.
 
+## Ecosystem integration: one source, separate trust boundaries
+
+The integrated data path has four clear responsibilities:
+
+1. **GitHub (`main`) is the canonical source.** The reviewed software catalogue, distribution index, version manifests, checksums, and application source live here.
+2. **CI validates the contract before distribution.** Schema, identifiers, target compatibility, release references, and hashes are checked by repository tests and workflows. A website/API connection does not bypass those checks.
+3. **Supabase mirrors the public website catalogue.** `public.software_catalog` is a read-only mirror of `public/data/software.json`, with only published rows exposed to anonymous clients. The website falls back to its static JSON file if the API is not available. The private `/admin/` control room uses Supabase Auth and RLS to inspect the mirror; it is not allowed to directly edit mirror rows while GitHub is canonical. See [SUPABASE_INTEGRATION.md](SUPABASE_INTEGRATION.md) and [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md).
+4. **The desktop launcher fetches from the canonical GitHub raw endpoints.** It validates catalogue/index/manifests, uses a complete bundled snapshot as a baseline, and switches to a local cache only after the new snapshot validates. It must not embed a Supabase secret or treat the website admin identity as desktop install authorization.
+
+The website and native launcher can share the same data contract without sharing the same network dependency. Supabase is not required just to list or launch a local application, and the launcher must remain useful offline. The public publishable browser key is not a security boundary; SQL grants and RLS protect Supabase records. No server secret, service-role key, or arbitrary command belongs in public frontend files or remote catalogue metadata.
+
 ## What the uploaded `.flatpak` tells us
 
 The supplied file is a **single-application Flatpak bundle**. Static strings identify app ID `ai.storyteller.artcraft-launcher`, command `artcraft-launcher`, runtime `org.freedesktop.Platform/x86_64/26.08`, a Flathub runtime repository, network/IPC access, X11/Wayland sockets, graphics access, and a `home` filesystem permission. This is useful as an example of a downloadable application bundle, not as a package format that can replace all distro packages.
