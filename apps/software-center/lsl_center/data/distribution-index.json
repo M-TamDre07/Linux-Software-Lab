@@ -93,6 +93,14 @@
           "version": "0.5.0",
           "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/release.json"
         }
+      ],
+      "planned_targets": [
+        {
+          "distribution_id": "arch",
+          "version": "0.6.0",
+          "status": "planned",
+          "note": "Target Arch Linux for Sorot 0.6.0. Do not offer installation until a real .pkg.tar.zst or reviewed PKGBUILD is added and tested."
+        }
       ]
     }
   ]
