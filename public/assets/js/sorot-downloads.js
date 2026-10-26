@@ -316,11 +316,10 @@
       const sourceFormats = distro.sourceFormats || ['tar.gz', 'zip'];
       releaseList.querySelectorAll('.sorot-artifact-link[data-format]').forEach(link => {
         const format = link.dataset.format || '';
-        link.hidden = !(sourceFormats.includes(format) ||
-          (distro.status === 'available' && format === distro.packageFormat));
+        link.hidden = !sourceFormats.includes(format);
       });
       const command = releaseList.querySelector('.sorot-install-note[data-package-format="deb"]');
-      if (command) command.hidden = !(distro.status === 'available' && distro.packageFormat === 'deb');
+      if (command) command.hidden = true;
       return;
     }
     const releases = registry.versions.slice().reverse();
@@ -342,7 +341,7 @@
       })
       .catch(() => {
         render();
-        status.textContent += ' Indeks GitHub tidak dapat dimuat; hanya opsi source fallback yang ditampilkan.';
+        status.textContent += ' Indeks GitHub tidak dapat dimuat; tombol paket native disembunyikan dan hanya arsip source fallback yang ditampilkan.';
       });
   }
 })();
