@@ -213,6 +213,9 @@ def main(
             marker = "cocok" if compatible else "tidak dipasang langsung"
             print(f"  {artifact.version} .{artifact.format} · {artifact.release_status} · {marker}")
             print(f"    {reason}")
+        for target in app.planned_targets:
+            print(f"  TARGET DIRENCANAKAN · {target.distribution_id} · {target.version}")
+            print(f"    {target.note}")
         if app.source_url:
             print(f"Sumber        : {app.source_url}")
         return 0
