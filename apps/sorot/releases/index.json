@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "versions": [
+    {
+      "version": "0.5.0",
+      "channel": "beta",
+      "status": "testing",
+      "formats": [
+        "deb",
+        "tar.gz",
+        "zip"
+      ]
+    }
+  ],
+  "planned_targets": [
+    {
+      "version": "0.6.0",
+      "distribution": "Arch Linux",
+      "status": "planned",
+      "expected_format": "pkg.tar.zst",
+      "note": "No Arch package has been published; the target is a roadmap item, not an available download."
+    }
+  ]
+}

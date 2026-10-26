@@ -23,6 +23,8 @@ Supported statuses:
 
 Do not put application cards directly into JavaScript. public/data/software.schema.json describes the expected metadata contract; scripts/validate_catalog.py enforces the principal field and safety rules.
 
+For the approved catalogue-card and product-detail appearance, follow the shared [Product catalogue and detail-page UI standard](PRODUCT_UI_STANDARD.md). The `/software/` list must continue to use the shared card renderer and existing design tokens; do not create a one-off card style for a single product.
+
 ## 3. Complete the metadata
 
 Every record must include id, slug, name, version, summary, description, category, status, type, platforms, tags, keywords, features, detailUrl, sourceUrl, releaseUrl, icon, iconImage, previewImage, previewAlt, and updatedAt. For source projects, keep README.md, the selected LICENSE, changelog, tests, documentation, dependency metadata, and packaging files in that product’s own apps/<slug>/ directory.

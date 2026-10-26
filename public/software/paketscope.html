@@ -73,18 +73,23 @@
 <section class="section section-alt" id="install-status">
   <div class="container install-panel">
     <div class="install-copy">
-      <span class="eyebrow">STATUS INSTALASI</span>
-      <h2>Belum ada paket resmi untuk dipasang.</h2>
-      <p>PaketScope 3 masih berupa pratinjau pengembangan. Kami akan menerbitkan instruksi terminal dan tautan unduhan setelah paket diuji, checksum dibuat, metadata rilis diverifikasi, dan proses distribusi aman disiapkan.</p>
-      <span class="install-state">Belum tersedia untuk instalasi publik</span>
-      <p class="install-followup">Jangan menjalankan aplikasi dengan <code>sudo</code> dan jangan memasang paket dari tautan tidak resmi. Kode sumber tersedia untuk ditinjau, tetapi bukan pengganti paket rilis yang diverifikasi.</p>
+      <span class="eyebrow">INSTALASI MELALUI TERMINAL</span>
+      <h2>Jalankan PaketScope dari source untuk pengujian.</h2>
+      <p>PaketScope 3 dapat dijalankan dari kode sumber dalam virtual environment Python. Cara ini menjalankan aplikasi secara lokal; ini bukan instalasi rilis publik, tidak menambahkan repository APT, dan belum menghasilkan paket .deb yang diterbitkan untuk pengguna umum.</p>
+      <span class="install-state">Belum tersedia untuk instalasi publik · source mode untuk pengujian</span>
+      <p class="install-followup">Target validasi saat ini Debian 13 (Trixie). Jangan menjalankan seluruh aplikasi sebagai root. Operasi APT sensitif ditangani aplikasi dengan konfirmasi dan otorisasi terpisah.</p>
+      <p><a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/README.md#run-from-source" target="_blank" rel="noopener noreferrer">Lihat instruksi source di README ↗</a></p>
     </div>
-    <aside class="terminal-note" aria-label="Status penerbitan paket">
-      <div class="terminal-note-head"><span>PAKETSCOPE 3</span><span>RELEASE STATUS</span></div>
-      <div class="terminal-comment"># Paket biner resmi: belum tersedia</div>
-      <div class="terminal-comment"># Repository APT resmi: belum tersedia</div>
-      <div class="terminal-comment"># Checksum dan tanda tangan: menunggu rilis</div>
-      <div class="terminal-state">Belum ada perintah instalasi yang dapat dijalankan dengan benar.</div>
+    <aside class="terminal-note" aria-label="Perintah menjalankan PaketScope dari source">
+      <div class="terminal-note-head"><span>PAKETSCOPE 3</span><span>RUN FROM SOURCE</span></div>
+      <pre class="terminal-command"><code>git clone --depth 1 https://github.com/M-TamDre07/Linux-Software-Lab.git
+cd Linux-Software-Lab/apps/paketscope
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e '.[test]'
+python -m paketscope</code></pre>
+      <div class="terminal-state">Perintah ini menjalankan source-mode PaketScope. Paket Debian resmi, repository APT, checksum rilis, dan tanda tangan distribusi belum dipublikasikan.</div>
     </aside>
   </div>
 </section>

@@ -81,7 +81,7 @@ manager or release changes.
 ## Requirements
 
 - Python 3.10+
-- Debian 13 (Trixie) for the currently validated `.deb` package
+- Debian 13 (Trixie) is the current validation target for Debian packaging. Repository packaging metadata and CI/local package builds are not the same as an official public release: the website does not currently publish a versioned `.deb` with release checksums/signature.
 - PySide6 6.7+ and cryptography 42.0+ for source-mode development
 - Optional system tools: dpkg-query, apt, and flatpak
 

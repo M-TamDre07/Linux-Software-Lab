@@ -506,3 +506,26 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 @media(max-width:900px){.sorot-artifact-grid{grid-template-columns:1fr}.sorot-artifact-link{min-height:115px}}
 @media(max-width:600px){.sorot-release-heading{align-items:flex-start;flex-direction:column}.sorot-release-brand h3{font-size:20px}.sorot-install-note{grid-template-columns:1fr}.sorot-install-note span{grid-column:auto}}
 @media(prefers-reduced-motion:reduce){.sorot-artifact-link{transition:none}.sorot-artifact-link:hover{transform:none}}
+
+/* Sorot distro selector and terminal install helper — shared design tokens only. */
+.sorot-distro-picker{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.78fr);align-items:center;gap:10px 22px;margin-bottom:14px;padding:18px;border:1px solid var(--line);background:var(--surface-2)}
+.sorot-distro-picker label{font-size:12px;font-weight:700}
+.sorot-distro-picker select{width:100%;min-height:42px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:0;background:var(--surface);color:var(--text);font:12px Inter,sans-serif}
+.sorot-distro-picker select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.sorot-detected-note{grid-column:1/-1;margin:0;color:var(--muted);font-size:11px;line-height:1.7}
+.sorot-distro-status{margin:0 0 22px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--surface);color:var(--muted);font-size:12px;line-height:1.8}
+.sorot-release-list{display:grid;gap:14px}
+.sorot-release-card[hidden],.sorot-artifact-link[hidden],.sorot-install-note[hidden]{display:none!important}
+.sorot-terminal-installer{margin-top:30px;padding:clamp(20px,3vw,30px);border:1px solid var(--line);background:var(--surface-2)}
+.sorot-terminal-installer h3{margin:9px 0;font-size:clamp(18px,2vw,24px);letter-spacing:-.04em}
+.sorot-terminal-installer p{color:var(--muted);font-size:12px;line-height:1.85}
+.sorot-terminal-installer a{color:var(--text);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong)}
+.sorot-terminal-installer a:hover{color:var(--accent)}
+.sorot-terminal-installer pre{margin:14px 0;padding:16px;overflow:auto;background:var(--bg);border:1px solid var(--line);white-space:pre-wrap;overflow-wrap:anywhere}
+.sorot-terminal-installer code{font:11px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
+.sorot-terminal-warning{padding:10px 12px;border:1px solid var(--line);font-size:11px!important}
+@media(max-width:700px){.sorot-distro-picker{grid-template-columns:1fr}.sorot-detected-note{grid-column:auto}.sorot-terminal-installer pre{padding:12px}}
+
+/* Keep the PaketScope source-mode terminal block aligned with the shared install panel. */
+.terminal-command{margin:12px 0;padding:14px;overflow:auto;border:1px solid var(--line);background:var(--bg);white-space:pre-wrap;overflow-wrap:anywhere}
+.terminal-command code{font:11px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}

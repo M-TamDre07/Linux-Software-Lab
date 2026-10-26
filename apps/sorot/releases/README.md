@@ -22,6 +22,10 @@ releases/
 
 Setiap versi membawa semua format paket dan arsip sumber yang benar-benar tersedia untuk versi itu. Format dapat berbeda antarversi; misalnya .deb, .rpm, AppImage, tar.gz, dan ZIP hanya boleh dicantumkan bila artefaknya benar-benar sudah dibangun dan diuji sesuai klaimnya.
 
+File `index.json` di direktori ini mendaftarkan versi yang benar-benar ada dan format yang tercantum dalam manifestnya. [INDEX-README.md](INDEX-README.md) menjelaskan cara memeliharanya. Target yang direncanakan dicatat terpisah dan tidak boleh ditampilkan sebagai unduhan yang tersedia.
+
+Untuk pemilih distro website dan helper terminal yang membaca manifest versi, lihat [DISTRIBUTION.md](../DISTRIBUTION.md).
+
 Setiap direktori versi harus berisi:
 - release.json: versi, kanal/status, dan daftar artefak dengan SHA-256;
 - SHA256SUMS: checksum atas setiap paket/arsip yang didistribusikan di direktori tersebut;
