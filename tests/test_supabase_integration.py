@@ -57,6 +57,7 @@ class SupabaseIntegrationTests(unittest.TestCase):
     def test_browser_search_stays_local_and_supabase_filter_is_fixed(self):
         js = (ROOT / "public/assets/js/site.js").read_text(encoding="utf-8")
         self.assertIn("const getFilteredRows = () =>", js)
+        self.assertIn("app.id, app.slug, app.name", js)
         self.assertIn("tokens.every(token => app._searchText.includes(token))", js)
         self.assertIn("new URLSearchParams({", js)
         self.assertIn("published: 'eq.true'", js)
