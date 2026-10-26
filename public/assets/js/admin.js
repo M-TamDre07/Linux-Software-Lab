@@ -312,13 +312,24 @@
   });
 
   refreshButton.addEventListener('click', () => { void loadCatalog(); });
-  logoutButton.addEventListener('click', () => {
-    clearSession();
-    catalogRows = [];
-    dashboardPanel.hidden = true;
-    loginPanel.hidden = false;
-    loginForm.reset();
-    setMessage('Kamu telah keluar dari sesi admin.');
+  logoutButton.addEventListener('click', async () => {
+    const closingSession = session;
+    logoutButton.disabled = true;
+    try {
+      if (closingSession && closingSession.access_token) {
+        await request('/auth/v1/logout?scope=local', { method: 'POST' }, closingSession.access_token);
+      }
+    } catch (_) {
+      // Always clear browser-held tokens even if network revocation cannot be confirmed.
+    } finally {
+      clearSession();
+      catalogRows = [];
+      dashboardPanel.hidden = true;
+      loginPanel.hidden = false;
+      loginForm.reset();
+      logoutButton.disabled = false;
+      setMessage('Sesi lokal dihapus. Jika jaringan tersedia, token refresh untuk sesi ini juga telah dicabut.');
+    }
   });
   searchInput.addEventListener('input', renderCatalog);
   publishFilter.addEventListener('change', renderCatalog);
