@@ -19,49 +19,8 @@ from .installer import (
     preview_installation,
     verify_local_artifact,
 )
-from .models import Application, Artifact, SystemProfile
-
-
-def _format_name(value: str) -> str:
-    return value.strip().casefold().removeprefix(".")
-
-
-def _select_artifact(
-    application: Application,
-    profile: SystemProfile,
-    *,
-    version: str | None = None,
-    requested_format: str | None = None,
-    install_only: bool = False,
-) -> Artifact | None:
-    artifacts = [
-        artifact
-        for artifact in application.artifacts
-        if artifact.release_status not in {"archived", "planned"}
-        and (version is None or artifact.version == version)
-    ]
-    if requested_format:
-        wanted = _format_name(requested_format)
-        artifacts = [artifact for artifact in artifacts if artifact.format.casefold() == wanted]
-    if install_only:
-        compatible = [
-            artifact for artifact in artifacts
-            if artifact.is_native_package and artifact_compatibility(artifact, profile)[0]
-        ]
-        return compatible[-1] if compatible else None
-
-    compatible_packages = [
-        artifact for artifact in artifacts
-        if artifact.is_native_package and artifact_compatibility(artifact, profile)[0]
-    ]
-    if compatible_packages:
-        return compatible_packages[-1]
-    if requested_format:
-        return artifacts[-1] if artifacts else None
-    sources = [artifact for artifact in artifacts if artifact.is_source_archive]
-    if sources:
-        return next((item for item in sources if item.format == "zip"), sources[0])
-    return artifacts[-1] if artifacts else None
+from .models import Application, SystemProfile
+from .selection import select_artifact
 
 
 def _print_profile(profile: SystemProfile) -> None:
@@ -260,7 +219,7 @@ def main(
         return 0
 
     if args.command == "download":
-        artifact = _select_artifact(
+        artifact = select_artifact(
             app, system_profile, version=args.version, requested_format=args.requested_format
         )
         if artifact is None:
@@ -280,7 +239,7 @@ def main(
         return 0
 
     if args.command == "verify":
-        artifact = _select_artifact(
+        artifact = select_artifact(
             app,
             system_profile,
             version=args.version,
@@ -299,7 +258,7 @@ def main(
         return 0
 
     if args.command == "install":
-        artifact = _select_artifact(
+        artifact = select_artifact(
             app, system_profile, version=args.version, install_only=True
         )
         if artifact is None:
