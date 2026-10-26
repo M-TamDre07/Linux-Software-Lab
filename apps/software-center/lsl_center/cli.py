@@ -62,7 +62,7 @@ def _show_list(service: CatalogService, profile: SystemProfile, as_json: bool) -
 
     print(f"Linux Software Lab Center · katalog {snapshot.updated_at} ({snapshot.data_source})")
     _print_profile(profile)
-    print("")
+    print()
     for app in snapshot.applications:
         installed = "terpasang" if executable_for(app.id) else "belum terdeteksi terpasang"
         compatible = [
