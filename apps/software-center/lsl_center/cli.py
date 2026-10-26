@@ -302,7 +302,12 @@ def main(
             print("Instalasi dibatalkan; tidak ada transaksi yang dijalankan.")
             return 2
         try:
-            result = install_verified_artifact(artifact, package_path, system_profile)
+            result = install_verified_artifact(
+                artifact,
+                package_path,
+                system_profile,
+                expected_preview=preview,
+            )
         except InstallError as exc:
             print(f"Instalasi gagal dengan aman: {exc}", file=sys.stderr)
             return 1
