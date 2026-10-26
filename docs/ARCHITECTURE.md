@@ -17,8 +17,9 @@ repository/
 │       ├── index.html
 │       └── <slug>.html
 ├── apps/<slug>/                  # Application source code
-├── scripts/                      # Repository checks, never published
-├── tests/                        # Regression tests, never published
+├── templates/application/        # Standard starter layout for new products
+├── scripts/                      # Validators, sync checks, and safe scaffolding
+├── tests/                        # Regression and security-boundary tests
 ├── docs/                         # Maintainer documentation, never published
 └── vercel.json                   # Sets outputDirectory to public/
 ~~~
@@ -50,6 +51,10 @@ The Supabase mirror is limited to public catalogue metadata. Do not expand it in
 - Avoid compatibility claims that have not been tested on the stated platform.
 - New product pages must have canonical URLs and be added to public/sitemap.xml.
 - Search filters are client-side; search terms stay in the browser.
+
+## Application contribution contract
+
+New applications start from `templates/application/` via `python scripts/scaffold_app.py`. The scaffold is intentionally runtime-neutral; each product chooses its own runtime, licence, OS matrix, and real package formats. The helper never mutates the catalogue, public pages, release index, or launcher allowlist. User-facing error messages follow [ERROR_HANDLING_STANDARD.md](ERROR_HANDLING_STANDARD.md).
 
 ## Security boundaries
 
