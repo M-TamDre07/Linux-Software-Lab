@@ -96,7 +96,7 @@ def detect_system_profile(
     """Detect the host OS and architecture locally; distro files may be unavailable."""
     lookup = which or shutil.which
     detected_os = (os_name or platform_module.system() or "unknown").strip()
-    values = _read_os_release(os_release_path)
+    values = _read_os_release(os_release_path) if detected_os.casefold() == "linux" else {}
     distro_id = values.get("ID", "unknown").casefold() or "unknown"
     id_like = values.get("ID_LIKE", "").casefold()
     family = _distribution_family(distro_id, id_like) if detected_os.casefold() == "linux" else "unknown"
