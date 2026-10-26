@@ -6,11 +6,11 @@ Linux Software Lab Center is the planned desktop launcher for people moving to L
 
 ## What works in this MVP
 
-- Offline-first catalogue for PaketScope and Sorot; bundled metadata is checked against the website source by regression tests.
+- Offline-first catalogue for PaketScope and Sorot; bundled metadata is checked against the website's distribution index and version manifests by regression tests.
 - Local distribution detection using /etc/os-release, including Debian/Ubuntu, Arch derivatives, Fedora/RHEL, and openSUSE/SUSE family hints.
 - CPU architecture normalization such as x86_64/amd64 and aarch64/arm64.
 - A shared artifact-selection policy for the GUI and CLI. Sorot's real 0.5.0 Beta .deb, .tar.gz, and .zip artifacts are listed; PaketScope is not falsely marked installable because it has no public release artifact in the catalogue.
-- Download verification against the versioned release.json, SHA256SUMS, and the selected artifact SHA-256 from the trusted GitHub raw-content path.
+- Download verification against the shared GitHub distribution index, the per-version release.json and SHA256SUMS, and the selected artifact SHA-256.
 - A Debian installation adapter that first simulates APT, rejects transactions indicating removals, uses --no-remove and --no-install-recommends, and then invokes APT through Polkit only after explicit user confirmation.
 - A GUI catalogue that follows the established Linux Software Lab contrast, spacing, status, and product-list patterns. Searching, source links, metadata refresh, and source archive downloads are supported.
 - Terminal subcommands for distro detection, listing, metadata, verified download, local-file verification, install review, status, refresh, and diagnostics.
