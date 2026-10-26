@@ -111,13 +111,16 @@ class DistributionDetectionTests(unittest.TestCase):
 
 class LocalIntegrationRegistryTests(unittest.TestCase):
     def test_existing_apps_use_reviewed_fixed_executable_candidates(self) -> None:
+        paketscope = integration_for("paketscope")
+        sorot = integration_for("sorot")
+        self.assertIsNotNone(paketscope)
+        self.assertIsNotNone(sorot)
+        assert paketscope is not None and sorot is not None
+        self.assertEqual(paketscope.executable_candidates, ("paketscope",))
+        self.assertEqual(sorot.executable_candidates, ("sorot",))
         self.assertEqual(
-            LOCAL_INTEGRATIONS["paketscope"].executable_candidates,
-            ("paketscope",),
-        )
-        self.assertEqual(
-            LOCAL_INTEGRATIONS["sorot"].executable_candidates,
-            ("sorot",),
+            tuple(item.application_id for item in LOCAL_INTEGRATIONS),
+            ("paketscope", "sorot"),
         )
 
     def test_known_app_resolves_only_its_registered_executable(self) -> None:
