@@ -1,0 +1,84 @@
+name: Sorot release index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/sorot/releases/**"
+      - "scripts/sync_distribution_index.py"
+      - ".github/workflows/sorot-release-index.yml"
+  pull_request:
+    paths:
+      - "apps/sorot/releases/**"
+      - "apps/sorot/experimental/arch/**"
+      - "scripts/sync_distribution_index.py"
+      - ".github/workflows/sorot-release-index.yml"
+      - "public/assets/js/sorot-downloads.js"
+      - "public/software/sorot.html"
+      - "tests/test_sorot_distribution_integration.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sorot-release-index-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate manifests, checksums, and website integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24.x"
+          check-latest: true
+      - name: Validate every version manifest and artifact checksum
+        run: python apps/sorot/validate_releases.py
+      - name: Regenerate public metadata in the validation workspace
+        run: python scripts/sync_distribution_index.py --write
+      - name: Validate generated catalogue and documentation links
+        run: |
+          python scripts/validate_catalog.py
+          python scripts/check_docs_links.py
+          python -m json.tool public/data/distribution-index.json > /dev/null
+          node --check public/assets/js/sorot-downloads.js
+      - name: Run Sorot distribution integration tests
+        run: python -m unittest discover -s tests -p 'test_sorot_distribution_integration.py' -v
+
+  publish-generated-index:
+    name: Sync generated web index after merge
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Generate and publish the website registry
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python scripts/sync_distribution_index.py --write
+          if git diff --quiet -- public/data/distribution-index.json; then
+            echo "Public distribution index is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/distribution-index.json
+          git commit -m "chore: sync Sorot release index"
+          gh auth setup-git
+          git push origin HEAD:main

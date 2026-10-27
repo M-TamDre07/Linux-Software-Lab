@@ -19,7 +19,7 @@ sorot --backup            # 2. (opsional, disarankan) cadangan manual sebelum me
 | Cara pasang | Perintah pembaruan | Catatan |
 |---|---|---|
 | Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.0_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
-| Arch Linux | `tar xf sorot-0.7.0.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.0-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
+| Arch Linux | **Belum didukung sebagai jalur rilis 0.7.0.** Tidak ada paket `.pkg.tar.zst` yang divalidasi. Jangan jalankan `makepkg -si` dari arsip rilis ini. | `PKGBUILD` masih eksperimen dan dipindahkan ke [`apps/sorot/experimental/arch/0.7.0/`](../../experimental/arch/0.7.0/). Lihat [panduan distribusi](../../DISTRIBUTION.md). |
 | pipx | `pipx install --force ./sorot-0.7.0-py3-none-any.whl` | |
 | pip (venv) | `python -m pip install --upgrade ./sorot-0.7.0-py3-none-any.whl` | |
 | Skrip pengguna | `./scripts/install-user.sh` dari sumber versi baru | Aman diulang; hanya mengganti venv di `~/.local/share/sorot/venv`. |
@@ -96,4 +96,4 @@ make dist
 
 Jika skema pengaturan naik: tambahkan langkah `N → N+1` ke `MIGRATIONS` di `core/config.py`; `tests/test_upgrade.py` gagal bila langkah itu tertinggal. Jangan mengubah `BACKUP_FORMAT` tanpa tetap membaca format lama.
 
-Yang **belum** diuji: pembaruan melalui `apt`/`pacman` pada mesin bersih dan desktop nyata; lihat [TEST-REPORT.md](TEST-REPORT.md).
+Yang **belum** diuji: instalasi bersih Debian 13 melalui APT dengan dependensi nyata, pembaruan di mesin bersih, desktop/compositor nyata, dan seluruh jalur Arch (`makepkg`, `namcap`, instalasi/penghapusan Pacman). Lihat [TEST-REPORT.md](TEST-REPORT.md).

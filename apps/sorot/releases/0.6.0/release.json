@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.6.0",
+  "channel": "beta",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.6.0/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.6.0/TEST-REPORT.md",
+  "architecture_note": "Beta/testing. Artefak yang tercantum hanya Debian .deb, source tar.gz, dan wheel. Laporan tidak membuktikan instalasi bersih Debian 13 atau pengujian Arch nyata.",
+  "artifacts": [
+    {
+      "file": "sorot_0.6.0_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "d338008fb4dd414eadbf4e4a373b9d30f373465e26181cd163655a7aff8b4546"
+    },
+    {
+      "file": "sorot-0.6.0.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "4ac23a5795f4495542385f78041bfdb14e892edba26a1d658d5a4e95322902ea"
+    },
+    {
+      "file": "sorot-0.6.0-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "66a61c5000d0ded48e01dc715aac3f50cc7bb4ba279bf67e0950f52e394ce9ae"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

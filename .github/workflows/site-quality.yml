@@ -62,6 +62,8 @@ jobs:
           check-latest: true
       - name: Show Node.js runtime version
         run: node --version
+      - name: Synchronize generated Sorot distribution metadata
+        run: python scripts/sync_distribution_index.py --write
       - name: Validate catalog metadata and release-state rules
         run: python scripts/validate_catalog.py
       - name: Validate the standard application scaffold manifest

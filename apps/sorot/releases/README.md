@@ -1,56 +1,46 @@
 # Arsip versi Sorot
 
-Setiap versi Sorot disimpan pada direktori terpisah. Direktori versi bersifat arsip: **jangan menimpa artefak versi lama** ketika merilis versi baru.
+Setiap versi disimpan pada direktorinya sendiri. Folder versi yang telah dipublikasikan bersifat arsip: jangan menimpa binari versi lama untuk memperbaiki atau menggantinya.
 
-## Struktur
+## Struktur rilis
 
-~~~text
-releases/
-├── README.md
-├── 0.5.0/
-│   ├── release.json
-│   ├── RELEASE-NOTES.md
-│   ├── RELEASE_READINESS.md
-│   ├── TEST-REPORT.md
-│   ├── SHA256SUMS
-│   ├── sorot_0.5.0_all.deb
-│   ├── sorot-0.5.0.tar.gz
-│   └── sorot-0.5.0.zip
-├── 0.5.8/  # contoh struktur versi mendatang; jangan dibuat hingga ada artefak nyata
-└── 0.5.9/  # contoh struktur versi mendatang; jangan dibuat hingga ada artefak nyata
-~~~
+Setiap versi yang terdaftar di `index.json` wajib memiliki:
 
-Setiap versi membawa semua format paket dan arsip sumber yang benar-benar tersedia untuk versi itu. Format dapat berbeda antarversi; misalnya .deb, .rpm, AppImage, tar.gz, dan ZIP hanya boleh dicantumkan bila artefaknya benar-benar sudah dibangun dan diuji sesuai klaimnya.
+- `release.json`: status/channel serta daftar artefak dengan nama file, format, arsitektur, dan SHA-256;
+- `SHA256SUMS`: tepat satu baris untuk setiap artefak manifest, tanpa file hilang atau entri tambahan;
+- file artefak yang sungguh ada;
+- laporan pengujian yang menjelaskan lingkungan dan keterbatasannya.
 
-File `index.json` di direktori ini mendaftarkan versi yang benar-benar ada dan format yang tercantum dalam manifestnya. [INDEX-README.md](INDEX-README.md) menjelaskan cara memeliharanya. Target yang direncanakan dicatat terpisah dan tidak boleh ditampilkan sebagai unduhan yang tersedia.
+Format berbeda antarversi. Jangan menambahkan .deb, .rpm, AppImage, wheel, ZIP, atau paket Arch hanya karena berkas itu bisa dibuat; catat hanya format yang memang diputuskan untuk dibagikan. Status `testing` berarti beta/testing, bukan stabil.
 
-Untuk pemilih distro website dan helper terminal yang membaca manifest versi, lihat [DISTRIBUTION.md](../DISTRIBUTION.md).
+## Cara menambahkan versi
 
-Setiap direktori versi harus berisi:
-- release.json: versi, kanal/status, dan daftar artefak dengan SHA-256;
-- SHA256SUMS: checksum atas setiap paket/arsip yang didistribusikan di direktori tersebut;
-- catatan rilis dan laporan pengujian yang sesuai dengan versi itu;
-- semua berkas paket serta source archive yang benar-benar tersedia.
+1. Buat folder baru, misalnya `releases/0.8.0/`; jangan mengubah artefak versi lama.
+2. Buat `release.json` dan `SHA256SUMS` menggunakan hash aktual file final. Manifest dan checksum harus cocok dengan berkas byte-for-byte.
+3. Tambahkan versi dan format yang tepat ke `index.json` (urutan lama ke baru).
+4. Jalankan `python apps/sorot/validate_releases.py` dan tes integrasi website. Perbaiki semua kegagalan, termasuk tautan dokumentasi yang rusak.
+5. Buka PR. Workflow GitHub memvalidasi rilis, lalu menyinkronkan `public/data/distribution-index.json` secara otomatis setelah merge. Tidak perlu meminta integrasi manual dan tidak perlu mengedit daftar manifest Sorot kedua kali.
 
-## Memverifikasi artefak
+Indeks web adalah hasil turunan, bukan sumber data. Jangan menambahkan versi ke `public/data/distribution-index.json` secara manual.
+
+## Target yang belum siap
+
+Distro/format yang belum teruji dicatat di `planned_targets`, bukan sebagai unduhan yang tersedia. Saat ini Arch Linux tetap eksperimental: PKGBUILD untuk inspeksi berada di `apps/sorot/experimental/arch/<versi>/`; belum ada artefak `.pkg.tar.zst` tervalidasi. Jangan menyajikan PKGBUILD itu sebagai paket rilis.
+
+## Memeriksa artefak
 
 Dari root repositori:
 
-~~~bash
+~~~
 python apps/sorot/validate_releases.py
+python -m unittest discover -s tests -p 'test_sorot_distribution_integration.py' -v
 ~~~
 
-Atau validasi checksum untuk versi tertentu:
+Atau pada direktori versi tertentu:
 
-~~~bash
-cd apps/sorot/releases/0.5.0
+~~~
+cd apps/sorot/releases/0.7.0
 sha256sum -c SHA256SUMS
 ~~~
 
-Jangan menyalin checksum versi lain, jangan mengganti paket di direktori lama dengan build baru, dan jangan menandai versi sebagai stabil hanya karena CI lulus. Status dan catatan harus sesuai dengan hasil pengujian aktual.
-
-## Berpindah ke versi sebelumnya
-
-Pilih artefak dari direktori versi yang ingin dipakai dan verifikasi checksum-nya terlebih dahulu. Untuk paket Debian, simpan salinan data penting dan gunakan paket versi yang dipilih. Jika APT menolak pemasangan versi yang lebih lama, penurunan versi dapat memerlukan opsi --allow-downgrades; jangan gunakan purge bila ingin mempertahankan konfigurasi pengguna. Arsip source tar.gz dan ZIP juga tetap tersedia per versi untuk audit atau build mandiri.
-
-Versi yang tidak kompatibel atau bermasalah jangan dihapus dari arsip; tambahkan status/nota masalahnya dan pertahankan artefak serta checksum asli untuk reproduksibilitas.
+Checksum mendeteksi mismatch terhadap metadata; checksum bukan tanda tangan kriptografis penerbit. Status dan klaim kompatibilitas harus mengikuti laporan tes nyata.

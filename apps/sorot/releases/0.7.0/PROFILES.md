@@ -59,7 +59,7 @@ Nilai di luar rentang dijepit, nilai tidak valid diganti nilai bawaan; aturannya
 
 ## Dari ekstensi
 
-Ekstensi deklaratif dapat menyumbang `display_profiles`; lihat [EXTENSIONS.md](EXTENSIONS.md) dan `examples/extensions/contoh.tema-senja`. Profil ekstensi muncul sebagai `Nama · Ekstensi` dan hilang bila ekstensinya dimatikan.
+Ekstensi deklaratif dapat menyumbang `display_profiles`; lihat [EXTENSIONS.md](../../EXTENSIONS.md) dan `examples/extensions/contoh.tema-senja`. Profil ekstensi muncul sebagai `Nama · Ekstensi` dan hilang bila ekstensinya dimatikan.
 
 ## Mode cermin dan hitung mundur
 
