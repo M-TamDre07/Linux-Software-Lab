@@ -1,6 +1,6 @@
 # Repository templates
 
-Templates provide a consistent starting point while keeping runtime and distribution choices explicit. They are not published website content and do not imply that source code or installers exist.
+Templates provide a consistent starting point while keeping runtime and distribution choices explicit. They are not published website content and do not imply that source code or installers exist. The end-to-end intake, validation, build, and release target is documented in [App Publishing Factory](../docs/APP_PUBLISHING_FACTORY.md).
 
 ## Application scaffold
 

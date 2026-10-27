@@ -11,7 +11,7 @@ The static dashboard is available at `/admin/`. It is intentionally `noindex` an
 - Store the short-lived access/refresh tokens in tab-scoped `sessionStorage`, request local-session revocation on logout, clear browser-held tokens even if the network call fails, and omit cookies from API requests.
 - Make no catalogue mutations and do not query other users, secrets, Auth administration endpoints, or private server settings.
 
-This is a read-only operational dashboard, not a full management interface. `public/data/software.json` remains the catalogue source of truth. Changes must pass repository validation and a pull request; the GitHub Actions sync then updates Supabase. Do not write directly to the read-only mirror from the browser.
+This is a read-only operational dashboard, not a full management interface. `public/data/software.json` remains the catalogue source of truth. Changes must pass repository validation and a pull request; the GitHub Actions sync then updates Supabase. Do not write directly to the read-only mirror from the browser.\n\nThe proposed next stage is documented in [App Publishing Factory](APP_PUBLISHING_FACTORY.md). An upload/publish wizard is **not active**. Do not add browser-side GitHub credentials or expose a Supabase secret key; the intended workflow requires a server-side integration that creates a reviewable pull request.
 
 ## Bootstrap the first administrator
 

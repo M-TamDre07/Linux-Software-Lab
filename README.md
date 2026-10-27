@@ -83,7 +83,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 
 - [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
 - [Integrasi katalog Supabase](docs/SUPABASE_INTEGRATION.md) menjelaskan mirror baca-saja, sinkronisasi CI, dan batas keamanan.
-- [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.
+- [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.\n- [App Publishing Factory](docs/APP_PUBLISHING_FACTORY.md) menetapkan rencana bertahap untuk template aplikasi, intake admin, pull request, build profile, rilis immutable, dan sinkronisasi website/launcher tanpa melewati validasi.
 - [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
 - [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
 - [Template aplikasi dan generator](templates/README.md) menyediakan tata letak proyek konsisten; jalankan `python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "Tujuan aplikasi."` untuk membuat scaffold tanpa mengubah katalog.
