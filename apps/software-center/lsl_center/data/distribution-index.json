@@ -1,7 +1,7 @@
 {
   "$schema": "./distribution-index.schema.json",
   "schema_version": 1,
-  "updated_at": "2026-10-26",
+  "updated_at": "2026-10-27",
   "detection_policy": {
     "native_launcher": "Read /etc/os-release and detect architecture locally; never infer exact distro from browser user-agent.",
     "browser": "Detect only broad operating-system hints; ask users to choose the target distro manually.",
@@ -18,7 +18,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.5.0 Beta memiliki paket .deb. Pengujian instalasi bersih Debian 13 belum dinyatakan lulus."
+      "note": "Sorot 0.7.0 Beta/testing memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
     },
     {
       "id": "arch",
@@ -30,7 +30,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Paket Arch Sorot masih ditargetkan untuk 0.6.0. Belum ada paket .pkg.tar.zst atau PKGBUILD resmi untuk dipasang."
+      "note": "Sorot 0.7.0 belum memiliki artefak .pkg.tar.zst yang lolos pengujian Arch. PKGBUILD disimpan di arsip experimental untuk ditinjau; jangan gunakan sebagai jalur rilis atau menganggapnya paket siap pasang. Target ini belum menjadi unduhan."
     },
     {
       "id": "fedora",
@@ -92,14 +92,22 @@
         {
           "version": "0.5.0",
           "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/release.json"
+        },
+        {
+          "version": "0.6.0",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.6.0/release.json"
+        },
+        {
+          "version": "0.7.0",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.7.0/release.json"
         }
       ],
       "planned_targets": [
         {
           "distribution_id": "arch",
-          "version": "0.6.0",
+          "version": "0.7.0",
           "status": "planned",
-          "note": "Target Arch Linux for Sorot 0.6.0. Do not offer installation until a real .pkg.tar.zst or reviewed PKGBUILD is added and tested."
+          "note": "Sorot 0.7.0 belum memiliki artefak .pkg.tar.zst yang lolos pengujian Arch. PKGBUILD disimpan di arsip experimental untuk ditinjau; jangan gunakan sebagai jalur rilis atau menganggapnya paket siap pasang."
         }
       ]
     }

@@ -51,6 +51,18 @@
       "type": "string",
       "format": "uri",
       "pattern": "^https://"
+    },
+    "test_report_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "architecture_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "checksum_file": {
+      "const": "SHA256SUMS"
     }
   },
   "$defs": {
@@ -78,7 +90,8 @@
             "flatpak-bundle",
             "flatpak-ref",
             "appimage",
-            "source-archive"
+            "source-archive",
+            "python-wheel"
           ]
         },
         "format": {
@@ -90,7 +103,8 @@
             "flatpakref",
             "AppImage",
             "tar.gz",
-            "zip"
+            "zip",
+            "whl"
           ]
         },
         "architecture": {
@@ -224,6 +238,25 @@
                   "arm64",
                   "armv7l"
                 ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "python-wheel"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "const": "whl"
               }
             }
           }

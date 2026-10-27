@@ -1,46 +1,37 @@
 # Sorot distribution integration
 
-This file describes the integration contract between the Sorot application team, the versioned release archive, the terminal installer, and the public download selector. It does not claim that planned packages exist.
+This document defines how the versioned Sorot archive, the terminal installer, the web selector, and GitHub Actions fit together. A planned package is never treated as available.
 
-## Current confirmed archive
+## Indexed versions and current scope
 
-Sorot 0.5.0 Beta is the only version currently indexed. Its version manifest declares three real artifacts: Debian package `.deb`, source `.tar.gz`, and source `.zip`. The Debian package is Beta/testing; the current test report does not confirm a clean Debian 13 installation. No Arch, RPM, AppImage, or official package repository is currently published.
+Sorot 0.5.0, 0.6.0, and 0.7.0 are recorded as Beta/testing. The latest indexed version, 0.7.0, has a Debian `.deb`, source tar.gz/ZIP, and Python wheel. Sorot 0.6.0 has a Debian `.deb`, source tar.gz, and wheel; its ZIP is not present in the archived folder, so it is not advertised. See each version's test report before treating its status as evidence of distro compatibility.
 
-The helper at `apps/sorot/install.sh` is separate from the desktop application. It reads `releases/index.json`, inspects the versioned `release.json`, selects only a matching package format, downloads the artifact, checks SHA-256, asks before installing a testing build, and calls the detected native package manager. It must never install a `.deb` file on Arch Linux as a fallback.
+For 0.7.0, the report records successful non-GUI checks through a temporary runner, but also states that the new Qt GUI tests were not run with real PySide6/pytest in that build environment. Clean Debian 13 dependency resolution and the Arch packaging path remain unverified in the report. Five manual tests reported by the maintainer are useful additional evidence, but do not turn the untested paths into a universal compatibility guarantee. Keep the public status Beta/testing.
 
-## Distro detection limits
+The terminal helper at `apps/sorot/install.sh` and web selector read the version manifests. The web selector reads `apps/sorot/releases/index.json` from GitHub at runtime for its version list. Thus, after the selector code has been deployed once, adding a new indexed release does not require a website code change just to list another version.
 
-The terminal helper reads `/etc/os-release` and can identify a distribution family locally. The website cannot read that local file from a normal browser. It identifies the general operating-system family when possible, then asks the visitor to select their Linux distribution before revealing compatible package formats. That is intentional: the web page must not guess a distro-specific binary.
+## Distro selection and safety
 
-## Target for Sorot 0.6.0 — Arch Linux
+The terminal helper reads `/etc/os-release` locally. The browser cannot read that file, so the site asks visitors to select the distro manually and only displays compatible native formats found in a release manifest. It must not infer exact distro compatibility from browser user-agent or fall back to installing a Debian package on Arch.
 
-Arch support is a planned target only. The version archive does not currently contain an Arch build. Before enabling the Arch option as available, the Sorot application team must choose and build a real Arch artifact, define its dependencies and package metadata, and test a clean installation in an Arch Linux environment.
+Arch Linux remains a planned target. PKGBUILD files are stored under `apps/sorot/experimental/arch/<version>/` for review only. There is no validated `.pkg.tar.zst`, no completed Arch CI result, and no clean Arch installation test. Do not present `makepkg -si`, `pacman -U`, or a repository installation command as supported for Sorot 0.7.0.
 
-For a direct package hand-off, the release manifest should declare an actual `.pkg.tar.zst` artifact with `kind: arch-package`, `format: pkg.tar.zst`, a valid architecture value such as `any`, and the real file's SHA-256. The installer can then verify the package and call `pacman -U`. Do not publish `pacman -S sorot` instructions until Sorot is actually present in an official or configured Arch repository.
+## Release workflow for maintainers
 
-The maintainers may additionally publish a `PKGBUILD` for building from source with `makepkg -si`; that is a different distribution path and must be reviewed and tested before the website presents it as an installation option. The current source archives do not imply that a PKGBUILD exists.
+1. Create a new immutable folder, e.g. `apps/sorot/releases/0.8.0/`, with the actual artifacts and a matching `SHA256SUMS`.
+2. Add `release.json` with only published artifacts. Its artifact filenames and SHA-256 values must exactly match the real files and `SHA256SUMS`.
+3. Append the version to `apps/sorot/releases/index.json` in ascending release order; list the exact formats from its manifest. Put unfinished targets under `planned_targets`.
+4. Run `python apps/sorot/validate_releases.py` and `python -m unittest discover -s tests -p 'test_sorot_distribution_integration.py' -v`, then open a PR.
+5. GitHub Actions validates the release, verifies website metadata/docs, and automatically synchronizes `public/data/distribution-index.json` after merge. **Do not manually edit the Sorot manifest list in the public distribution index.**
 
-## Adding a later version
-
-For each real release, the application team should:
-
-1. Keep every older version directory unchanged.
-2. Build only the formats actually supported and tested for the release.
-3. Add the real package/source files, a version-specific `release.json`, `SHA256SUMS`, release notes, and the relevant test report to the new directory.
-4. Add the version and its actually available formats to `releases/index.json`.
-5. Update `public/data/sorot-downloads.json` and verify that its artifact names, formats, and hashes exactly match the version manifest.
-6. Run the release validator, website tests, terminal installer checks, and a clean install test for every claimed distro.
-
-A planned format must not be listed as an available artifact. An artifact's presence in Git does not, by itself, prove distro compatibility or stable-release readiness.
+The generated website index is still useful to the launcher and other consumers, but the canonical release list lives in `apps/sorot/releases/index.json`. This avoids a recurring integration task for every version.
 
 ## Terminal usage
 
-From a downloaded checkout of the repository:
-
-```bash
+~~~
 bash apps/sorot/install.sh --detect
 bash apps/sorot/install.sh --list
-bash apps/sorot/install.sh --version 0.5.0
-```
+bash apps/sorot/install.sh --version 0.7.0
+~~~
 
-The third command selects the current Beta only on a distro that has a compatible native artifact. On Arch, the installer deliberately stops because no Arch package is published yet. The helper fetches version manifests and packages over HTTPS and validates SHA-256 values against the manifest; the current archive does not provide a signed repository or cryptographic package signature, so a checksum should not be described as a publisher signature.
+The helper verifies SHA-256 and asks before installing testing builds. The archive is not a signed package repository; checksums are not cryptographic publisher signatures. Back up user scripts/configuration before any upgrade. The installer selects only a native artifact declared in the manifest for the detected distro.

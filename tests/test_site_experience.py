@@ -198,7 +198,10 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("planned_targets", product_schema["properties"]["products"]["items"]["properties"])
         sorot = next(item for item in index_data["products"] if item["id"] == "sorot")
         arch_target = next(target for target in sorot["planned_targets"] if target["distribution_id"] == "arch")
-        self.assertEqual(arch_target["version"], "0.6.0")
+        release_index = json.loads(
+            (ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(arch_target["version"], release_index["planned_targets"][0]["version"])
         self.assertEqual(arch_target["status"], "planned")
 
         for product in index_data["products"]:

@@ -74,7 +74,7 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertEqual(arch["package_format"], "pkg.tar.zst")
         sorot = next(item for item in web_data["products"] if item["id"] == "sorot")
         planned = next(item for item in sorot["planned_targets"] if item["distribution_id"] == "arch")
-        self.assertEqual(planned["version"], "0.6.0")
+        self.assertEqual(planned["version"], index["planned_targets"][0]["version"])
         self.assertEqual(planned["status"], "planned")
 
         all_formats = {
@@ -84,8 +84,18 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         }
         self.assertNotIn("pkg.tar.zst", all_formats)
         legacy_planned = next(item for item in index["planned_targets"] if item["distribution"] == "Arch Linux")
-        self.assertEqual(legacy_planned["version"], "0.6.0")
+        self.assertEqual(legacy_planned["version"], index["planned_targets"][0]["version"])
         self.assertEqual(legacy_planned["status"], "planned")
+
+    def test_public_distribution_index_is_generated_from_the_release_index(self):
+        script = ROOT / "scripts" / "sync_distribution_index.py"
+        self.assertTrue(script.is_file())
+        result = subprocess.run(
+            ["python", str(script), "--check"],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
 
     def test_sorot_page_has_distribution_selector_and_terminal_helper(self):
         page = (PUBLIC / "software" / "sorot.html").read_text(encoding="utf-8")
@@ -96,15 +106,16 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         distribution_index = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
         self.assertIn("browser", distribution_index["detection_policy"])
         self.assertIn("distribution-index.json", script)
+        self.assertIn("apps/sorot/releases/index.json", script)
+        self.assertIn("python-wheel", script)
+        self.assertIn("apps/sorot/releases/index.json", script)
         self.assertIn("trustedManifestURL", script)
         self.assertNotIn("sorot-downloads.json", page + script)
         self.assertIn("availability", script)
         # Every visible install CTA must go through the distro-aware selector.
         self.assertIn('href="#downloads">Pilih format yang sesuai dengan distro', page)
-        self.assertNotIn(
-            'href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot_0.5.0_all.deb">Unduh Sorot',
-            page,
-        )
+        self.assertNotIn("sorot_0.5.0_all.deb", page)
+        self.assertIn('id="sorotLatestVersion"', page)
         self.assertIn('id="downloads" data-download-data="/data/distribution-index.json"', page)
         self.assertIn("BUKAN", (PUBLIC / "assets" / "images" / "sorot-preview.svg").read_text(encoding="utf-8"))
 

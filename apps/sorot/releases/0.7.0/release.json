@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.7.0",
+  "channel": "beta",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.0/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.0/TEST-REPORT.md",
+  "architecture_note": "Sorot 0.7.0 Beta tersedia sebagai .deb untuk keluarga Debian. Lihat laporan tes untuk batas pengujian: Qt GUI baru belum diuji dengan PySide6/pytest asli, dan Arch belum tervalidasi.",
+  "artifacts": [
+    {
+      "file": "sorot_0.7.0_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "539cd6e71f877172047530d6d11471744820732c9d9dda3554e24a6961378513"
+    },
+    {
+      "file": "sorot-0.7.0.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "fc05c2824c60c77af4f244e714ba2fae0881b77ba4fe4ed1a027e6574129efd6"
+    },
+    {
+      "file": "sorot-0.7.0.zip",
+      "kind": "source-archive",
+      "format": "zip",
+      "architecture": "all",
+      "sha256": "2d700b9a969703df3b866e4e350ca5f6832d37082d9c793da4981b1947ea9475"
+    },
+    {
+      "file": "sorot-0.7.0-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "40d31ea9d2ac1ebd2195bf59fda57508ebb128e97d0500149756ef98685227b6"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

@@ -2,29 +2,22 @@
 
 Sorot is a native Linux desktop teleprompter. Its existing interface, text workflow, playback behavior, and extension ecosystem are maintained incrementally; this repository does not treat a new release as a reason to redesign the UI/UX.
 
-## Current archived version
+## Current archived versions
 
-The repository currently contains **Sorot 0.5.0 Beta** as an immutable audit/release candidate. It is not a stable release.
+The latest indexed build is **Sorot 0.7.0 Beta/testing**. Its Debian package is listed for the Debian family only. It is not a stable release, and the included test report documents important limits: Qt GUI changes were not tested with real PySide6/pytest in the packaging environment, and clean Debian 13/Arch installations are not certified.
 
-- [Release notes and status](releases/0.5.0/RELEASE-NOTES.md)
-- [Debian package](releases/0.5.0/sorot_0.5.0_all.deb)
-- [Source archive (tar.gz)](releases/0.5.0/sorot-0.5.0.tar.gz)
-- [Source archive (ZIP)](releases/0.5.0/sorot-0.5.0.zip)
-- [SHA-256 checksum file](releases/0.5.0/SHA256SUMS)
-- [Machine-readable version manifest](releases/0.5.0/release.json)
-- [Version-specific test report](releases/0.5.0/TEST-REPORT.md)
-- [Version-specific release readiness report](releases/0.5.0/RELEASE_READINESS.md)
+- [Sorot 0.7.0 Debian package](releases/0.7.0/sorot_0.7.0_all.deb)
+- [Sorot 0.7.0 source tar.gz](releases/0.7.0/sorot-0.7.0.tar.gz)
+- [Sorot 0.7.0 source ZIP](releases/0.7.0/sorot-0.7.0.zip)
+- [Sorot 0.7.0 SHA-256 checksums](releases/0.7.0/SHA256SUMS)
+- [Sorot 0.7.0 manifest](releases/0.7.0/release.json)
+- [Sorot 0.7.0 test report](releases/0.7.0/TEST-REPORT.md)
+- [Previous version archive](releases/0.6.0/)
+- [Complete version index](releases/index.json)
 
-See [the version archive index](releases/README.md) for how versions are kept side-by-side and how to verify their artifacts.
+See [the release archive guide](releases/README.md) for the release process. The website and terminal helper read the shared version index; GitHub Actions syncs the website catalogue after a release-index change. There is no need to manually integrate every new version in a second place.
 
-For distro selection, verified download links, and the separate terminal installer, see [DISTRIBUTION.md](DISTRIBUTION.md). Use the installer only after reviewing it; it refuses to install a package format that is absent from the selected version manifest.
-
-```bash
-bash apps/sorot/install.sh --detect
-bash apps/sorot/install.sh --list
-```
-
-The public package download remains version-specific. The terminal helper does not build the application or replace the maintainer's release process.
+For distro selection, verified download links, and the terminal helper, see [DISTRIBUTION.md](DISTRIBUTION.md).
 
 ## What Sorot provides
 
@@ -41,10 +34,10 @@ The separate process used for code extensions protects application stability; **
 
 ## Installation
 
-Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.5.0 package file:
+Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.7.0 package file:
 
 ~~~bash
-sudo apt install ./sorot_0.5.0_all.deb
+sudo apt install ./sorot_0.7.0_all.deb
 ~~~
 
 For a move back to an older version, first select that version's directory, verify its SHA-256 checksums, back up scripts and other important data, and install its package. If APT blocks a downgrade, use the explicit downgrade option:
@@ -75,7 +68,7 @@ See the [0.5.0 test report](releases/0.5.0/TEST-REPORT.md) for the test scope an
 Verify the artifacts in a version folder by running:
 
 ~~~bash
-cd apps/sorot/releases/0.5.0
+cd apps/sorot/releases/0.7.0
 sha256sum -c SHA256SUMS
 ~~~
 
