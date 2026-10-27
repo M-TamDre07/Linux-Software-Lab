@@ -18,7 +18,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.7.0 Beta/testing memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
+      "note": "Sorot 0.7.0 Beta (testing) memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
     },
     {
       "id": "arch",
