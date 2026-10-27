@@ -67,7 +67,7 @@ def arch_profile() -> SystemProfile:
     )
 
 
-def bundled_manifest_for_url(url: str) -> bytes:
+def bundled_manifest_for_url(url: str, *_args: object, **_kwargs: object) -> bytes:
     """Return the local immutable manifest matching the version in a trusted test URL."""
     version = url.rstrip("/").rsplit("/", 2)[-2]
     manifest_path = DATA_DIR / "manifests" / "sorot" / version / "release.json"
@@ -349,7 +349,6 @@ class CatalogTests(unittest.TestCase):
     def test_failed_refresh_preserves_the_previous_active_snapshot(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
         index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
-        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
         def valid_fetch(url: str) -> bytes:
             if url.endswith("software.json"):
@@ -368,7 +367,7 @@ class CatalogTests(unittest.TestCase):
             service = CatalogService(cache_dir=cache)
             with (
                 patch("lsl_center.catalog._fetch_metadata", side_effect=valid_fetch),
-                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+                patch("lsl_center.catalog._fetch_manifest", side_effect=bundled_manifest_for_url),
             ):
                 service.refresh()
             active_before = (cache / "active.json").read_bytes()
@@ -387,7 +386,6 @@ class CatalogTests(unittest.TestCase):
     def test_corrupt_cache_snapshot_falls_back_to_the_bundled_catalog(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
         index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
-        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
         def fetch(url: str) -> bytes:
             return catalog_bytes if url.endswith("software.json") else index_bytes
@@ -396,7 +394,7 @@ class CatalogTests(unittest.TestCase):
             cache = Path(temp) / "cache"
             with (
                 patch("lsl_center.catalog._fetch_metadata", side_effect=fetch),
-                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+                patch("lsl_center.catalog._fetch_manifest", side_effect=bundled_manifest_for_url),
             ):
                 CatalogService(cache_dir=cache).refresh()
             pointer = json.loads((cache / "active.json").read_text(encoding="utf-8"))
