@@ -32,11 +32,11 @@ FILE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 ALLOWED_STATUSES = {"released", "testing", "planned", "archived"}
 ALLOWED_CHANNELS = {"stable", "beta", "alpha", "development"}
 ALLOWED_FORMATS = {
-    "deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip",
+    "deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip", "whl",
 }
 ALLOWED_KINDS = {
     "native-package", "debian-package", "rpm-package", "arch-package",
-    "flatpak-bundle", "flatpak-ref", "appimage", "source-archive",
+    "flatpak-bundle", "flatpak-ref", "appimage", "source-archive", "python-wheel",
 }
 ALLOWED_ARCHITECTURES = {
     "all", "any", "noarch", "x86_64", "amd64", "aarch64", "arm64", "armv7l",
@@ -50,6 +50,7 @@ PACKAGE_KIND_FORMATS = {
     "appimage": {"AppImage"},
     "source-archive": {"tar.gz", "zip"},
     "native-package": {"deb", "rpm", "pkg.tar.zst"},
+    "python-wheel": {"whl"},
 }
 FAMILY_PACKAGE = {
     "debian-family": ("deb", "apt"),
