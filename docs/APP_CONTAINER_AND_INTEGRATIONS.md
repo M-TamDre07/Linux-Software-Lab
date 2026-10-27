@@ -60,7 +60,7 @@ A new product can appear in the catalogue and link to its website/source before 
 
 1. Add or update the product in `public/data/software.json` and keep its detail page, icon, accessibility text, and sitemap entry aligned with the existing website UI contract.
 2. Add real versioned artifacts only under `apps/<slug>/releases/<version>/`; validate the release manifest and `SHA256SUMS`. Do not invent formats or reuse old version directories.
-3. Add the version-manifest pointer to `public/data/distribution-index.json` only when the manifest exists and passes validation.
+3. Add the version-manifest pointer to `public/data/distribution-index.json` only when the manifest exists and passes validation. For Sorot, `apps/sorot/releases/index.json` is the sole manually maintained version list; `scripts/sync_distribution_index.py` derives the displayed version label in both `public/data/software.json` and the launcher's bundled `catalog.json`, alongside the website/launcher distribution indexes.
 4. Keep the launcher’s bundled copies and tests synchronized with the website sources. The CI drift checks should fail if the sources disagree.
 5. If the product should be opened from the launcher, add a reviewed, fixed executable candidate to `lsl_center/integrations.py` and tests. Never add a `command` or `exec` property to catalog JSON.
 6. Enable a new native installer only after implementing its adapter and tests for the relevant distro. Until then, showing the product and linking to its official page/source is valid; pretending it is one-click installable is not.

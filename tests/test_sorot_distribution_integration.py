@@ -97,6 +97,27 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
+    def test_sorot_display_version_is_generated_from_authoritative_release_index(self):
+        index = json.loads((RELEASES / "index.json").read_text(encoding="utf-8"))
+        latest = index["versions"][-1]
+        suffix = {
+            "alpha": "Alpha",
+            "beta": "Beta",
+            "rc": "RC",
+            "stable": "",
+            "development": "Development",
+        }[latest["channel"]]
+        expected = f"{latest['version']} {suffix}".strip()
+
+        catalogue_paths = (
+            PUBLIC / "data" / "software.json",
+            ROOT / "apps" / "software-center" / "lsl_center" / "data" / "catalog.json",
+        )
+        for path in catalogue_paths:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            sorot = next(item for item in data["software"] if item["id"] == "sorot")
+            self.assertEqual(sorot["version"], expected, str(path))
+
     def test_sorot_page_has_distribution_selector_and_terminal_helper(self):
         page = (PUBLIC / "software" / "sorot.html").read_text(encoding="utf-8")
         script = (PUBLIC / "assets" / "js" / "sorot-downloads.js").read_text(encoding="utf-8")
