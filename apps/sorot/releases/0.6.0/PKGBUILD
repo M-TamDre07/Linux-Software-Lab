@@ -1,0 +1,40 @@
+# Maintainer: Muhammad Andreatama <muhammadandreatama@outlook.com>
+#
+# Dihasilkan oleh scripts/build-arch.sh dari packaging/arch/PKGBUILD.in.
+# Sunting templatnya, bukan hasilnya. Aturan agar .SRCINFO dapat dibuat otomatis:
+# skalar ditulis pkgname=nilai atau pkgname='nilai'; larik hanya berisi string bertanda kutip tunggal.
+pkgname=sorot
+pkgver=0.6.0
+pkgrel=1
+pkgdesc='Teleprompter overlay mengambang untuk Linux (Qt/PySide6)'
+arch=('any')
+license=('MIT')
+depends=('python' 'pyside6')
+makedepends=('python-build' 'python-installer' 'python-setuptools' 'python-wheel')
+checkdepends=('python-pytest')
+optdepends=(
+  'python-keyring: simpan API key di keyring sistem'
+  'rclone: buka dan simpan naskah di Google Drive'
+  'qt6-wayland: backend Wayland asli'
+  'xorg-xwayland: backend xcb melalui XWayland'
+)
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('4ac23a5795f4495542385f78041bfdb14e892edba26a1d658d5a4e95322902ea')
+
+build() {
+  cd "$pkgname-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  # Hanya tes tanpa GUI: tidak butuh tampilan, dan kegagalan kompatibilitas desktop
+  # tidak boleh menghalangi pemasangan. Lewati dengan `makepkg --nocheck`.
+  QT_QPA_PLATFORM=offscreen PYTHONPATH=src python -m pytest -q -m 'not gui' -p no:cacheprovider
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  ./scripts/install-files.sh --layout arch "$pkgdir" /usr
+}
