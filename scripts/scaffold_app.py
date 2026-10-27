@@ -115,7 +115,7 @@ def scaffold_application(
             except UnicodeDecodeError as exc:
                 raise ScaffoldError(f"Template harus berupa file teks UTF-8: {path.relative_to(staging)}") from exc
             transformed = _replace_tokens(source, replacements, path.relative_to(staging))
-            path.write_text(transformed, encoding="utf-8", newline="\\n")
+            path.write_text(transformed, encoding="utf-8", newline="\n")
 
         if target.exists() or target.is_symlink():
             raise ScaffoldError(f"Folder apps/{slug} dibuat oleh proses lain. Tidak ada file yang ditimpa.")
