@@ -11,6 +11,7 @@
   const releaseList = $('#sorotReleaseList');
   const latestVersion = document.querySelector('#sorotLatestVersion');
   const latestVersionBadge = document.querySelector('#sorotLatestVersionBadge');
+  const latestTestReport = document.querySelector('#sorotLatestTestReport');
   if (!distroSelect || !detected || !status || !releaseList) return;
 
   const OWNER = 'M-TamDre07';
@@ -352,6 +353,10 @@
     if (latestVersionBadge) latestVersionBadge.textContent = latest
       ? latest.channel.toUpperCase() + ' ' + latest.version
       : 'Rilis Beta';
+    if (latestTestReport && latest) {
+      latestTestReport.href = /^https:\/\//.test(latest.testReportUrl)
+        ? latest.testReportUrl : latest.manifestUrl;
+    }
     const distro = getDistro();
     status.textContent = distro.note;
     if (!registry) {
