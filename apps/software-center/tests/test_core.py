@@ -636,7 +636,7 @@ class CliTests(unittest.TestCase):
             main(["--version"], service=self.service, profile=arch_profile())
         self.assertEqual(raised.exception.code, 0)
         self.assertIn("lsl", output.getvalue())
-        self.assertIn("0.1.0.dev1", output.getvalue())
+        self.assertIn("0.1.0", output.getvalue())
 
     def test_info_command_does_not_claim_paketscope_has_a_release_package(self) -> None:
         output = StringIO()
