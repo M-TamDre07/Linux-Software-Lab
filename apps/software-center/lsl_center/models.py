@@ -18,11 +18,12 @@ class SystemProfile:
     package_manager_path: str | None
     pkexec_path: str | None
     flatpak_path: str | None
+    os_name: str = "Linux"
 
     @property
     def is_linux(self) -> bool:
-        # An unknown family can still be a Linux distro; installation then fails closed.
-        return self.distro_id not in {"", "unknown"}
+        """Identify the running OS independently of distro metadata availability."""
+        return self.os_name.strip().casefold() == "linux"
 
 
 @dataclass(frozen=True, slots=True)

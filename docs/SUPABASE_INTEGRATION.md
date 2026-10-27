@@ -11,7 +11,9 @@ Search, filtering, and sorting remain in the browser. Search terms are not sent 
 
 ## Database and access model
 
-The migration supabase/migrations/20261024172127_create_software_catalog.sql defines public.software_catalog with a narrow catalogue schema. Row Level Security is enabled. The anonymous role has SELECT only, and the software_catalog_public_read policy exposes rows where published is true. No public write privileges are granted. Do not add credentials, per-user data, logs, or secrets to this table.
+The migration `supabase/migrations/20261024172127_create_software_catalog.sql` defines `public.software_catalog` with a narrow catalogue schema. Row Level Security is enabled. The anonymous role has SELECT only, and the `software_catalog_public_read` policy exposes rows where `published` is true. No public write privileges are granted. Do not add credentials, per-user data, logs, or secrets to this table.
+
+The already-applied migration `supabase/migrations/20261026105902_add_admin_catalog_read_access.sql` creates `public.lsl_admin_users` and adds a separate authenticated SELECT policy for admins with an active server-managed membership. Anonymous visitors cannot query the admin registry. Track every database change in Git as a migration; do not edit production schema ad hoc and leave its migration missing from the repository. See [the live security audit snapshot](SECURITY_MAINTENANCE.md#foundation-audit-snapshot--2026-10-27).
 
 The browser sends the public publishable key in both the required `apikey` header and the `Authorization: Bearer` header using public/assets/js/supabase-config.js. A publishable key is not an authorization boundary: RLS and SQL grants are the data protection. Never put an sb_secret_ key or legacy service-role key in website assets, HTML, source code, or public environment variables.
 
@@ -34,7 +36,9 @@ Run locally:
     python scripts/sync_supabase_catalog.py --check
     python -m unittest discover -s tests -v
 
-After database changes, inspect migration history and Supabase security/performance advisors. The intended public query is a filtered SELECT on software_catalog; it must never accept writes from an anonymous browser. If the Data API is disabled for this project, enable it deliberately in the Supabase dashboard or keep static JSON as the operational path.
+After database changes, inspect migration history and Supabase security/performance advisors. The intended public query is a filtered SELECT on software_catalog; it must never accept writes from an anonymous browser.
+
+The public catalogue is validated in the browser by `public/assets/js/catalog-contract.js` before display. For a live read-only comparison of the deployed Vercel `software.json` and the published Supabase mirror against GitHub, run `python scripts/check_live_integrations.py` from a networked checkout. The command uses only the committed public publishable key, fixed endpoints and fixed SELECT columns. It does not run SQL writes, migrate the schema, or change Vercel. A daily scheduled/manual GitHub Actions workflow performs the same parity audit; drift is reported as a failed check so the maintainer can inspect the deployment/sync path. If the Data API is disabled for this project, enable it deliberately in the Supabase dashboard or keep static JSON as the operational path.
 
 ## Scope and limitations
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://muhammadandrea.vercel.app/data/software.schema.json",
+  "$id": "https://linux-software-lab.vercel.app/data/software.schema.json",
   "title": "Linux Software Lab catalog",
   "description": "Metadata contract for catalogued desktop and developer software.",
   "type": "object",

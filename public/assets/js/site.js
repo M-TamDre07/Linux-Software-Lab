@@ -50,6 +50,7 @@ window.addEventListener('resize', () => { if (window.innerWidth > 700) closeMenu
 const grid = $('#softwareGrid');
 const searchInput = $('#softwareSearch');
 const resultCount = $('#resultCount');
+const catalogSourceStatus = $('#catalogSourceStatus');
 const statusButtons = $$('.filter-btn[data-filter]');
 const categorySelect = $('#categoryFilter');
 const platformSelect = $('#platformFilter');
@@ -112,8 +113,9 @@ const safeExternalURL = value => {
 
 const makeSearchIndex = app => {
   const values = [
-    app.name, app.summary, app.description, app.category, app.status, app.version,
-    app.type, ...(app.tags || []), ...(app.keywords || []), ...(app.features || []),
+    app.id, app.slug, app.name, app.summary, app.description, app.category,
+    app.status, app.version, app.type,
+    ...(app.tags || []), ...(app.keywords || []), ...(app.features || []),
     ...(app.platforms || [])
   ];
   app._searchText = normalise(values.join(' '));
@@ -420,9 +422,6 @@ const fetchSupabaseCatalog = async () => {
     previewAlt: row.preview_alt,
     updatedAt: typeof row.updated_at === 'string' ? row.updated_at.slice(0, 10) : ''
   }));
-  if (mapped.some(app => !app.id || !app.name || !app.detailUrl || !app.iconImage || !app.previewImage)) {
-    throw new Error('Supabase catalogue contains incomplete records.');
-  }
   const latestDate = mapped.map(app => app.updatedAt).filter(Boolean).sort().pop() || '';
   return {
     schemaVersion: 2,
@@ -437,14 +436,42 @@ const fetchSupabaseCatalog = async () => {
   };
 };
 
+const setCatalogSourceStatus = (message, kind = 'info') => {
+  if (!catalogSourceStatus) return;
+  catalogSourceStatus.textContent = message;
+  catalogSourceStatus.dataset.kind = kind;
+};
+
+const validateCatalogPayload = payload => {
+  const contract = window.LSL_CATALOG_CONTRACT;
+  if (!contract || typeof contract.validateCatalogPayload !== 'function') {
+    throw new Error('Kontrak validasi katalog tidak tersedia.');
+  }
+  const report = contract.validateCatalogPayload(payload);
+  if (!report.valid) {
+    console.warn('[Linux Software Lab] Catalogue contract validation failed:', report.errors);
+    throw new Error('Data katalog tidak sesuai dengan kontrak yang didukung.');
+  }
+  return payload;
+};
+
 if (grid) {
   const loadCatalog = async () => {
     try {
-      return await fetchSupabaseCatalog();
+      const data = validateCatalogPayload(await fetchSupabaseCatalog());
+      setCatalogSourceStatus('Sumber katalog: mirror Supabase tersedia dan lolos validasi.', 'success');
+      return data;
     } catch (_) {
-      // Preserve resilience: use the committed static catalogue when the API is unavailable.
-      console.warn('[Linux Software Lab] Supabase catalogue unavailable; using static JSON fallback.');
-      return await fetchStaticCatalog();
+      // Never render the raw upstream response. Use only a locally committed and validated fallback.
+      console.warn('[Linux Software Lab] Catalogue mirror unavailable or invalid; trying the committed static JSON fallback.');
+      try {
+        const data = validateCatalogPayload(await fetchStaticCatalog());
+        setCatalogSourceStatus('Mirror katalog tidak tersedia atau datanya tidak valid; menggunakan data statis website. Data mungkin tertinggal sampai sinkronisasi pulih.', 'warning');
+        return data;
+      } catch (_) {
+        setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
+        throw new Error('Katalog tidak tersedia atau tidak valid pada sumber online maupun fallback lokal.');
+      }
     }
   };
   loadCatalog()
@@ -453,18 +480,16 @@ if (grid) {
         throw new Error('Struktur katalog tidak sesuai dengan versi skema yang didukung.');
       }
       pageSize = Number.isInteger(data.catalog?.pageSize) && data.catalog.pageSize > 0 ? Math.min(100, data.catalog.pageSize) : 12;
-      software = data.software
-        .filter(app => app && typeof app.id === 'string' && typeof app.name === 'string')
-        .map(app => makeSearchIndex({ ...app }));
+      software = data.software.map(app => makeSearchIndex({ ...app }));
       fillCatalogControls();
       updateCatalogOverview();
       catalogLoaded = true;
       applyURLState();
       refresh(false);
     })
-    .catch(error => {
-      grid.innerHTML = '<div class="empty-state"><strong>Katalog belum dapat dimuat.</strong><span>' +
-        escapeHTML(error.message || 'Periksa koneksi dan coba muat ulang halaman.') + '</span></div>';
+    .catch(() => {
+      setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
+      grid.innerHTML = '<div class="empty-state" role="alert"><strong>Katalog belum dapat dimuat.</strong><span>Periksa koneksi internet, lalu muat ulang halaman. Tidak ada perubahan data yang dilakukan.</span></div>';
       if (resultCount) resultCount.textContent = 'Katalog tidak tersedia';
       if (paginationSummary) paginationSummary.textContent = '';
       if (loadMoreButton) loadMoreButton.hidden = true;

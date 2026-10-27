@@ -1,0 +1,44 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# JavaScript / TypeScript
+node_modules/
+.npm/
+.next/
+coverage/
+
+# Rust
+target/
+
+# Generic generated output and local state
+.cache/
+.tmp/
+temp/
+logs/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

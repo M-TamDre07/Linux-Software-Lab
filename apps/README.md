@@ -8,6 +8,16 @@ Every product maintained by Linux Software Lab has its own directory under `apps
 - `software-center/` — Linux Software Lab Center launcher preview. Its Qt GUI and `lsl` CLI share the same metadata, distro detection, artifact selection, and installation-safety core. Only Debian .deb installation is enabled in the MVP; no launcher release package has been published. See `software-center/README.md` for development and test instructions.
 - `sorot/` — native Linux desktop teleprompter. Shared product documentation and maintenance patches stay at the product root; immutable package/source artifacts and version-specific test reports are archived under `sorot/releases/<version>/`, starting with [`0.5.0 Beta`](sorot/releases/0.5.0/RELEASE-NOTES.md). See [`sorot/README.md`](sorot/README.md) and [`sorot/releases/README.md`](sorot/releases/README.md). Never replace an existing version's files with a different build.
 
+## Generate a new application scaffold
+
+From the repository root, start with the shared technology-neutral template:
+
+```bash
+python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "A short description of the problem it solves."
+```
+
+The helper rejects unsafe IDs, refuses to overwrite an existing directory, and does not add catalogue records, choose a licence, register executable commands, or create releases. Review every placeholder before implementation, then validate `application.json` with `python scripts/validate_app_manifest.py apps/<slug>/application.json`. See [templates/README.md](../templates/README.md) and [the technology policy](../docs/TECH_STACK_AND_RUNTIME_POLICY.md).
+
 ## Expected structure for an implemented application
 
 Each application should keep its project-specific material together, with the actual folders introduced as they are needed:

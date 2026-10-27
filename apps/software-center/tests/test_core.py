@@ -19,6 +19,7 @@ from lsl_center.catalog import (
 from lsl_center.cli import main
 from lsl_center.distro import (
     architecture_matches,
+    artifact_compatibility,
     canonical_architecture,
     detect_system_profile,
 )
@@ -99,6 +100,64 @@ class DistributionDetectionTests(unittest.TestCase):
         self.assertEqual(profile.family, "arch-family")
         self.assertEqual(profile.package_manager, "pacman")
         self.assertEqual(profile.architecture, "x86_64")
+
+    def test_missing_os_release_still_recognises_linux_but_disables_unknown_family_install(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            profile = detect_system_profile(
+                Path(temp) / "missing-os-release",
+                machine="x86_64",
+                which=lambda _command: None,
+                os_name="Linux",
+            )
+        self.assertTrue(profile.is_linux)
+        self.assertEqual(profile.family, "unknown")
+        self.assertEqual(profile.distro_id, "unknown")
+        self.assertEqual(profile.pretty_name, "Linux (distribution unknown)")
+        self.assertIsNone(profile.package_manager_path)
+
+        app = CatalogService(data_dir=DATA_DIR).load().find("sorot")
+        assert app is not None
+        artifact = next(item for item in app.artifacts if item.format == "deb")
+        compatible, message = artifact_compatibility(artifact, profile)
+        self.assertFalse(compatible)
+        self.assertIn("Debian/Ubuntu", message)
+
+    def test_non_linux_host_is_not_misidentified_as_linux_from_os_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            os_release = Path(temp) / "os-release"
+            os_release.write_text('ID=ubuntu\\nPRETTY_NAME="Ubuntu fixture"\\n', encoding="utf-8")
+            profile = detect_system_profile(
+                os_release,
+                machine="x86_64",
+                which=lambda _command: "/usr/bin/fake",
+                os_name="Windows",
+            )
+        self.assertFalse(profile.is_linux)
+        self.assertEqual(profile.family, "unknown")
+        self.assertEqual(profile.pretty_name, "Windows (distribution detection unavailable)")
+
+        app = CatalogService(data_dir=DATA_DIR).load().find("sorot")
+        assert app is not None
+        artifact = next(item for item in app.artifacts if item.format == "deb")
+        compatible, message = artifact_compatibility(artifact, profile)
+        self.assertFalse(compatible)
+        self.assertIn("hanya mendukung sistem Linux", message)
+
+    def test_distribution_family_hints_cover_fedora_and_suse_without_guessing_unknowns(self) -> None:
+        fixtures = (
+            ('ID=fedora\nPRETTY_NAME="Fedora Linux"\n', "fedora-family"),
+            ('ID=opensuse-tumbleweed\nPRETTY_NAME="openSUSE Tumbleweed"\n', "suse-family"),
+            ('ID=customlinux\nID_LIKE="debian"\nPRETTY_NAME="Custom Linux"\n', "debian-family"),
+            ('ID=customlinux\nPRETTY_NAME="Custom Linux"\n', "unknown"),
+        )
+        for content, expected in fixtures:
+            with self.subTest(expected=expected, content=content):
+                with tempfile.TemporaryDirectory() as temp:
+                    path = Path(temp) / "os-release"
+                    path.write_text(content, encoding="utf-8")
+                    profile = detect_system_profile(path, machine="x86_64", which=lambda _name: None, os_name="Linux")
+                self.assertEqual(profile.family, expected)
+                self.assertTrue(profile.is_linux)
 
     def test_architecture_aliases_match_without_accepting_other_architectures(self) -> None:
         self.assertEqual(canonical_architecture("amd64"), "x86_64")

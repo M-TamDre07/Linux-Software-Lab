@@ -5,12 +5,17 @@ on:
     branches: [main, "feature/linux-software-lab-global"]
     paths:
       - "public/**"
+      - ".github/pull_request_template.md"
+      - ".gitattributes"
+      - ".editorconfig"
+      - "templates/**"
       - ".gitignore"
       - "scripts/**"
       - "tests/**"
       - "docs/**"
       - "README.md"
       - "vercel.json"
+      - ".github/workflows/deployment-integrity.yml"
       - ".github/workflows/site-quality.yml"
       - ".github/workflows/codeql.yml"
       - ".github/dependabot.yml"
@@ -19,12 +24,17 @@ on:
   pull_request:
     paths:
       - "public/**"
+      - ".github/pull_request_template.md"
+      - ".gitattributes"
+      - ".editorconfig"
+      - "templates/**"
       - ".gitignore"
       - "scripts/**"
       - "tests/**"
       - "docs/**"
       - "README.md"
       - "vercel.json"
+      - ".github/workflows/deployment-integrity.yml"
       - ".github/workflows/site-quality.yml"
       - ".github/workflows/codeql.yml"
       - ".github/dependabot.yml"
@@ -52,14 +62,23 @@ jobs:
         run: node --version
       - name: Validate catalog metadata and release-state rules
         run: python scripts/validate_catalog.py
+      - name: Validate the standard application scaffold manifest
+        run: python scripts/validate_app_manifest.py
       - name: Check local links, canonical metadata, robots and sitemap
         run: python scripts/check_site_links.py
+      - name: Check repository documentation links
+        run: python scripts/check_docs_links.py
       - name: Check website JavaScript syntax
-        run: node --check public/assets/js/site.js
+        run: |
+          node --check public/assets/js/catalog-contract.js
+          node --check public/assets/js/site.js
+      - name: Test runtime catalogue contract
+        run: node --test tests/test_catalog_contract.cjs
       - name: Validate website JSON and Vercel configuration
         run: |
           python -m json.tool public/data/software.json > /dev/null
           python -m json.tool public/data/software.schema.json > /dev/null
+          python -m json.tool templates/application/application.schema.json > /dev/null
           python -m json.tool vercel.json > /dev/null
       - name: Run metadata, sitemap and link regression tests
         run: python -m unittest discover -s tests -v

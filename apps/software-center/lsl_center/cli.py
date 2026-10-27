@@ -145,11 +145,20 @@ def _show_ecosystem(service: CatalogService, profile: SystemProfile, as_json: bo
 
 
 def _print_profile(profile: SystemProfile) -> None:
-    print(f"Sistem       : {profile.pretty_name}")
-    print(f"ID distro    : {profile.distro_id}")
-    print(f"Keluarga     : {profile.family}")
-    print(f"Arsitektur   : {profile.architecture}")
-    print(f"Package mgr  : {profile.package_manager or 'belum dikenali'}")
+    print(f"OS            : {profile.os_name or 'tidak dikenali'}")
+    print(f"Sistem        : {profile.pretty_name}")
+    print(f"ID distro     : {profile.distro_id}")
+    print(f"Keluarga      : {profile.family}")
+    print(f"Arsitektur    : {profile.architecture}")
+    if profile.package_manager:
+        manager_status = (
+            f"{profile.package_manager} ({profile.package_manager_path})"
+            if profile.package_manager_path
+            else f"{profile.package_manager} (tidak ditemukan)"
+        )
+    else:
+        manager_status = "belum dikenali untuk distro ini"
+    print(f"Package mgr   : {manager_status}")
     print(f"pkexec/Polkit : {'tersedia' if profile.pkexec_path else 'tidak ditemukan'}")
 
 
@@ -273,8 +282,12 @@ def main(
 
     if args.command == "detect":
         _print_profile(system_profile)
-        if system_profile.family == "unknown":
-            print("Catatan: distro ini belum memiliki adapter native yang dikenali.")
+        if not system_profile.is_linux:
+            print("Catatan: launcher ini saat ini hanya mendukung Linux; tidak ada instalasi yang akan dijalankan.")
+        elif system_profile.family == "unknown":
+            print("Catatan: Linux terdeteksi, tetapi keluarganya belum dikenali. Instalasi paket akan dinonaktifkan.")
+        elif system_profile.package_manager and not system_profile.package_manager_path:
+            print("Catatan: pengelola paket keluarga distro ini tidak ditemukan. Instalasi akan dinonaktifkan.")
         return 0
 
     if args.command == "refresh":

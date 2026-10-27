@@ -529,3 +529,10 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 /* Keep the PaketScope source-mode terminal block aligned with the shared install panel. */
 .terminal-command{margin:12px 0;padding:14px;overflow:auto;border:1px solid var(--line);background:var(--bg);white-space:pre-wrap;overflow-wrap:anywhere}
 .terminal-command code{font:11px/1.9 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--text)}
+
+
+/* Accessible catalogue source status; message text is controlled by the UI, never server output. */
+.catalog-source-status{display:block;max-width:100%;font-size:10px;line-height:1.7;color:var(--muted);overflow-wrap:anywhere}
+.catalog-source-status[data-kind=success]{color:var(--success)}
+.catalog-source-status[data-kind=warning]{color:var(--warning)}
+.catalog-source-status[data-kind=error]{color:var(--text);font-weight:700}

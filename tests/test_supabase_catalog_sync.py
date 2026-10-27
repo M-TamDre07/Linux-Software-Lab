@@ -3,9 +3,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from urllib.parse import parse_qs
 
 from scripts.sync_supabase_catalog import (
     EXPECTED_SUPABASE_URL,
+    build_stale_filter,
     catalog_rows_match,
     load_catalog,
     to_record,
@@ -56,6 +58,27 @@ class SupabaseCatalogSyncTests(unittest.TestCase):
         self.assertFalse(catalog_rows_match(rows, changed))
         self.assertFalse(catalog_rows_match(rows, rows[:1]))
         self.assertFalse(catalog_rows_match(rows, [{"id": "paketscope"}]))
+
+    def test_stale_row_filter_is_encoded_from_validated_slugs(self):
+        query = build_stale_filter(["paketscope", "sorot"])
+        parameters = parse_qs(query)
+        self.assertEqual(parameters["id"], ["not.in.(paketscope,sorot)"])
+        self.assertNotIn(" ", query)
+
+    def test_stale_row_filter_rejects_injection_and_ambiguous_ids(self):
+        malicious_ids = [
+            ["sorot') OR 1=1 --"],
+            ["sorot;DROP TABLE software_catalog"],
+            ["../../secret"],
+            ["sorot", "another slug"],
+            ["sorot'--"],
+            ["sorot", "sorot"],
+            [],
+        ]
+        for identifiers in malicious_ids:
+            with self.subTest(identifiers=identifiers):
+                with self.assertRaises(ValueError):
+                    build_stale_filter(identifiers)
 
     def test_missing_metadata_is_rejected(self):
         data = load_catalog()

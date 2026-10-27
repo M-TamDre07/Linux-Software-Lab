@@ -17,8 +17,9 @@ repository/
 │       ├── index.html
 │       └── <slug>.html
 ├── apps/<slug>/                  # Application source code
-├── scripts/                      # Repository checks, never published
-├── tests/                        # Regression tests, never published
+├── templates/application/        # Standard starter layout for new products
+├── scripts/                      # Validators, sync checks, and safe scaffolding
+├── tests/                        # Regression and security-boundary tests
 ├── docs/                         # Maintainer documentation, never published
 └── vercel.json                   # Sets outputDirectory to public/
 ~~~
@@ -32,11 +33,12 @@ Keep the Vercel Root Directory at the repository root. vercel.json selects publi
 3. scripts/validate_catalog.py validates required fields, safe local paths, unique IDs/slugs, date and URL formats, accepted software types/statuses, and release-link rules.
 4. scripts/check_site_links.py checks local HTML references and verifies sitemap, robots directives, and canonical URLs against actual catalogue pages.
 5. GitHub Actions runs site checks and validates the Supabase sync mapping; a trusted main-branch workflow mirrors approved metadata to Supabase.
-6. The browser reads published rows from Supabase with the public publishable key, falling back to same-origin JSON if the API fails; search and filtering remain client-side.
+6. The browser reads published rows from Supabase with the public publishable key. `public/assets/js/catalog-contract.js` validates both the mirror response and the same-origin JSON fallback before anything is rendered; if the mirror is unavailable or malformed, the browser uses the validated static catalogue. Search and filtering remain client-side.
+7. The read-only `scripts/check_live_integrations.py` compares production Vercel JSON and published Supabase rows with the canonical GitHub catalogue. The scheduled/manual `Live integration integrity` workflow catches deployment lag or mirror drift without writing to either service.
 
 ## Catalogue scaling
 
-Search indexes are built once when catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
+A shared runtime contract rejects malformed rows, duplicate IDs/slugs, unknown statuses/types, unsafe URLs/assets, and invalid dates before rendering. Search indexes are built once after catalogue JSON loads. Search covers names, summaries, descriptions, categories, versions, types, tags, keywords, features, and platforms. Category and platform options come from metadata rather than being hard-coded. Status and sort settings are shareable in the URL. Results are appended in small batches so hundreds of records do not need to be rendered into the DOM at once.
 
 The Supabase mirror is limited to public catalogue metadata. Do not expand it into user data, analytics, package search, or a write API without a concrete requirement, measured need, and a separate security review.
 
@@ -48,8 +50,12 @@ The Supabase mirror is limited to public catalogue metadata. Do not expand it in
 - archived: no longer actively maintained.
 - The catalogue must never present concept artwork as a screenshot of a released app.
 - Avoid compatibility claims that have not been tested on the stated platform.
-- New product pages must have canonical URLs and be added to public/sitemap.xml.
+- New product pages must have canonical URLs and be added to public/sitemap.xml. Follow [SEO_MAINTENANCE.md](SEO_MAINTENANCE.md) for the complete crawlability and content quality contract.
 - Search filters are client-side; search terms stay in the browser.
+
+## Application contribution contract
+
+New applications start from `templates/application/` via `python scripts/scaffold_app.py`. The scaffold is intentionally runtime-neutral; each product chooses its own runtime, licence, OS matrix, and real package formats. The helper never mutates the catalogue, public pages, release index, or launcher allowlist. User-facing error messages follow [ERROR_HANDLING_STANDARD.md](ERROR_HANDLING_STANDARD.md). Runtime/framework and OS support decisions follow [TECH_STACK_AND_RUNTIME_POLICY.md](TECH_STACK_AND_RUNTIME_POLICY.md).
 
 ## Security boundaries
 

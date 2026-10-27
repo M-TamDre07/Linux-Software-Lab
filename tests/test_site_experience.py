@@ -127,12 +127,16 @@ class WebsiteExperienceTests(unittest.TestCase):
         source, _ = self.parse_page("software/index.html")
         for identifier in (
             "softwareSearch", "statusFilters", "categoryFilter",
-            "platformFilter", "sortFilter", "clearFilters", "loadMore",
+            "platformFilter", "sortFilter", "clearFilters", "loadMore", "catalogSourceStatus",
         ):
             with self.subTest(control=identifier):
                 self.assertIn(f'id="{identifier}"', source)
         self.assertIn('aria-live="polite"', source)
         self.assertIn('aria-pressed="true"', source)
+        self.assertIn('id="catalogSourceStatus" class="catalog-source-status" role="status"', source)
+        self.assertLess(source.index('src="/assets/js/catalog-contract.js"'), source.index('src="/assets/js/site.js"'))
+        self.assertIn("menggunakan data statis website", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
+        self.assertIn("Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
 
     def test_paketscope_page_is_explicit_about_installation_state(self) -> None:
         source, _ = self.parse_page("software/paketscope.html")

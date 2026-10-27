@@ -1,0 +1,31 @@
+name: Live integration integrity
+
+on:
+  # Run after normal deployment/sync traffic has settled, and on demand before a release.
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-integration-integrity
+  cancel-in-progress: false
+
+jobs:
+  read-only-audit:
+    name: Compare GitHub, Vercel, and Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Check canonical catalogue locally
+        run: |
+          python scripts/validate_catalog.py
+          python scripts/sync_supabase_catalog.py --check
+      - name: Run read-only production parity audit
+        run: python scripts/check_live_integrations.py
