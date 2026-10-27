@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate the public distribution index from Sorot's authoritative release index."""
+"""Regenerate distribution metadata and Sorot catalogue labels from the canonical release index."""
 from __future__ import annotations
 
 import argparse
@@ -12,9 +12,18 @@ ROOT = Path(__file__).resolve().parents[1]
 RELEASE_INDEX_PATH = ROOT / "apps" / "sorot" / "releases" / "index.json"
 PUBLIC_INDEX_PATH = ROOT / "public" / "data" / "distribution-index.json"
 BUNDLED_INDEX_PATH = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "distribution-index.json"
+PUBLIC_CATALOG_PATH = ROOT / "public" / "data" / "software.json"
+BUNDLED_CATALOG_PATH = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "catalog.json"
 RAW_ROOT = "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main"
 ALLOWED_STATUSES = {"testing", "released", "archived"}
 ALLOWED_CHANNELS = {"alpha", "beta", "rc", "stable", "development"}
+CHANNEL_LABELS = {
+    "alpha": "Alpha",
+    "beta": "Beta",
+    "rc": "RC",
+    "stable": "",
+    "development": "Development",
+}
 
 
 class IndexSyncError(ValueError):
@@ -29,6 +38,33 @@ def _load(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise IndexSyncError(f"{path.relative_to(ROOT)} must contain a JSON object")
     return value
+
+
+def _format_version_label(entry: dict[str, Any]) -> str:
+    version = entry.get("version")
+    channel = entry.get("channel")
+    if not isinstance(version, str) or channel not in CHANNEL_LABELS:
+        raise IndexSyncError("Latest Sorot version must contain a valid version and channel")
+    return f"{version} {CHANNEL_LABELS[channel]}".strip()
+
+
+def _build_catalog_with_current_sorot_version(path: Path, version_label: str) -> dict[str, Any]:
+    data = _load(path)
+    software = data.get("software")
+    if not isinstance(software, list):
+        raise IndexSyncError(f"{path.relative_to(ROOT)} must contain a software array")
+    matches = [
+        item for item in software
+        if isinstance(item, dict) and item.get("id") == "sorot"
+    ]
+    if len(matches) != 1:
+        raise IndexSyncError(
+            f"{path.relative_to(ROOT)} must contain exactly one Sorot catalogue entry"
+        )
+    # The canonical version list lives in apps/sorot/releases/index.json.
+    # This field is a generated display/search label, never a second source of truth.
+    matches[0]["version"] = version_label
+    return data
 
 
 def _build_public_index() -> dict[str, Any]:
@@ -119,10 +155,11 @@ def _build_public_index() -> dict[str, Any]:
     sorot["planned_targets"] = planned
 
     latest = entries[-1]
+    latest_label = _format_version_label(latest)
     debian = next((item for item in distributions if item.get("id") == "debian-family"), None)
     if debian is not None and "deb" in set(latest.get("formats", [])):
         debian["note"] = (
-            f"Sorot {latest['version']} Beta/testing memiliki paket .deb. "
+            f"Sorot {latest_label} ({latest['status']}) memiliki paket .deb. "
             "Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
         )
     arch_target = next((item for item in planned if item["distribution_id"] == "arch"), None)
@@ -138,26 +175,49 @@ def _build_public_index() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="fail if the checked-in generated file is stale")
-    parser.add_argument("--write", action="store_true", help="write the generated public index")
+    parser.add_argument("--check", action="store_true", help="fail if checked-in generated metadata is stale")
+    parser.add_argument("--write", action="store_true", help="write all generated distribution metadata")
     args = parser.parse_args()
     if args.check and args.write:
         parser.error("choose either --check or --write")
     try:
-        expected = json.dumps(_build_public_index(), ensure_ascii=False, indent=2) + "\n"
-    except (IndexSyncError, OSError) as exc:
+        expected_index = json.dumps(_build_public_index(), ensure_ascii=False, indent=2) + "\n"
+        release_source = _load(RELEASE_INDEX_PATH)
+        latest = release_source["versions"][-1]
+        version_label = _format_version_label(latest)
+        expected_files = {
+            PUBLIC_INDEX_PATH: expected_index,
+            BUNDLED_INDEX_PATH: expected_index,
+            PUBLIC_CATALOG_PATH: json.dumps(
+                _build_catalog_with_current_sorot_version(PUBLIC_CATALOG_PATH, version_label),
+                ensure_ascii=False,
+                indent=2,
+            ) + "\n",
+            BUNDLED_CATALOG_PATH: json.dumps(
+                _build_catalog_with_current_sorot_version(BUNDLED_CATALOG_PATH, version_label),
+                ensure_ascii=False,
+                indent=2,
+            ) + "\n",
+        }
+    except (IndexSyncError, OSError, KeyError, IndexError, TypeError) as exc:
         print(f"Distribution index sync failed: {exc}", file=sys.stderr)
         return 1
     if args.write:
-        PUBLIC_INDEX_PATH.write_text(expected, encoding="utf-8")
-        BUNDLED_INDEX_PATH.write_text(expected, encoding="utf-8")
-        print("Generated the website and Software Center distribution indexes from apps/sorot/releases/index.json.")
+        for path, content in expected_files.items():
+            path.write_text(content, encoding="utf-8")
+        print(
+            "Generated website/launcher distribution indexes and Sorot display-version labels "
+            "from apps/sorot/releases/index.json."
+        )
         return 0
-    for path in (PUBLIC_INDEX_PATH, BUNDLED_INDEX_PATH):
+    for path, expected in expected_files.items():
         if not path.is_file() or path.read_text(encoding="utf-8") != expected:
             print(f"{path.relative_to(ROOT)} is stale; run python scripts/sync_distribution_index.py --write.", file=sys.stderr)
             return 1
-    print("Website and Software Center distribution indexes match the Sorot release index.")
+    print(
+        "Website and Software Center distribution indexes/catalogue version labels "
+        "match the Sorot release index."
+    )
     return 0
 
 

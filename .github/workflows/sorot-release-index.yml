@@ -5,12 +5,16 @@ on:
     branches: [main]
     paths:
       - "apps/sorot/releases/**"
+      - "public/data/software.json"
+      - "apps/software-center/lsl_center/data/catalog.json"
       - "scripts/sync_distribution_index.py"
       - ".github/workflows/sorot-release-index.yml"
   pull_request:
     paths:
       - "apps/sorot/releases/**"
       - "apps/sorot/experimental/arch/**"
+      - "public/data/software.json"
+      - "apps/software-center/lsl_center/data/catalog.json"
       - "scripts/sync_distribution_index.py"
       - ".github/workflows/sorot-release-index.yml"
       - "public/assets/js/sorot-downloads.js"
@@ -72,13 +76,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python scripts/sync_distribution_index.py --write
-          if git diff --quiet -- public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json; then
-            echo "Public distribution index is already current."
+          if git diff --quiet -- public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json public/data/software.json apps/software-center/lsl_center/data/catalog.json; then
+            echo "Generated indexes and catalogue version labels are already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json
-          git commit -m "chore: sync Sorot release index"
+          git add public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json public/data/software.json apps/software-center/lsl_center/data/catalog.json
+          git commit -m "chore: sync Sorot release metadata"
           gh auth setup-git
           git push origin HEAD:main
