@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QApplication
 from lsl_center.catalog import CatalogService
 from lsl_center.gui import MainWindow
 from lsl_center.models import SystemProfile
+from lsl_center.selection import source_artifacts
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = APP_ROOT / "lsl_center" / "data"
@@ -63,7 +64,8 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertEqual(window.current_application.id, "sorot")
         self.assertFalse(window.install_button.isEnabled())
         self.assertIn("Belum tersedia", window.install_button.text())
-        self.assertEqual(window.source_combo.count(), 2)
+        sorot = window.current_application
+        self.assertEqual(window.source_combo.count(), len(source_artifacts(sorot)))
         self.assertTrue(window.source_button.isEnabled())
         self.assertTrue(window.website_button.isEnabled())
         self.assertTrue(window.manifest_button.isEnabled())

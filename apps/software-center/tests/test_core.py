@@ -67,6 +67,13 @@ def arch_profile() -> SystemProfile:
     )
 
 
+def bundled_manifest_for_url(url: str) -> bytes:
+    """Return the local immutable manifest matching the version in a trusted test URL."""
+    version = url.rstrip("/").rsplit("/", 2)[-2]
+    manifest_path = DATA_DIR / "manifests" / "sorot" / version / "release.json"
+    return manifest_path.read_bytes()
+
+
 class DistributionDetectionTests(unittest.TestCase):
     def test_detects_debian_family_from_os_release(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -221,13 +228,24 @@ class CatalogTests(unittest.TestCase):
         self.assertIsNotNone(sorot)
         self.assertIsNotNone(paketscope)
         assert sorot is not None and paketscope is not None
+        release_index = json.loads(
+            (REPO_ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8")
+        )
+        expected_artifacts = {
+            (version["version"], artifact["format"])
+            for version in release_index["versions"]
+            for artifact in json.loads(
+                (REPO_ROOT / "apps" / "sorot" / "releases" / version["version"] / "release.json")
+                .read_text(encoding="utf-8")
+            )["artifacts"]
+        }
         self.assertEqual(
             {(artifact.version, artifact.format) for artifact in sorot.artifacts},
-            {("0.5.0", "deb"), ("0.5.0", "tar.gz"), ("0.5.0", "zip")},
+            expected_artifacts,
         )
         self.assertEqual(paketscope.artifacts, ())
         self.assertTrue(any(
-            target.distribution_id == "arch" and target.version == "0.6.0"
+            target.distribution_id == "arch" and target.version == release_index["planned_targets"][0]["version"]
             for target in sorot.planned_targets
         ))
 
@@ -237,7 +255,13 @@ class CatalogTests(unittest.TestCase):
         validate_catalog_payload(catalog)
         validate_distribution_index(index)
         # CatalogService.load also parses and validates every referenced release manifest.
-        self.assertEqual(len(self.snapshot.find("sorot").artifacts), 3)
+        release_index = json.loads(
+            (REPO_ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            len(self.snapshot.find("sorot").artifacts),
+            sum(len(item["formats"]) for item in release_index["versions"]),
+        )
 
     def test_each_app_record_contains_a_safe_website_detail_route(self) -> None:
         for app in self.snapshot.applications:
@@ -277,7 +301,6 @@ class CatalogTests(unittest.TestCase):
     def test_refresh_activates_one_complete_snapshot(self) -> None:
         catalog_bytes = (DATA_DIR / "catalog.json").read_bytes()
         index_bytes = (DATA_DIR / "distribution-index.json").read_bytes()
-        manifest_bytes = (DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json").read_bytes()
 
         def fetch_metadata(url: str) -> bytes:
             if url.endswith("software.json"):
@@ -291,7 +314,7 @@ class CatalogTests(unittest.TestCase):
             service = CatalogService(cache_dir=cache)
             with (
                 patch("lsl_center.catalog._fetch_metadata", side_effect=fetch_metadata),
-                patch("lsl_center.catalog._fetch_manifest", return_value=manifest_bytes),
+                patch("lsl_center.catalog._fetch_manifest", side_effect=bundled_manifest_for_url),
             ):
                 refreshed = service.refresh()
 
@@ -399,7 +422,10 @@ class SelectionTests(unittest.TestCase):
         self.assertIsNotNone(artifact)
         assert artifact is not None
         self.assertEqual(artifact.format, "deb")
-        self.assertEqual(artifact.version, "0.5.0")
+        release_index = json.loads(
+            (REPO_ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(artifact.version, release_index["versions"][-1]["version"])
 
     def test_arch_profile_never_falls_back_to_deb(self) -> None:
         self.assertIsNone(select_artifact(self.sorot, arch_profile(), install_only=True))
@@ -417,7 +443,9 @@ class SelectionTests(unittest.TestCase):
         targets = getattr(sorot, "planned_targets", ())
         self.assertTrue(any(
             getattr(target, "distribution_id", None) == "arch"
-            and getattr(target, "version", None) == "0.6.0"
+            and getattr(target, "version", None) == json.loads(
+                (REPO_ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8")
+            )["planned_targets"][0]["version"]
             for target in targets
         ))
         self.assertIsNone(select_artifact(sorot, arch_profile(), install_only=True))
