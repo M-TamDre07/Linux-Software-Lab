@@ -1,6 +1,6 @@
-# Linux Software Lab
+# LISO LAB — Linux Software Lab
 
-Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, CSS, JavaScript, dan JSON sebagai sumber data utama. Supabase menyimpan mirror katalog baca-saja yang disinkronkan dari GitHub; Vercel melayani website statis dengan fallback ke JSON lokal agar tetap berfungsi saat backend bermasalah.
+**LISO LAB (Linux Software Lab)** adalah identitas publik dan nama singkat untuk katalog software independen oleh Muhammad Andreatama. Nama lengkap Linux Software Lab tetap dipertahankan sebagai nama proyek dan repositori agar tautan, riwayat, serta integrasi yang ada tidak berubah. Website menggunakan HTML, CSS, JavaScript, dan JSON sebagai sumber data utama. Supabase menyimpan mirror katalog baca-saja yang disinkronkan dari GitHub; Vercel melayani website statis dengan fallback ke JSON lokal agar tetap berfungsi saat backend bermasalah.
 
 ## Struktur repository
 
@@ -34,6 +34,15 @@ Katalog software independen oleh Muhammad Andreatama. Website menggunakan HTML, 
 ├── .github/workflows/            # Pemeriksaan otomatis
 └── vercel.json                   # Konfigurasi output dan header keamanan
 ~~~
+
+## Identitas dan pencarian
+
+- **Nama utama:** LISO LAB
+- **Nama lengkap / alias:** Linux Software Lab
+- **Keterangan:** LISO adalah singkatan dari Linux Software Lab, bukan proyek atau repositori baru.
+- **Domain dan repository:** tetap menggunakan alamat yang sudah ada.
+- **SEO:** metadata halaman, structured data, judul, dan deskripsi mencantumkan LISO LAB serta Linux Software Lab secara natural. Ini membantu mesin pencari memahami kedua nama, tetapi tidak menjamin posisi atau waktu pengindeksan.
+- **Logo:** ikon penguin LISO LAB tersedia di `public/assets/images/linux-software-lab.svg`; gunakan satu aset bersama agar favicon dan identitas website konsisten.
 
 ## Menjalankan website secara lokal
 
@@ -105,7 +114,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 
 Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.5.0 Beta`](apps/sorot/releases/0.5.0/RELEASE-NOTES.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot masih beta; pengujian instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu dilakukan. Arsip versi lama tidak ditimpa oleh versi baru.
 
-## Linux Software Lab Center (pratinjau launcher)
+## LISO LAB — Linux Software Lab Center (pratinjau launcher)
 
 Portal web launcher tersedia di [linux-software-lab.vercel.app/launcher/](https://linux-software-lab.vercel.app/launcher/) dan dapat diakses dari menu utama website. Halaman ini merangkum status, ekosistem GitHub–website–launcher, cara mencoba source, dan roadmap tanpa mengiklankan installer yang belum ada.
 
