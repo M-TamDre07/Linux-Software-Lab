@@ -9,6 +9,8 @@
   const detected = $('#sorotDetectedPlatform');
   const status = $('#sorotDistroStatus');
   const releaseList = $('#sorotReleaseList');
+  const latestVersion = document.querySelector('#sorotLatestVersion');
+  const latestVersionBadge = document.querySelector('#sorotLatestVersionBadge');
   if (!distroSelect || !detected || !status || !releaseList) return;
 
   const OWNER = 'M-TamDre07';
@@ -20,8 +22,8 @@
   const versionPattern = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
   const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
   const hashPattern = /^[a-f0-9]{64}$/;
-  const formats = new Set(['deb', 'rpm', 'pkg.tar.zst', 'flatpak', 'flatpakref', 'AppImage', 'tar.gz', 'zip']);
-  const kinds = new Set(['native-package', 'debian-package', 'rpm-package', 'arch-package', 'flatpak-bundle', 'flatpak-ref', 'appimage', 'source-archive']);
+  const formats = new Set(['deb', 'rpm', 'pkg.tar.zst', 'flatpak', 'flatpakref', 'AppImage', 'tar.gz', 'zip', 'whl']);
+  const kinds = new Set(['native-package', 'debian-package', 'rpm-package', 'arch-package', 'flatpak-bundle', 'flatpak-ref', 'appimage', 'source-archive', 'python-wheel']);
 
   const trustedManifestURL = value => {
     if (typeof value !== 'string') return '';
@@ -155,7 +157,7 @@
       const expectedSuffix = {
         deb: '.deb', rpm: '.rpm', 'pkg.tar.zst': '.pkg.tar.zst',
         flatpak: '.flatpak', flatpakref: '.flatpakref',
-        AppImage: '.AppImage', 'tar.gz': '.tar.gz', zip: '.zip'
+        AppImage: '.AppImage', 'tar.gz': '.tar.gz', zip: '.zip', whl: '.whl'
       }[item.format];
       if (!item.file.endsWith(expectedSuffix)) throw new Error('Artifact filename does not match format');
       return {
@@ -173,14 +175,18 @@
       manifestUrl: manifestURL,
       checksumsUrl: base + 'SHA256SUMS',
       releaseNotesUrl: manifest.notes_url || '',
-      testReportUrl: '',
+      testReportUrl: manifest.test_report_url || '',
       artifacts
     };
   };
 
-  const loadRegistry = async index => {
+  const loadRegistry = async (index, releaseIndex) => {
     if (!index || index.schema_version !== 1 || !Array.isArray(index.distributions) ||
         !Array.isArray(index.products)) throw new Error('Distribution index schema mismatch');
+    if (!releaseIndex || releaseIndex.schema_version !== 1 || releaseIndex.product !== 'Sorot' ||
+        !Array.isArray(releaseIndex.versions) || !Array.isArray(releaseIndex.planned_targets || [])) {
+      throw new Error('Sorot release index schema mismatch');
+    }
     const distributions = index.distributions.map(normalizeDistribution);
     const seenDistroIds = new Set();
     for (const distro of distributions) {
@@ -188,27 +194,52 @@
       seenDistroIds.add(distro.id);
     }
     const product = index.products.find(item => item && item.id === 'sorot');
-    if (!product || !Array.isArray(product.manifests) || !Array.isArray(product.planned_targets || [])) {
-      throw new Error('Sorot is missing from the distribution index');
-    }
-    const refs = product.manifests;
-    if (refs.length > 100) throw new Error('Too many manifests in the distribution index');
+    if (!product) throw new Error('Sorot is missing from the distribution index');
+    const refs = releaseIndex.versions.map(reference => {
+      if (!reference || !versionPattern.test(String(reference.version || '')) ||
+          !['stable', 'testing', 'archived'].includes(reference.status) ||
+          !['alpha', 'beta', 'rc', 'stable', 'development'].includes(reference.channel) ||
+          !Array.isArray(reference.formats) ||
+          !reference.formats.every(format => formats.has(format))) {
+        throw new Error('Invalid Sorot version index entry');
+      }
+      const manifestURL = RAW_ROOT + '/apps/sorot/releases/' + reference.version + '/release.json';
+      if (!trustedManifestURL(manifestURL)) throw new Error('Manifest URL is outside the trusted GitHub repository');
+      return { ...reference, url: manifestURL };
+    });
+    if (refs.length > 100) throw new Error('Too many Sorot release versions');
     const versions = await Promise.all(refs.map(async reference => {
-      if (!reference || !versionPattern.test(String(reference.version || ''))) throw new Error('Invalid version reference');
       const manifestURL = trustedManifestURL(reference.url);
-      if (!manifestURL) throw new Error('Manifest URL is outside the trusted GitHub repository');
       const manifest = await fetchJSON(manifestURL);
+      if (manifest.status !== reference.status || manifest.channel !== reference.channel) {
+        throw new Error('Release status/channel do not match the authoritative index');
+      }
+      const manifestFormats = Array.isArray(manifest.artifacts)
+        ? manifest.artifacts.map(item => item && item.format).sort()
+        : [];
+      if (JSON.stringify(manifestFormats) !== JSON.stringify(reference.formats.slice().sort())) {
+        throw new Error('Release formats do not match the authoritative index');
+      }
       return normalizeRelease(manifest, manifestURL, product, reference.version);
     }));
-    const targets = (product.planned_targets || []).map(target => {
-      if (!target || typeof target.distribution_id !== 'string' ||
-          !versionPattern.test(String(target.version || '')) || target.status !== 'planned' ||
-          typeof target.note !== 'string' || !target.note.trim() ||
-          !seenDistroIds.has(target.distribution_id)) throw new Error('Invalid planned target metadata');
-      return target;
+    const targets = (releaseIndex.planned_targets || []).map(target => {
+      if (!target || !versionPattern.test(String(target.version || '')) ||
+          target.status !== 'planned' || typeof target.note !== 'string' || !target.note.trim()) {
+        throw new Error('Invalid planned target metadata');
+      }
+      const distribution = target.distribution_id
+        ? distributions.find(item => item.id === target.distribution_id)
+        : distributions.find(item => item.label.toLowerCase() === String(target.distribution || '').toLowerCase());
+      if (!distribution) throw new Error('Planned target references an unknown distribution');
+      return {
+        distribution_id: distribution.id,
+        version: target.version,
+        status: 'planned',
+        note: target.note
+      };
     });
     return {
-      updatedAt: index.updated_at,
+      updatedAt: releaseIndex.updated_at || index.updated_at,
       distributions,
       versions,
       plannedTargets: targets
@@ -246,7 +277,8 @@
       flatpakref: 'FLATPAK REFERENCE · .FLATPAKREF',
       AppImage: 'PORTABLE · .APPIMAGE',
       'tar.gz': 'ARSIP SUMBER · .TAR.GZ',
-      zip: 'ARSIP SUMBER · .ZIP'
+      zip: 'ARSIP SUMBER · .ZIP',
+      whl: 'PYTHON WHEEL · .WHL'
     }[format] || ('FORMAT · ' + String(format).toUpperCase());
     return architecture && !['all', 'any', 'noarch'].includes(architecture)
       ? label + ' · ' + String(architecture).toUpperCase()
@@ -264,11 +296,12 @@
 
   const artifactMarkup = (artifact, distro) => {
     const source = artifact.kind === 'source-archive' && distro.sourceFormats.includes(artifact.format);
+    const pythonWheel = artifact.kind === 'python-wheel' && distro.id !== 'non-linux';
     const native = distro.status === 'available' && artifact.format === distro.packageFormat &&
-      artifact.kind !== 'source-archive';
-    if (!source && !native) return '';
+      !['source-archive', 'python-wheel'].includes(artifact.kind);
+    if (!source && !native && !pythonWheel) return '';
     const primary = native ? ' is-primary' : '';
-    const title = source ? 'Unduh arsip sumber' : 'Unduh paket instalasi';
+    const title = source ? 'Unduh arsip sumber' : pythonWheel ? 'Unduh Python wheel' : 'Unduh paket instalasi';
     return '<a class="sorot-artifact-link' + primary + '" href="' + escapeHTML(artifact.url) + '">' +
       '<span class="sorot-artifact-format">' + escapeHTML(labelForFormat(artifact.format, artifact.architecture)) + '</span>' +
       '<strong>' + title + '</strong><small>' + escapeHTML(artifact.file) + '</small>' +
@@ -310,6 +343,15 @@
   };
 
   const render = () => {
+    const latest = registry && registry.versions.length
+      ? registry.versions[registry.versions.length - 1]
+      : null;
+    if (latestVersion) latestVersion.textContent = latest
+      ? latest.version + ' ' + latest.channel.toUpperCase()
+      : 'Memuat indeks versi…';
+    if (latestVersionBadge) latestVersionBadge.textContent = latest
+      ? latest.channel.toUpperCase() + ' ' + latest.version
+      : 'Rilis Beta';
     const distro = getDistro();
     status.textContent = distro.note;
     if (!registry) {
@@ -333,15 +375,18 @@
 
   const indexPath = String(root.dataset.downloadData || '');
   if (indexPath === '/data/distribution-index.json') {
-    fetchJSON(indexPath, 2 * 1024 * 1024)
-      .then(loadRegistry)
+    Promise.all([
+      fetchJSON(indexPath, 2 * 1024 * 1024),
+      fetchJSON(RAW_ROOT + '/apps/sorot/releases/index.json', 1024 * 1024)
+    ])
+      .then(([distributionIndex, releaseIndex]) => loadRegistry(distributionIndex, releaseIndex))
       .then(value => {
         registry = value;
         render();
       })
       .catch(() => {
         render();
-        status.textContent += ' Indeks GitHub tidak dapat dimuat; tombol paket native disembunyikan dan hanya arsip source fallback yang ditampilkan.';
+        status.textContent += ' Indeks rilis GitHub tidak dapat dimuat; unduhan paket disembunyikan sampai metadata dapat divalidasi.';
       });
   }
 })();
