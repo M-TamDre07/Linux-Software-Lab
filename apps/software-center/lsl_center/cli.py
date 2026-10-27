@@ -39,7 +39,7 @@ def _launcher_version() -> str:
     try:
         return distribution_version("linux-software-lab-center")
     except PackageNotFoundError:
-        return "0.1.0.dev1 (source checkout)"
+        return "0.1.0 (source checkout)"
 
 
 def _ecosystem_payload(service: CatalogService, profile: SystemProfile) -> dict[str, object]:

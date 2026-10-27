@@ -1,0 +1,106 @@
+name: Software Center package candidate
+
+on:
+  push:
+    branches: [main]
+    tags: ["center-v*"]
+    paths:
+      - "apps/software-center/**"
+      - ".github/workflows/software-center-package.yml"
+  pull_request:
+    paths:
+      - "apps/software-center/**"
+      - ".github/workflows/software-center-package.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Test and build Debian package candidate
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install Qt runtime and packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dpkg-dev python3-pyside6.qtwidgets libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 fonts-dejavu-core
+      - name: Install test dependencies
+        run: python -m pip install -e "apps/software-center[gui,test]"
+      - name: Lint, compile, and test
+        run: |
+          ruff check apps/software-center/lsl_center apps/software-center/tests
+          python -m compileall -q apps/software-center/lsl_center
+          python -m pytest apps/software-center/tests -q
+      - name: Build wheel
+        run: |
+          mkdir -p dist
+          python -m pip wheel --no-deps --wheel-dir dist apps/software-center
+      - name: Assemble Debian package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(python -c 'import tomllib; print(tomllib.load(open("apps/software-center/pyproject.toml", "rb"))["project"]["version"])')"
+          ROOT="$PWD/pkgroot"
+          mkdir -p "$ROOT/DEBIAN" "$ROOT/usr/lib/python3/dist-packages" "$ROOT/usr/bin" "$ROOT/usr/share/applications" "$ROOT/usr/share/icons/hicolor/scalable/apps"
+          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python - "$WHEEL" "$ROOT/usr/lib/python3/dist-packages" <<'PY'
+          import sys
+          from zipfile import ZipFile
+          with ZipFile(sys.argv[1]) as archive:
+              archive.extractall(sys.argv[2])
+          PY
+          cat > "$ROOT/DEBIAN/control" <<EOF
+          Package: linux-software-lab-center
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: all
+          Maintainer: Linux Software Lab
+          Depends: python3 (>= 3.10), python3-pyside6.qtwidgets
+          Description: Linux Software Lab application catalogue and installer
+           Desktop catalogue and CLI with shared distro detection, metadata
+           validation, checksum verification and reviewed Debian install flow.
+          EOF
+          cat > "$ROOT/usr/bin/lsl" <<'EOF'
+          #!/bin/sh
+          export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
+          exec /usr/bin/python3 -m lsl_center.cli "$@"
+          EOF
+          cat > "$ROOT/usr/bin/lsl-center" <<'EOF'
+          #!/bin/sh
+          export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
+          exec /usr/bin/python3 -c 'from lsl_center.gui import main; raise SystemExit(main())' "$@"
+          EOF
+          chmod 0755 "$ROOT/usr/bin/lsl" "$ROOT/usr/bin/lsl-center"
+          cp apps/software-center/lsl_center/data/assets/center-icon.svg "$ROOT/usr/share/icons/hicolor/scalable/apps/linux-software-lab-center.svg"
+          cat > "$ROOT/usr/share/applications/linux-software-lab-center.desktop" <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Linux Software Lab Center
+          Comment=Jelajahi dan kelola katalog aplikasi Linux
+          Exec=lsl-center
+          Icon=linux-software-lab-center
+          Terminal=false
+          Categories=System;PackageManager;Utility;
+          StartupNotify=true
+          EOF
+          dpkg-deb --root-owner-group --build "$ROOT" "dist/linux-software-lab-center_${VERSION}_all.deb"
+          dpkg-deb --info "dist/linux-software-lab-center_${VERSION}_all.deb"
+          dpkg-deb --contents "dist/linux-software-lab-center_${VERSION}_all.deb" | grep -E 'usr/bin/lsl|applications/linux-software-lab-center.desktop|lsl_center/gui.py'
+      - name: Upload build candidate
+        uses: actions/upload-artifact@ea8e7e13d4e3541e47f72aef4f8b3f4c9f9c31d0 # v4.6.2
+        with:
+          name: linux-software-lab-center-${{ github.ref_name }}-${{ github.run_number }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14

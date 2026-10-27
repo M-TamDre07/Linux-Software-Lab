@@ -25,8 +25,8 @@
     },
     {
       "version": "0.7.0",
-      "channel": "beta",
-      "status": "testing",
+      "channel": "stable",
+      "status": "released",
       "formats": [
         "deb",
         "tar.gz",

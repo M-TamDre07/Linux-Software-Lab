@@ -2,11 +2,11 @@
   "schema_version": 1,
   "product": "Sorot",
   "version": "0.7.0",
-  "channel": "beta",
-  "status": "testing",
+  "channel": "stable",
+  "status": "released",
   "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.0/TEST-REPORT.md",
   "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.0/TEST-REPORT.md",
-  "architecture_note": "Sorot 0.7.0 Beta tersedia sebagai .deb untuk keluarga Debian. Lihat laporan tes untuk batas pengujian: Qt GUI baru belum diuji dengan PySide6/pytest asli, dan Arch belum tervalidasi.",
+  "architecture_note": "Sorot 0.7.0 adalah rilis stabil untuk jalur paket .deb yang tersedia. Kompatibilitas di distro selain keluarga Debian/Ubuntu masih tahap pengujian; paket Arch/RPM/Flatpak/AppImage belum tersedia. Lihat laporan pengujian untuk batas validasi fitur dan lingkungan.",
   "artifacts": [
     {
       "file": "sorot_0.7.0_all.deb",
