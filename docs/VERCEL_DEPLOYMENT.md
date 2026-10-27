@@ -22,16 +22,19 @@ For Vercel project `linux-software-lab`:
 
 Important distinction: Root Directory is the repository root; Output Directory is `public/`. They are not the same setting.
 
-## If a separate Vercel project named `paketscope` is building this repository
+## PaketScope release and deployment boundary
 
-PaketScope itself is a native desktop application, so that separate web deployment is not required. If the project named `paketscope` is connected to the same repository and causes a failed Vercel check, disconnect only that Vercel project's Git connection:
+PaketScope is a **native Python/Qt desktop application** in `apps/paketscope/`, not a website or Vercel serverless application.
 
-1. Open Vercel project `paketscope`.
-2. Open **Settings → Git**.
-3. Under **Connected Git Repository**, choose **Disconnect** and confirm.
-4. Leave the GitHub repository and `apps/paketscope/` source code untouched.
+- Do not create a separate Vercel project for PaketScope or connect the repository root to a Python runtime.
+- Keep `linux-software-lab` as the only Vercel project for this repository's static website. Its Root Directory stays at the repository root and its Output Directory remains `public/`.
+- Run PaketScope tests and its Debian 13 package checks through GitHub Actions in `.github/workflows/paketscope-build.yml`.
+- Publish reviewed, validated packages and source archives through the repository's GitHub Releases workflow, after the tagged build and test jobs pass. Do not show a release download link until the asset actually exists and its checksum is available.
+- Debian 13 is the current CI-validated native package target. Do not claim support for other distributions until their own packaging and install tests pass.
 
-Do **not** disconnect the website project `linux-software-lab`, and do not import the native PaketScope source as a second website. A desktop release will be published as a package artifact after the package is ready and tested.
+If the obsolete Vercel project named `paketscope` still exists, delete that project in Vercel through **Settings → General → Delete Project**. Disconnecting its Git repository only stops automatic Git deployments; deleting the unused project is the separate cleanup step. This must not delete the GitHub repository or `apps/paketscope/` source.
+
+**Do not delete or disconnect the Vercel project `linux-software-lab`**; it is still needed to host the website.
 
 ## If the Import list disappears or import fails
 
