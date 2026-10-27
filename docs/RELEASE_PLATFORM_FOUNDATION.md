@@ -127,3 +127,16 @@ The first implementation should keep publication gated behind GitHub Actions and
 ## Definition of done for automated publishing
 
 The feature is not complete until a maintainer can create a product from the scaffold, submit a reviewed version, build and verify the supported package, publish immutable artifacts with checksums, and see consistent metadata on the website, launcher, and Supabase—without manually editing multiple copies or granting the browser privileged credentials.
+
+
+## Live Supabase read-only audit (2026-10-27)
+
+The connected Linux Software Lab Supabase project was inspected without changing its schema or data:
+
+- Security advisor returned **no findings** at the time of inspection.
+- Performance advisor returned one informational `unused_index` notice for `software_catalog_published_order_idx`. With only two catalogue rows, this is not evidence of a performance problem; re-check after realistic usage before removing the index.
+- The public schema currently contains `software_catalog` and `lsl_admin_users`, both with RLS enabled.
+- The admin registry currently contains **zero active admin rows**. This may be intentional during setup, but the dashboard cannot grant admin access until the maintainer provisions an Auth user and adds the corresponding registry row through the trusted Supabase Dashboard/SQL Editor process documented in `docs/ADMIN_DASHBOARD.md`.
+- The catalogue mirror currently has two published records (`paketscope` and `sorot`), both with lifecycle `testing` and empty `release_url` values. This matches the rule that publication status must not be elevated before a verified release URL exists.
+
+These are point-in-time observations, not a permanent health guarantee. Re-run the advisors and read-only catalogue checks after relevant schema, policy, or sync changes. No migration or live data mutation was performed as part of this audit.
