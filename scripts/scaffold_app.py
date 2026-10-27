@@ -100,9 +100,10 @@ def scaffold_application(
         "APP_CREATED_DATE": created.isoformat(),
     }
 
-    staging = Path(tempfile.mkdtemp(prefix=".lsl-scaffold-", dir=target_apps))
+    # Keep the temporary workspace private; publish only the completed payload by rename.
+    staging_root = Path(tempfile.mkdtemp(prefix=".lsl-scaffold-", dir=target_apps))
+    staging = staging_root / "payload"
     try:
-        staging.rmdir()
         shutil.copytree(source_template, staging, symlinks=True)
         for path in staging.rglob("*"):
             if path.is_symlink():
@@ -114,7 +115,7 @@ def scaffold_application(
             except UnicodeDecodeError as exc:
                 raise ScaffoldError(f"Template harus berupa file teks UTF-8: {path.relative_to(staging)}") from exc
             transformed = _replace_tokens(source, replacements, path.relative_to(staging))
-            path.write_text(transformed, encoding="utf-8", newline="\n")
+            path.write_text(transformed, encoding="utf-8", newline="\\n")
 
         if target.exists() or target.is_symlink():
             raise ScaffoldError(f"Folder apps/{slug} dibuat oleh proses lain. Tidak ada file yang ditimpa.")
@@ -125,8 +126,8 @@ def scaffold_application(
     except OSError as exc:
         raise ScaffoldError(f"Gagal membuat scaffold aplikasi: {exc}") from exc
     finally:
-        if staging.exists():
-            shutil.rmtree(staging, ignore_errors=True)
+        if staging_root.exists():
+            shutil.rmtree(staging_root, ignore_errors=True)
 
 
 def build_parser() -> argparse.ArgumentParser:

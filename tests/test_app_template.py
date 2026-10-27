@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 import unittest
 from datetime import date
@@ -173,6 +174,30 @@ class ApplicationScaffoldTests(unittest.TestCase):
                 template_dir=self.apps_dir / "not-a-template",
             )
         self.assertEqual(list(self.apps_dir.iterdir()), [])
+
+    def test_scaffold_rejects_symlinked_template_files_without_partial_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            template = Path(temp_dir) / "template"
+            shutil.copytree(TEMPLATE, template)
+            outside = Path(temp_dir) / "outside.txt"
+            outside.write_text("outside template root", encoding="utf-8")
+            link = template / "src" / "linked-file.txt"
+            try:
+                link.symlink_to(outside)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"Symlinks are unavailable in this test environment: {exc}")
+
+            with self.assertRaisesRegex(ScaffoldError, "symlink"):
+                scaffold_application(
+                    "symlink-check",
+                    "Symlink Check",
+                    "Reject untrusted symlinks in the application template.",
+                    apps_dir=self.apps_dir,
+                    template_dir=template,
+                )
+
+            self.assertFalse((self.apps_dir / "symlink-check").exists())
+            self.assertEqual(list(self.apps_dir.iterdir()), [])
 
     def test_scaffold_does_not_mutate_canonical_catalogue(self) -> None:
         scaffold_application(
