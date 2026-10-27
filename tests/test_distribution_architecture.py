@@ -50,7 +50,7 @@ class DistributionArchitectureTests(unittest.TestCase):
         index = json.loads((ROOT / "apps" / "sorot" / "releases" / "index.json").read_text(encoding="utf-8"))
         arch_target = next(x for x in index["planned_targets"] if x["distribution"] == "Arch Linux")
         self.assertEqual(arch_target["status"], "planned")
-        self.assertEqual(arch_target["version"], "0.6.0")
+        self.assertEqual(arch_target["version"], index["versions"][-1]["version"])
 
     def test_shared_guide_is_linked_from_add_software_checklist(self):
         readme = README_PATH.read_text(encoding="utf-8")

@@ -108,15 +108,14 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("distribution-index.json", script)
         self.assertIn("apps/sorot/releases/index.json", script)
         self.assertIn("python-wheel", script)
+        self.assertIn("apps/sorot/releases/index.json", script)
         self.assertIn("trustedManifestURL", script)
         self.assertNotIn("sorot-downloads.json", page + script)
         self.assertIn("availability", script)
         # Every visible install CTA must go through the distro-aware selector.
         self.assertIn('href="#downloads">Pilih format yang sesuai dengan distro', page)
-        self.assertNotIn(
-            'href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.5.0/sorot_0.5.0_all.deb">Unduh Sorot',
-            page,
-        )
+        self.assertNotIn("sorot_0.5.0_all.deb", page)
+        self.assertIn('id="sorotLatestVersion"', page)
         self.assertIn('id="downloads" data-download-data="/data/distribution-index.json"', page)
         self.assertIn("BUKAN", (PUBLIC / "assets" / "images" / "sorot-preview.svg").read_text(encoding="utf-8"))
 

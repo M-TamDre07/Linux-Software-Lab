@@ -72,13 +72,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           python scripts/sync_distribution_index.py --write
-          if git diff --quiet -- public/data/distribution-index.json; then
+          if git diff --quiet -- public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json; then
             echo "Public distribution index is already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/distribution-index.json
+          git add public/data/distribution-index.json apps/software-center/lsl_center/data/distribution-index.json
           git commit -m "chore: sync Sorot release index"
           gh auth setup-git
           git push origin HEAD:main

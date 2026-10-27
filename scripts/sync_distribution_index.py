@@ -11,6 +11,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_INDEX_PATH = ROOT / "apps" / "sorot" / "releases" / "index.json"
 PUBLIC_INDEX_PATH = ROOT / "public" / "data" / "distribution-index.json"
+BUNDLED_INDEX_PATH = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "distribution-index.json"
 RAW_ROOT = "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main"
 ALLOWED_STATUSES = {"testing", "released", "archived"}
 ALLOWED_CHANNELS = {"alpha", "beta", "rc", "stable", "development"}
@@ -149,12 +150,14 @@ def main() -> int:
         return 1
     if args.write:
         PUBLIC_INDEX_PATH.write_text(expected, encoding="utf-8")
-        print("Generated public/data/distribution-index.json from apps/sorot/releases/index.json.")
+        BUNDLED_INDEX_PATH.write_text(expected, encoding="utf-8")
+        print("Generated the website and Software Center distribution indexes from apps/sorot/releases/index.json.")
         return 0
-    if PUBLIC_INDEX_PATH.read_text(encoding="utf-8") != expected:
-        print("public/data/distribution-index.json is stale; run python scripts/sync_distribution_index.py --write.", file=sys.stderr)
-        return 1
-    print("Public distribution index matches the Sorot release index.")
+    for path in (PUBLIC_INDEX_PATH, BUNDLED_INDEX_PATH):
+        if not path.is_file() or path.read_text(encoding="utf-8") != expected:
+            print(f"{path.relative_to(ROOT)} is stale; run python scripts/sync_distribution_index.py --write.", file=sys.stderr)
+            return 1
+    print("Website and Software Center distribution indexes match the Sorot release index.")
     return 0
 
 
