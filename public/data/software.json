@@ -62,11 +62,11 @@
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "0.7.0 Beta",
+      "version": "0.7.0",
       "summary": "Teleprompter desktop untuk membaca naskah saat presentasi dan rekaman, dengan overlay, kontrol pemutaran, pengelolaan naskah, dan sistem ekstensi.",
-      "description": "Sorot adalah aplikasi teleprompter desktop untuk Linux. Versi 0.5.0 Beta menyediakan editor naskah, overlay yang dapat diatur, kontrol pemutaran dan jeda, mode durasi, penyimpanan naskah/draf, serta sistem ekstensi untuk tema, preset, tugas, dan fungsi tambahan. Integrasi AI dan penyimpanan cloud bersifat opsional dan belum diverifikasi dengan layanan nyata dalam laporan pengujian. Sorot masih beta: uji compositor Wayland/X11, pemasangan bersih di Debian 13, dan aksesibilitas pembaca layar belum lengkap.",
+      "description": "Sorot 0.7.0 adalah rilis stabil untuk jalur paket .deb yang tersedia. Aplikasi menyediakan editor naskah, overlay, kontrol pemutaran, mode durasi, penyimpanan draf, dan sistem ekstensi. Kompatibilitas di distro Linux selain keluarga Debian/Ubuntu masih dalam tahap pengujian; paket Arch, RPM, Flatpak, dan AppImage belum tersedia. Beberapa fitur Qt baru masih memiliki batas pengujian yang dicatat dalam laporan rilis.",
       "category": "Produktivitas",
-      "status": "testing",
+      "status": "released",
       "type": "desktop",
       "platforms": [
         "Linux desktop (uji tercatat: Ubuntu 24.04; Debian 13 belum diverifikasi untuk paket ini)"
@@ -102,7 +102,7 @@
       "iconImage": "/assets/images/sorot-icon.svg",
       "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
-      "updatedAt": "2026-10-25"
+      "updatedAt": "2026-10-27"
     }
   ]
 }
