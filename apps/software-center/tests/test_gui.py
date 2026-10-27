@@ -84,7 +84,7 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertIn("Portal web dibuka", window.status_message.text())
         window.close()
 
-    def test_debian_catalogue_shows_testing_install_action_with_explicit_status(self) -> None:
+    def test_debian_catalogue_shows_stable_install_action_with_explicit_status(self) -> None:
         window = MainWindow(
             service=CatalogService(data_dir=DATA_DIR),
             profile=profile("debian-family"),
@@ -96,8 +96,8 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         )
         window.app_list.setCurrentRow(sorot_row)
         self.assertTrue(window.install_button.isEnabled())
-        self.assertIn("Beta", window.install_button.text())
-        self.assertIn("TESTING", window.product_status.text())
+        self.assertIn("Pasang aplikasi", window.install_button.text())
+        self.assertIn("RELEASED", window.product_status.text())
         self.assertIn("SHA-256", window.compatibility_label.text())
         window.close()
 
