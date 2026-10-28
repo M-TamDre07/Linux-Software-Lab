@@ -8,7 +8,7 @@ Status: implementation is prepared in draft PR #40's branch; it is **not active 
 2. A Vercel server-side endpoint verifies the Auth token and active row in `public.lsl_admin_users`.
 3. The endpoint resolves the trusted Auth UUID → Telegram numeric user ID mapping in `public.lsl_admin_telegram_users`.
 4. The bot checks the mapped user is currently in group `-1004361361948` using Telegram `getChatMember`.
-5. A six-digit code is sent to that admin's **private chat** with the bot. The group is used for membership verification only; OTP codes must not be posted in a group.
+5. The bot posts a six-digit OTP and login-audit notice to the **restricted admin group**. The notice includes account email, server timestamp, coarse device/browser class, Vercel-provided approximate location when available, and a masked IP. The group must contain only trusted admins because members can see the OTP.
 6. A five-minute challenge stores only an HMAC verifier. Verification attempts are limited to five, and a database function locks and consumes the challenge atomically.
 7. Success sets an eight-hour, Secure, HttpOnly, SameSite=Strict cookie. Admin catalog and quality data are fetched through server-side API routes which validate both the Supabase user and OTP session.
 8. The migration revokes direct `authenticated` SELECT on the protected catalog and quality tables, so a modified browser cannot bypass OTP by calling those Data API tables directly. Anonymous public reads of published catalog rows remain governed by the existing RLS policy.
@@ -29,7 +29,7 @@ Do not paste credentials into GitHub, chat, or frontend code. Production-only en
 
 1. Review and apply `supabase/migrations/20261028120000_add_telegram_otp_admin_gate.sql` in a non-production Supabase environment first. Do not apply it to production until the PR and direct-REST bypass tests are reviewed.
 2. Confirm the administrator's numeric Telegram user ID through a trusted method. Do not infer it from a Telegram username.
-3. Ensure the bot is an administrator (or has sufficient rights) in the exact LISO LAB group, and the administrator has opened the bot's private chat and pressed **Start**.
+3. Ensure the bot is a member with permission to post in the exact LISO LAB group. The group should be private/restricted and contain only trusted administrators.
 4. After the migration is applied to the test database, insert the confirmed mapping using trusted SQL Editor tooling. Replace both placeholders; never expose this operation to anonymous/browser users:
 
    ```sql
@@ -57,7 +57,7 @@ Do not paste credentials into GitHub, chat, or frontend code. Production-only en
 
 ## Security notes
 
-- OTP is sent to a private chat, never to the group.
+- OTP is posted to the restricted admin group by design. Because all group members can see it, group membership is part of the security boundary; the OTP is still bound to the authenticated Supabase user, expires in five minutes, is single-use, and is limited to five attempts.
 - Challenges store an HMAC verifier rather than the plaintext code; code is never logged.
 - The SQL consume function locks the challenge row and enforces one-time use and attempt limits.
 - The server gateway checks the bearer token against Supabase Auth on each request and checks active admin allowlisting and the OTP session cookie.
