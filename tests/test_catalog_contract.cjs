@@ -77,3 +77,21 @@ test("null, arrays, malformed records and missing catalogue blocks fail closed",
   assert.equal(validateCatalogPayload([]).valid, false);
   assert.equal(validateCatalogPayload({ schemaVersion: 2, catalog: {}, software: [null] }).valid, false);
 });
+
+test("launcher catalogue is an exact mirror of the canonical website catalogue", () => {
+  const launcherCatalogPath = path.join(
+    __dirname,
+    "..",
+    "apps",
+    "software-center",
+    "lsl_center",
+    "data",
+    "catalog.json"
+  );
+  const launcherCatalog = JSON.parse(fs.readFileSync(launcherCatalogPath, "utf8"));
+  assert.deepEqual(
+    launcherCatalog,
+    canonicalCatalog,
+    "Run python scripts/sync_distribution_index.py --write to regenerate catalogue mirrors."
+  );
+});

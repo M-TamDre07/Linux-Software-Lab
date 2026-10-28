@@ -185,19 +185,18 @@ def main() -> int:
         release_source = _load(RELEASE_INDEX_PATH)
         latest = release_source["versions"][-1]
         version_label = _format_version_label(latest)
+        # public/data/software.json is the canonical catalogue source. The
+        # launcher catalogue is a generated mirror, never an independent source.
+        expected_catalog = json.dumps(
+            _build_catalog_with_current_sorot_version(PUBLIC_CATALOG_PATH, version_label),
+            ensure_ascii=False,
+            indent=2,
+        ) + "\n"
         expected_files = {
             PUBLIC_INDEX_PATH: expected_index,
             BUNDLED_INDEX_PATH: expected_index,
-            PUBLIC_CATALOG_PATH: json.dumps(
-                _build_catalog_with_current_sorot_version(PUBLIC_CATALOG_PATH, version_label),
-                ensure_ascii=False,
-                indent=2,
-            ) + "\n",
-            BUNDLED_CATALOG_PATH: json.dumps(
-                _build_catalog_with_current_sorot_version(BUNDLED_CATALOG_PATH, version_label),
-                ensure_ascii=False,
-                indent=2,
-            ) + "\n",
+            PUBLIC_CATALOG_PATH: expected_catalog,
+            BUNDLED_CATALOG_PATH: expected_catalog,
         }
     except (IndexSyncError, OSError, KeyError, IndexError, TypeError) as exc:
         print(f"Distribution index sync failed: {exc}", file=sys.stderr)
