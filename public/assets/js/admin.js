@@ -166,7 +166,7 @@
       loginPanel.hidden = true;
       dashboardPanel.hidden = true;
       otpPanel.hidden = false;
-      setMessage('Kode OTP dikirim ke chat pribadi Telegram yang terdaftar. Masukkan kode yang masih berlaku.', 'success');
+      setMessage('Kode OTP dan pemberitahuan keamanan dikirim ke grup Telegram admin. Masukkan kode yang masih berlaku.', 'success');
       otpCodeInput.focus();
     } finally {
       otpSendButton.disabled = false;
@@ -486,7 +486,7 @@
           : error.code === 'telegram_group_membership_required'
             ? 'Akun Telegram yang terdaftar tidak ditemukan sebagai anggota grup yang diizinkan.'
             : error.code === 'telegram_delivery_failed'
-              ? 'Bot tidak dapat mengirim DM. Admin harus memulai chat pribadi dengan bot terlebih dahulu.'
+              ? 'Bot tidak dapat mengirim pesan ke grup admin. Periksa izin bot dan ID grup.'
               : error.status === 400 || error.status === 401
                 ? 'Login gagal. Periksa email dan kata sandi, lalu coba lagi.'
                 : 'Akses admin gagal diverifikasi. Periksa konfigurasi OTP dan Supabase.', 'error');
@@ -523,7 +523,7 @@
       setMessage(error.code === 'otp_rate_limited'
         ? 'Tunggu sebelum meminta kode baru.'
         : error.code === 'telegram_delivery_failed'
-          ? 'DM bot gagal. Buka chat pribadi bot dan tekan Start, lalu coba lagi.'
+          ? 'Pengiriman ke grup Telegram gagal. Periksa izin bot, ID grup, dan keanggotaan admin.'
           : error.code === 'otp_not_configured_for_admin'
             ? 'Telegram ID admin belum dikonfigurasi di mapping server.'
             : error.code === 'telegram_group_membership_required'
