@@ -99,11 +99,13 @@ jobs:
           EOF
           cat > "$ROOT/usr/bin/lsl" <<'EOF'
           #!/bin/sh
+          export PYTHONDONTWRITEBYTECODE=1
           export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
           exec /usr/bin/python3 -m lsl_center.cli "$@"
           EOF
           cat > "$ROOT/usr/bin/lsl-center" <<'EOF'
           #!/bin/sh
+          export PYTHONDONTWRITEBYTECODE=1
           export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
           exec /usr/bin/python3 -c 'from lsl_center.gui import main; raise SystemExit(main())' "$@"
           EOF
@@ -127,6 +129,7 @@ jobs:
           grep -q 'usr/share/applications/linux-software-lab-center.desktop' dist/deb-contents.txt
           grep -q 'usr/lib/python3/dist-packages/lsl_center/gui.py' dist/deb-contents.txt
           (cd dist && sha256sum *.whl *.deb > SHA256SUMS)
+          (cd dist && sha256sum --check SHA256SUMS)
       - name: Install, smoke-test, and purge on Debian 13
         shell: bash
         run: |
@@ -139,12 +142,17 @@ jobs:
               package="$(find /dist -maxdepth 1 -name "linux-software-lab-center_*_all.deb" -print -quit)"
               test -n "$package"
               DEBIAN_FRONTEND=noninteractive apt-get install -y "$package"
-              dpkg-query -W -f="\${Status}\n" linux-software-lab-center | grep -qx "install ok installed"
+              dpkg-query -W -f="\${Status}\\n" linux-software-lab-center | grep -qx "install ok installed"
               lsl --version
-              QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(\"GUI module import: OK\")"
+              PYTHONDONTWRITEBYTECODE=1 QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(\\"GUI module import: OK\\")"
               apt-get purge -y linux-software-lab-center
               if dpkg-query -W -f="\${Status}" linux-software-lab-center 2>/dev/null | grep -q "install ok installed"; then
                 echo "Package remains installed after purge" >&2
+                exit 1
+              fi
+              if test -e /usr/lib/python3/dist-packages/lsl_center; then
+                echo "Package-owned Python module directory remains after purge" >&2
+                find /usr/lib/python3/dist-packages/lsl_center -maxdepth 2 -print >&2
                 exit 1
               fi
             '
