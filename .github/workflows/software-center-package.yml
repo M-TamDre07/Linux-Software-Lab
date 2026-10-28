@@ -143,7 +143,7 @@ jobs:
               lsl --version
               QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(\"GUI module import: OK\")"
               apt-get purge -y linux-software-lab-center
-              if dpkg-query -W -f="${Status}" linux-software-lab-center 2>/dev/null | grep -q "install ok installed"; then
+              if dpkg-query -W -f="\${Status}" linux-software-lab-center 2>/dev/null | grep -q "install ok installed"; then
                 echo "Package remains installed after purge" >&2
                 exit 1
               fi
