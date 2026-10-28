@@ -38,7 +38,7 @@
         && typeof parsed.expires_at === 'number'
         && typeof parsed.authenticated_at === 'number'
         && Math.floor(Date.now() / 1000) - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS
-        && parsed.expires_at > Math.floor(Date.now() / 1000) ? parsed : null;
+        ? parsed : null;
     } catch (_) {
       return null;
     }
