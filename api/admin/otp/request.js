@@ -54,7 +54,7 @@ module.exports = async function handler(req, res) {
       await sb('lsl_admin_telegram_otp_challenges?auth_user_id=eq.' + encodeURIComponent(user.id), {
         method: 'PATCH', prefer: 'return=minimal', body: { consumed_at: new Date().toISOString() },
       }).catch(() => {});
-      return json(res, 502, { error: 'telegram_delivery_failed', hint: 'Pastikan admin sudah memulai chat pribadi dengan bot.' });
+      return json(res, 502, { error: 'telegram_delivery_failed', hint: 'Pastikan bot menjadi anggota grup admin, memiliki izin mengirim pesan, dan TELEGRAM_GROUP_ID sesuai.' });
     }
     return json(res, 200, { ok: true, expires_in: 300, destination: 'telegram_admin_group' });
   } catch (error) {
