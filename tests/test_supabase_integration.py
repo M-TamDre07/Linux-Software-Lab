@@ -73,10 +73,13 @@ class SupabaseIntegrationTests(unittest.TestCase):
     def test_admin_ui_does_not_interpolate_untrusted_data_as_html(self):
         js = (ROOT / "public/assets/js/admin.js").read_text(encoding="utf-8")
         self.assertNotIn(".innerHTML", js)
-        self.assertIn("user_id: 'eq.' + authUser.id", js)
-        self.assertIn("active: 'eq.true'", js)
-        self.assertIn("/auth/v1/user", js)
-        self.assertIn("credentials: 'omit'", js)
+        self.assertIn("/api/admin/otp/request", js)
+        self.assertIn("/api/admin/otp/verify", js)
+        self.assertIn("/api/admin/otp/session", js)
+        self.assertIn("/api/admin/catalog", js)
+        self.assertNotIn("/rest/v1/lsl_admin_users?", js)
+        self.assertNotIn("/rest/v1/software_catalog?", js)
+        self.assertIn("credentials: 'include'", js)
 
     def test_sync_workflow_never_writes_from_pull_requests(self):
         workflow = (ROOT / ".github/workflows/supabase-catalog-sync.yml").read_text(encoding="utf-8")
