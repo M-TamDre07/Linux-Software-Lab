@@ -34,6 +34,23 @@ To verify safely:
 
 Never create an anonymous policy that allows users to insert or update `lsl_admin_users`. Do not use editable `user_metadata` as an authorization source. The authorization check must stay anchored to the server-managed row and RLS.
 
+## Browser session regression checks
+
+The client-side session parser now rejects and clears stored session data when any required token is empty, the expiry/authentication timestamps are not finite numbers, the authentication timestamp is in the future, or the seven-day reauthentication cutoff has elapsed. This is defensive browser-state handling only; it does not make localStorage trusted and does not enforce server-side session lifetime.
+
+Before treating the dashboard as release-ready, verify these cases in a browser test environment:
+
+- A valid session within the seven-day window proceeds to server-side identity and active-admin checks.
+- Missing, malformed, or structurally incomplete JSON in the session key is cleared and the login panel remains available.
+- Empty access/refresh tokens, non-finite timestamps, future-dated authentication time, and an authentication time older than seven days are rejected.
+- An expired access token may refresh only when the refresh token is accepted by Supabase Auth and the original seven-day cutoff has not elapsed.
+- A revoked/invalid refresh token results in local session clearing and no catalog data being shown.
+- A normal authenticated user without an active admin row is denied, even if they manually create or alter localStorage.
+- Logout clears browser-held tokens even when the network request fails; successful server-side revocation must be verified separately.
+- Direct Data API requests are tested independently of the dashboard UI. A hidden panel or client-side state is not an authorization boundary.
+
+Do not mark these cases as passing until they have actually been exercised. The current code hardening has been committed, but these are acceptance checks, not a claim that automated browser tests already exist or have passed.
+
 ## Live RLS and grants audit
 
 A read-only query of the current database confirms RLS is enabled on all four dashboard-related tables: `lsl_admin_users`, `software_catalog`, `catalog_quality_runs`, and `catalog_quality_findings`.
