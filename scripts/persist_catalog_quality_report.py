@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 
 REPORT = Path("/tmp/liso-catalog-health.json")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+EXPECTED_SUPABASE_URL = "https://ttofugaqwthmvhvntdlc.supabase.co"
 
 
 class ApiError(RuntimeError):
@@ -46,8 +47,8 @@ def main() -> int:
     base_url = os.environ.get("SUPABASE_URL", "").strip()
     secret = os.environ.get("SUPABASE_SECRET_KEY", "")
     commit_sha = os.environ.get("GITHUB_SHA", "")
-    if not base_url.startswith("https://") or not base_url.endswith(".supabase.co"):
-        print("Invalid SUPABASE_URL; expected the project's HTTPS Supabase endpoint.", file=sys.stderr)
+    if base_url.rstrip("/") != EXPECTED_SUPABASE_URL:
+        print("Invalid SUPABASE_URL; report persistence is restricted to the configured LISO LAB project.", file=sys.stderr)
         return 2
     if not secret:
         print("SUPABASE_SECRET_KEY is not configured; report persistence skipped.")
