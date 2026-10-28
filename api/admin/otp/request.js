@@ -47,7 +47,7 @@ module.exports = async function handler(req, res) {
     try {
       await telegram('sendMessage', {
         chat_id: GROUP_ID,
-        text: '🔐 LISO LAB — VERIFIKASI LOGIN ADMIN\\n\\nAkun: ' + email + '\\nPerangkat: ' + device + '\\nLokasi perkiraan: ' + location + '\\nIP tersamarkan: ' + ip + '\\nWaktu server: ' + new Date().toISOString() + '\\n\\nOTP: ' + code + '\\nBerlaku 5 menit • Maksimal 5 percobaan • Sekali pakai\\n\\nJika percobaan ini tidak dikenal, jangan berikan kode dan segera cabut akses admin terkait.',
+        text: '🔐 LISO LAB — VERIFIKASI LOGIN ADMIN\n\nAkun: ' + email + '\nPerangkat: ' + device + '\nLokasi perkiraan: ' + location + '\nIP tersamarkan: ' + ip + '\nWaktu server: ' + new Date().toISOString() + '\n\nOTP: ' + code + '\nBerlaku 5 menit • Maksimal 5 percobaan • Sekali pakai\n\nJika percobaan ini tidak dikenal, jangan berikan kode dan segera cabut akses admin terkait.',
         protect_content: true,
       });
     } catch (_) {
