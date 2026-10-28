@@ -34,6 +34,16 @@ To verify safely:
 
 Never create an anonymous policy that allows users to insert or update `lsl_admin_users`. Do not use editable `user_metadata` as an authorization source. The authorization check must stay anchored to the server-managed row and RLS.
 
+## Live RLS and grants audit
+
+A read-only query of the current database confirms RLS is enabled on all four dashboard-related tables: `lsl_admin_users`, `software_catalog`, `catalog_quality_runs`, and `catalog_quality_findings`.
+
+- `lsl_admin_users`: authenticated users can SELECT only their own row; no INSERT/UPDATE/DELETE grants were found for `anon` or `authenticated`.
+- `software_catalog`: anonymous SELECT is granted, but the anonymous RLS policy restricts results to rows where `published IS TRUE`. Authenticated catalogue reads require an active admin row. No mutation grants were found for `anon` or `authenticated`.
+- `catalog_quality_runs` and `catalog_quality_findings`: authenticated SELECT is granted with policies requiring an active admin row. No mutation grants were found for `anon` or `authenticated`.
+
+This is a policy/grant inspection, not a live request test. It does not prove the admin Auth login works end-to-end, and it does not establish a Telegram second factor. Recheck policies and grants after any migration or auth change.
+
 ## Password and session security
 
 - The latest live Supabase Security Advisor check reports **Leaked Password Protection Disabled**. Enable leaked-password protection in the project's Auth password/security settings and verify the advisor finding clears before production rollout.
@@ -43,7 +53,7 @@ Never create an anonymous policy that allows users to insert or update `lsl_admi
 ## CAPTCHA and Telegram OTP status
 
 - CAPTCHA is **not active yet**. It requires selecting a supported provider (for example Cloudflare Turnstile or hCaptcha), registering the exact site hostname, configuring the provider secret in Supabase Auth, and passing the provider token from the login form. Merely adding a visual checkbox does not protect the Auth endpoint.
-- Telegram OTP is **not active yet**. A live inventory check found no deployed Supabase Edge Functions in this project. OTP needs a trusted server-side endpoint (a Supabase Edge Function is suitable), a Telegram bot token stored as a server secret, a fixed allowed group ID, an explicit mapping from each Supabase Auth UUID to that person's Telegram numeric user ID, group-membership verification via Telegram `getChatMember`, short-lived hashed OTP challenges, rate limits, and one-time consumption. The bot must be able to check membership (normally make it an administrator in the group) and each admin must start a private chat with the bot before it can DM them. Never send the bot token to the browser or commit it. LISO LAB's intended identifiers are group `-1004361361948` and bot `8258093251`; these are separate from the Tama Andrea Studio project.
+- Telegram OTP is **not active yet**. A live inventory check found no deployed Supabase Edge Functions in this project. OTP needs a trusted server-side endpoint (a Supabase Edge Function is suitable), a Telegram bot token stored as a server secret, a fixed allowed group ID, an explicit mapping from each Supabase Auth UUID to that person's Telegram numeric user ID, group-membership verification via Telegram `getChatMember`, short-lived hashed OTP challenges, rate limits, and one-time consumption. The bot must be able to check membership (normally make it an administrator in the group) and each admin must start a private chat with the bot before it can DM them. Never send the bot token to the browser or commit it. LISO LAB's intended identifiers are group `-1004361361948` and bot `8258093251`; these are separate from the Tama Andrea Studio project. See [TELEGRAM_OTP_SECURITY_DESIGN.md](TELEGRAM_OTP_SECURITY_DESIGN.md) for design requirements.
 
 ## Security model and limitations
 
