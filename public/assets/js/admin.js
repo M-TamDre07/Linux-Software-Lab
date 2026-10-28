@@ -2,7 +2,8 @@
   'use strict';
 
   const config = window.LSL_SUPABASE_CONFIG;
-  const SESSION_KEY = 'lsl-admin-session-v1';
+  const SESSION_KEY = 'lsl-admin-session-v2';
+  const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
   const $ = (selector) => document.querySelector(selector);
   const loginPanel = $('#loginPanel');
   const dashboardPanel = $('#dashboardPanel');
@@ -29,12 +30,15 @@
 
   const readSession = () => {
     try {
-      const raw = sessionStorage.getItem(SESSION_KEY);
+      const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       return parsed && typeof parsed.access_token === 'string'
         && typeof parsed.refresh_token === 'string'
-        && typeof parsed.expires_at === 'number' ? parsed : null;
+        && typeof parsed.expires_at === 'number'
+        && typeof parsed.authenticated_at === 'number'
+        && Math.floor(Date.now() / 1000) - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS
+        && parsed.expires_at > Math.floor(Date.now() / 1000) ? parsed : null;
     } catch (_) {
       return null;
     }
@@ -43,7 +47,7 @@
   const storeSession = (value) => {
     session = value;
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(value));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(value));
     } catch (_) {
       session = value;
     }
@@ -51,7 +55,7 @@
 
   const clearSession = () => {
     session = null;
-    try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
+    try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
   };
 
   const apiUrl = (path) => {
@@ -105,6 +109,7 @@
       access_token: renewed.access_token,
       refresh_token: renewed.refresh_token,
       expires_at: Math.floor(Date.now() / 1000) + Number(renewed.expires_in || 3600),
+      authenticated_at: session.authenticated_at,
       user: renewed.user || session.user || null,
     });
     return session;
@@ -369,6 +374,7 @@
         access_token: result.access_token,
         refresh_token: result.refresh_token,
         expires_at: Math.floor(Date.now() / 1000) + Number(result.expires_in || 3600),
+        authenticated_at: Math.floor(Date.now() / 1000),
         user: { id: result.user.id, email: result.user.email || email },
       });
       await showDashboard();
