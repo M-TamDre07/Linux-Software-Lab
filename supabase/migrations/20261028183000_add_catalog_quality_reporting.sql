@@ -4,7 +4,7 @@
 create table if not exists public.catalog_quality_runs (
   id uuid primary key default gen_random_uuid(),
   source_commit_sha text not null check (source_commit_sha ~ '^[0-9a-f]{40}$'),
-  algorithm_version text not null check (algorithm_version ~ '^lsl-catalog-health-[0-9]+$'),
+  algorithm_version text not null check (algorithm_version ~ '^lsl-catalog-health-v[0-9]+$'),
   entry_count integer not null check (entry_count > 0),
   overall_score smallint not null check (overall_score between 0 and 100),
   recommendation text not null check (recommendation in ('ready', 'review', 'needs_attention')),
