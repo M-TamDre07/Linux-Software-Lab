@@ -129,6 +129,30 @@
         <p class="admin-table-caption" id="catalogCount" aria-live="polite">Menunggu data katalog.</p>
       </section>
 
+      <section class="admin-table-card admin-quality-card" aria-labelledby="qualityTitle">
+        <div class="admin-table-heading">
+          <div>
+            <div class="admin-section-kicker">TRUSTED CI REPORT</div>
+            <h2 id="qualityTitle">Kesehatan katalog</h2>
+            <p class="admin-muted">Laporan otomatis dari CI untuk commit yang diperiksa. Skor adalah heuristik, bukan jaminan kualitas.</p>
+          </div>
+          <span id="qualityReportStatus" class="admin-table-caption" role="status" aria-live="polite">Menunggu laporan…</span>
+        </div>
+        <div class="admin-quality-summary">
+          <article class="admin-metric"><span>Skor keseluruhan</span><strong id="qualityScore">—</strong></article>
+          <article class="admin-metric"><span>Rekomendasi</span><strong id="qualityRecommendation">—</strong></article>
+          <article class="admin-metric"><span>Jumlah aplikasi</span><strong id="qualityEntries">—</strong></article>
+          <article class="admin-metric"><span>Temuan</span><strong id="qualityFindingCount">—</strong></article>
+        </div>
+        <p class="admin-table-caption">Commit sumber: <code id="qualityCommit">—</code> · Waktu laporan: <span id="qualityCreatedAt">—</span></p>
+        <div class="admin-table-scroll">
+          <table class="admin-catalog-table">
+            <thead><tr><th scope="col">Aplikasi</th><th scope="col">Aturan</th><th scope="col">Tingkat</th><th scope="col">Pengurangan</th><th scope="col">Catatan</th></tr></thead>
+            <tbody id="qualityFindingRows"><tr><td colspan="5">Belum ada laporan yang dimuat.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="admin-boundary-note">
         <h2>Aturan pengelolaan data</h2>
         <p>Dashboard ini sengaja bersifat baca-saja untuk katalog. Perubahan katalog harus melewati file <code>public/data/software.json</code>, validasi, review, dan merge ke GitHub. Sinkronisasi CI akan memperbarui mirror Supabase. Informasi rahasia, data autentikasi pengguna lain, dan kredensial server tidak ditampilkan di sini.</p>
