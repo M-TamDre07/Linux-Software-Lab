@@ -1,8 +1,8 @@
 const crypto = require('node:crypto');
 const { json, method, envReady, sb, authUser, activeAdmin, telegram, GROUP_ID, codeHash, genericFailure } = require('../_shared');
 
-function clean(value, max = 120) { return String(value || '').replace(/[\\r\\n\\t]/g, ' ').replace(/[^\\x20-\\x7E\\u00A0-\\uFFFF]/g, '').slice(0, max) || 'Tidak tersedia'; }
-function deviceLabel(ua) { const s = String(ua || ''); const os = /Android/i.test(s) ? 'Android' : /iPhone|iPad|iPod/i.test(s) ? 'iOS' : /Windows/i.test(s) ? 'Windows' : /Linux/i.test(s) ? 'Linux' : /Mac OS/i.test(s) ? 'macOS' : 'Perangkat tidak dikenal'; const browser = /Firefox\\//i.test(s) ? 'Firefox' : /Edg\\//i.test(s) ? 'Edge' : /Chrome\\//i.test(s) ? 'Chrome' : /Safari\\//i.test(s) ? 'Safari' : 'Browser tidak dikenal'; return os + ' / ' + browser; }
+function clean(value, max = 120) { return String(value || '').replaceAll(String.fromCharCode(10), ' ').replaceAll(String.fromCharCode(13), ' ').replaceAll(String.fromCharCode(9), ' ').slice(0, max) || 'Tidak tersedia'; }
+function deviceLabel(ua) { const s = String(ua || '').toLowerCase(); const os = s.includes('android') ? 'Android' : (s.includes('iphone') || s.includes('ipad')) ? 'iOS' : s.includes('windows') ? 'Windows' : s.includes('linux') ? 'Linux' : s.includes('mac os') ? 'macOS' : 'Perangkat tidak dikenal'; const browser = s.includes('firefox/') ? 'Firefox' : s.includes('edg/') ? 'Edge' : s.includes('chrome/') ? 'Chrome' : s.includes('safari/') ? 'Safari' : 'Browser tidak dikenal'; return os + ' / ' + browser; }
 function maskedIp(value) { const ip = String(value || '').split(',')[0].trim(); if (!ip) return 'Tidak tersedia'; if (ip.includes(':')) return ip.split(':').slice(0, 3).join(':') + '::'; const parts = ip.split('.'); return parts.length === 4 ? parts.slice(0, 3).join('.') + '.x' : 'Tidak tersedia'; }
 
 module.exports = async function handler(req, res) {
