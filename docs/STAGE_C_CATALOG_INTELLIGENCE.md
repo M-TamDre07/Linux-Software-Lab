@@ -14,7 +14,7 @@ The source of truth remains `public/data/software.json` in Git. The public websi
 - `public.catalog_quality_runs`: aggregate report per trusted CI run.
 - `public.catalog_quality_findings`: individual findings linked to a report.
 - `public.lsl_admin_users`: existing server-managed admin allow-list.
-- GitHub Actions: validation first; future report persistence must be a separate trusted job on the protected default branch only.
+- GitHub Actions: validation, report artifact retention, and trusted persistence to Supabase on pushes to `main` only. Pull-request runs never receive the persistence credential.
 
 ## Tables and authorization
 
@@ -25,7 +25,7 @@ The source of truth remains `public/data/software.json` in Git. The public websi
 | `catalog_quality_runs` | Score and summary per analysis | No access | Read | Insert via secret server-side credential |
 | `catalog_quality_findings` | Explainable rule findings | No access | Read | Insert via secret server-side credential |
 
-The migration intentionally grants no report-table write access to browser roles. The SQL file is only a repository migration proposal until reviewed and deliberately applied to the Supabase project. No production database was changed by this PR.
+The migrations `20261028024108_add_catalog_quality_reporting.sql` and `20261028024136_fix_catalog_quality_algorithm_version_check.sql` are applied to the Supabase project. Report tables have RLS enabled; authenticated users receive SELECT grants, and policies permit reads only for IDs present as active in `lsl_admin_users`. Browser roles receive no INSERT, UPDATE, or DELETE grants. Trusted GitHub Actions writes using `SUPABASE_SECRET_KEY`; the secret is never sent to browser code. The security advisor returned no findings after the migration.
 
 ## Scoring algorithm v1
 
@@ -62,9 +62,13 @@ Run analysis locally first; no database credentials are required. Report persist
 2. Python tests cover scoring, deterministic output, malformed input, and rule findings.
 3. Website quality workflow and Stage B package proof remain green.
 4. Migration reviewed for least privilege and applied only by an authorized maintainer.
-5. Any future CI persistence job runs only on the protected default branch, uses fixed project URL, never runs on pull requests, and verifies writes before reporting success.
+5. CI persistence runs only on pushes to `main`, uses the fixed project URL, never runs on pull requests, and verifies successful inserts; if findings fail to insert, it attempts to delete the incomplete summary row.
 6. No automatic publication or source catalogue mutation based solely on the score.
 
-## Not included yet
+## Current status and limitations
 
-This stage defines the tables and local scoring engine. It does not add browser-side editing, call an external AI service, write to Supabase, deploy the website, or merge any pull request. The dashboard integration and trusted CI report persistence require separate tests and explicit review.
+- The first trusted report was written successfully for commit `0ddee6c4af611eac9297debb84a7666c0d8e9a76`: 2 entries, score 100/100, recommendation `ready`, 0 findings. Later main commits also generated report rows.
+- The admin page includes a read-only report panel. It uses the signed-in admin session and RLS; it never uses server credentials in the browser.
+- The current `lsl_admin_users` table has zero active rows. Until the owner provisions the intended Auth user through a trusted process, no account can pass the dashboard's active-admin gate. There is deliberately no public admin signup or automatic admin provisioning.
+- Vercel has not been deployed or reconfigured as part of this stage.
+- The branch is not protected by GitHub branch protection. Direct-main workflow is the owner's chosen development mode; CI runs after pushes, so it does not block a bad commit before it reaches main. Review this trade-off with Grok and Claude during the final audit.
