@@ -75,3 +75,11 @@
 @media(prefers-reduced-motion:reduce){
   .admin-main *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+.admin-quality-card{margin-top:20px}
+.admin-quality-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;padding:18px 24px}
+.admin-quality-summary .admin-metric{background:var(--surface);padding:15px}
+.admin-quality-summary .admin-metric strong{font-size:clamp(1.25rem,2.5vw,1.9rem);overflow-wrap:anywhere}
+.admin-quality-card .admin-table-caption{display:block;margin:0;padding:10px 24px;white-space:normal;overflow-wrap:anywhere}
+.admin-quality-card code{font-size:10px;overflow-wrap:anywhere}
+@media(max-width:780px){.admin-quality-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px}}
