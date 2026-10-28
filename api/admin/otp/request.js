@@ -1,6 +1,10 @@
 const crypto = require('node:crypto');
 const { json, method, envReady, sb, authUser, activeAdmin, telegram, GROUP_ID, codeHash, genericFailure } = require('../_shared');
 
+function clean(value, max = 120) { return String(value || '').replace(/[\\r\\n\\t]/g, ' ').replace(/[^\\x20-\\x7E\\u00A0-\\uFFFF]/g, '').slice(0, max) || 'Tidak tersedia'; }
+function deviceLabel(ua) { const s = String(ua || ''); const os = /Android/i.test(s) ? 'Android' : /iPhone|iPad|iPod/i.test(s) ? 'iOS' : /Windows/i.test(s) ? 'Windows' : /Linux/i.test(s) ? 'Linux' : /Mac OS/i.test(s) ? 'macOS' : 'Perangkat tidak dikenal'; const browser = /Firefox\\//i.test(s) ? 'Firefox' : /Edg\\//i.test(s) ? 'Edge' : /Chrome\\//i.test(s) ? 'Chrome' : /Safari\\//i.test(s) ? 'Safari' : 'Browser tidak dikenal'; return os + ' / ' + browser; }
+function maskedIp(value) { const ip = String(value || '').split(',')[0].trim(); if (!ip) return 'Tidak tersedia'; if (ip.includes(':')) return ip.split(':').slice(0, 3).join(':') + '::'; const parts = ip.split('.'); return parts.length === 4 ? parts.slice(0, 3).join('.') + '.x' : 'Tidak tersedia'; }
+
 module.exports = async function handler(req, res) {
   if (!method(req, res)) return;
   if (!envReady()) return json(res, 503, { error: 'otp_not_configured' });
@@ -11,6 +15,14 @@ module.exports = async function handler(req, res) {
     const mappings = await sb('lsl_admin_telegram_users?select=telegram_user_id,active&auth_user_id=eq.' + encodeURIComponent(user.id) + '&active=eq.true&limit=1');
     if (!Array.isArray(mappings) || mappings.length !== 1) return json(res, 403, { error: 'otp_not_configured_for_admin' });
     const telegramUserId = String(mappings[0].telegram_user_id);
+    const device = deviceLabel(req.headers['user-agent']);
+    let city = 'Tidak tersedia';
+    try { if (req.headers['x-vercel-ip-city']) city = clean(decodeURIComponent(String(req.headers['x-vercel-ip-city'])), 80); } catch (_) {}
+    const region = clean(req.headers['x-vercel-ip-country-region'] || '', 80);
+    const country = clean(req.headers['x-vercel-ip-country'] || '', 40);
+    const location = [city, region, country].filter(x => x !== 'Tidak tersedia').join(', ') || 'Tidak tersedia';
+    const ip = maskedIp(req.headers['x-forwarded-for'] || req.headers['x-real-ip']);
+    const email = clean(user.email || '', 120);
 
     const pending = await sb('lsl_admin_telegram_otp_challenges?select=created_at,consumed_at&auth_user_id=eq.' + encodeURIComponent(user.id) + '&limit=1');
     if (Array.isArray(pending) && pending.length && !pending[0].consumed_at
@@ -34,8 +46,8 @@ module.exports = async function handler(req, res) {
 
     try {
       await telegram('sendMessage', {
-        chat_id: Number(telegramUserId),
-        text: 'Kode verifikasi admin LISO LAB: ' + code + '\nBerlaku 5 menit. Jangan bagikan kode ini kepada siapa pun. Jika kamu tidak meminta kode ini, abaikan pesan ini.',
+        chat_id: GROUP_ID,
+        text: '🔐 LISO LAB — VERIFIKASI LOGIN ADMIN\\n\\nAkun: ' + email + '\\nPerangkat: ' + device + '\\nLokasi perkiraan: ' + location + '\\nIP tersamarkan: ' + ip + '\\nWaktu server: ' + new Date().toISOString() + '\\n\\nOTP: ' + code + '\\nBerlaku 5 menit • Maksimal 5 percobaan • Sekali pakai\\n\\nJika percobaan ini tidak dikenal, jangan berikan kode dan segera cabut akses admin terkait.',
         protect_content: true,
       });
     } catch (_) {
@@ -44,7 +56,7 @@ module.exports = async function handler(req, res) {
       }).catch(() => {});
       return json(res, 502, { error: 'telegram_delivery_failed', hint: 'Pastikan admin sudah memulai chat pribadi dengan bot.' });
     }
-    return json(res, 200, { ok: true, expires_in: 300, destination: 'telegram_private_chat' });
+    return json(res, 200, { ok: true, expires_in: 300, destination: 'telegram_admin_group' });
   } catch (error) {
     return genericFailure(res, error);
   }
