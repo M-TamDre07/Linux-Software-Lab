@@ -9,7 +9,7 @@ This is an internal project checklist, not a vendor certification. The Vercel pr
 - [x] Supabase catalogue mirror and CI-generated catalogue quality report are integrated.
 - [x] Admin dashboard is read-only and requires a server-managed active-admin row plus RLS.
 - [x] The current database query confirmed one active row in `public.lsl_admin_users` for the configured maintainer UUID. This confirms registry provisioning only; it does not prove the matching Auth login works end-to-end.
-- [x] Admin browser session survives reloads and has a client-side seven-day reauthentication cutoff.
+- [x] Admin browser session survives reloads and has a client-side seven-day reauthentication cutoff; malformed stored sessions and future-dated authentication timestamps are rejected and cleared by the client. This remains a client-side guard, not server-enforced session expiry.
 - [x] Software Center package candidate workflow and proof documentation are on main; the latest reviewed package workflow run was recorded as passing.
 - [x] Stale PRs #13, #23, and #32 were reviewed and closed as superseded by the current direct-main implementation. No release/tag was created.
 - [x] Supabase Edge Function inventory was checked: no Edge Functions are currently deployed.
@@ -38,4 +38,4 @@ This is an internal project checklist, not a vendor certification. The Vercel pr
 
 ## Performance Advisor observation
 
-The previous review recorded four informational unused indexes on new catalogue/quality-report tables with low usage. Recheck the current Performance Advisor before release; do not drop indexes without representative query-traffic evidence.
+The latest Performance Advisor check on 2026-10-28 reports two informational unused-index findings: `software_catalog_published_order_idx` on `public.software_catalog` and `catalog_quality_findings_software_idx` on `public.catalog_quality_findings`. This is usage telemetry, not proof the indexes are unnecessary; do not drop them without representative query-traffic evidence and query-plan review.
