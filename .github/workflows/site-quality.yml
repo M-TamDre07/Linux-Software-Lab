@@ -97,3 +97,16 @@ jobs:
           path: /tmp/liso-catalog-health.json
           if-no-files-found: error
           retention-days: 14
+      - name: Persist catalogue health report to Supabase (trusted main only)
+        if: github.ref == 'refs/heads/main'
+        env:
+          SUPABASE_URL: https://ttofugaqwthmvhvntdlc.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_SECRET_KEY" ]]; then
+            echo "::warning::Catalogue report was validated and uploaded as an artifact, but Supabase persistence was skipped because SUPABASE_SECRET_KEY is not configured."
+            exit 0
+          fi
+          python scripts/persist_catalog_quality_report.py
