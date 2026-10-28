@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
   "catalog": {
-    "name": "Linux Software Lab",
-    "description": "Katalog software desktop independen untuk Debian dan keluarga Linux.",
+    "name": "LISO LAB",
+    "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
     "updatedAt": "2026-10-25"
