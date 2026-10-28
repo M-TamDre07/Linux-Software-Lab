@@ -487,7 +487,28 @@
   });
   window.addEventListener('storage', (event) => {
     if (event.key !== SESSION_KEY) return;
-    // A logout or session replacement in another tab invalidates this tab's UI too.
+    if (event.newValue) {
+      try {
+        const shared = JSON.parse(event.newValue);
+        const now = Math.floor(Date.now() / 1000);
+        const sameSession = shared && session
+          && shared.user && session.user
+          && shared.user.id === session.user.id
+          && shared.authenticated_at === session.authenticated_at
+          && typeof shared.access_token === 'string' && shared.access_token.length > 0
+          && typeof shared.refresh_token === 'string' && shared.refresh_token.length > 0
+          && Number.isFinite(shared.expires_at) && shared.expires_at > now
+          && Number.isFinite(shared.authenticated_at)
+          && shared.authenticated_at <= now
+          && now - shared.authenticated_at < SESSION_MAX_AGE_SECONDS;
+        if (sameSession) {
+          // Keep token refreshes synchronized without logging out other tabs.
+          session = shared;
+          return;
+        }
+      } catch (_) {}
+    }
+    // A logout or account replacement in another tab clears this tab's protected view.
     clearSession();
     catalogRows = [];
     $('#catalogRows').replaceChildren();
