@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.7.0",
+  "release_status": "testing",
+  "updated_at": "2026-10-28",
+  "policy": {
+    "release_status_is_independent_of_distribution_compatibility": true,
+    "supported_requires": [
+      "install",
+      "launch",
+      "upgrade",
+      "uninstall"
+    ],
+    "evidence_must_be_reproducible": true
+  },
+  "distributions": [
+    {
+      "id": "debian",
+      "family": "debian-family",
+      "status": "testing",
+      "package_formats": [
+        "deb"
+      ],
+      "evidence": [
+        {
+          "kind": "artifact",
+          "result": "present",
+          "source": "apps/sorot/releases/0.7.0/sorot_0.7.0_all.deb",
+          "note": "The .deb artifact and SHA256SUMS entry are present."
+        },
+        {
+          "kind": "upgrade",
+          "result": "limited",
+          "source": "apps/sorot/releases/0.7.0/TEST-REPORT.md",
+          "note": "A dpkg upgrade exercise used --force-depends; this is not a clean Debian 13 apt installation test."
+        }
+      ],
+      "limitations": [
+        "No clean Debian 13 install, launch, upgrade, and uninstall evidence.",
+        "Real PySide6/pytest GUI tests were not run in the report."
+      ]
+    },
+    {
+      "id": "ubuntu",
+      "family": "debian-family",
+      "status": "testing",
+      "package_formats": [
+        "deb"
+      ],
+      "evidence": [
+        {
+          "kind": "build",
+          "result": "limited",
+          "source": "apps/sorot/releases/0.7.0/TEST-REPORT.md",
+          "note": "The report identifies Ubuntu 24.04 x86_64 as the package-build environment."
+        }
+      ],
+      "limitations": [
+        "A successful build does not establish clean installation or runtime compatibility.",
+        "Native Qt GUI tests and desktop-session behavior remain unverified."
+      ]
+    },
+    {
+      "id": "arch",
+      "family": "arch-family",
+      "status": "unverified",
+      "package_formats": [
+        "pkg.tar.zst"
+      ],
+      "evidence": [],
+      "limitations": [
+        "No validated Arch package artifact is declared.",
+        "makepkg, namcap, install, launch, upgrade, and uninstall have not been evidenced."
+      ]
+    },
+    {
+      "id": "fedora",
+      "family": "fedora-family",
+      "status": "unverified",
+      "package_formats": [
+        "rpm"
+      ],
+      "evidence": [],
+      "limitations": [
+        "No RPM artifact or Fedora installation/runtime test evidence is declared."
+      ]
+    },
+    {
+      "id": "ign-26",
+      "family": "unknown",
+      "status": "unverified",
+      "package_formats": [],
+      "evidence": [],
+      "limitations": [
+        "IGN 26 remains unverified; no compatibility claim is made without technical evidence."
+      ]
+    }
+  ]
+}
