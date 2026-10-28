@@ -67,7 +67,7 @@
     <section class="admin-login-card" id="otpPanel" aria-labelledby="otpTitle" hidden>
       <div class="admin-section-kicker">TELEGRAM SECOND FACTOR</div>
       <h2 id="otpTitle">Verifikasi melalui Telegram</h2>
-      <p>Setelah akun admin diverifikasi, kode sekali pakai dikirim ke chat pribadi bot Telegram yang terdaftar. Kode berlaku 5 menit dan tidak boleh dibagikan.</p>
+      <p>Setelah akun admin diverifikasi, kode sekali pakai dan pemberitahuan keamanan dikirim ke grup Telegram admin terbatas. Kode berlaku 5 menit. Pastikan grup hanya berisi admin tepercaya karena anggota grup dapat melihat kode.</p>
       <form id="otpForm" class="admin-login-form">
         <label for="adminOtpCode">Kode OTP 6 digit</label>
         <input id="adminOtpCode" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
@@ -77,7 +77,7 @@
         <button class="btn btn-secondary" id="otpSendButton" type="button">Kirim / kirim ulang kode</button>
         <button class="btn btn-secondary" id="otpCancelButton" type="button">Batal</button>
       </div>
-      <p class="admin-small-note">Kode tidak dikirim ke grup. Grup digunakan hanya untuk memeriksa keanggotaan admin.</p>
+      <p class="admin-small-note">Kode dikirim ke grup admin terbatas. Jika percobaan tidak dikenal, jangan gunakan atau bagikan kode dan laporkan kepada maintainer.</p>
     </section>
 
     <section id="dashboardPanel" hidden aria-labelledby="dashboardTitle">
