@@ -148,3 +148,8 @@ Website dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela: 
 ## Kontribusi dan atribusi
 
 Pencipta awal dan maintainer proyek: **Muhammad Andreatama**. Sebelum mengerjakan perubahan untuk repositori resmi, hubungi maintainer dan tunggu persetujuan. Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk proses pengajuan, etika atribusi, dan batas kebijakan ini terhadap hak yang diberikan GPL-3.0.
+
+
+## Documentation
+
+- [Pre-Vercel readiness gate](docs/PRE_VERCEL_READINESS.md) — current verified status, auth blockers, and the checks required before deployment.
