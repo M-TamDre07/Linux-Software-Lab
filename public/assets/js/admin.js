@@ -250,6 +250,7 @@
       if (!Array.isArray(rows)) throw new Error('Respons katalog tidak valid.');
       catalogRows = rows;
       renderCatalog();
+      await loadQualityReports();
       setMessage('Akses admin terverifikasi. Katalog berhasil dibaca; tidak ada perubahan database yang dilakukan.', 'success');
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
@@ -262,6 +263,80 @@
       }
     } finally {
       refreshButton.disabled = false;
+    }
+  };
+
+  const loadQualityReports = async () => {
+    const status = $('#qualityReportStatus');
+    const rowsTarget = $('#qualityFindingRows');
+    const setQualityText = (selector, value) => { $(selector).textContent = value; };
+    try {
+      status.textContent = 'Memuat laporan…';
+      const params = new URLSearchParams({
+        select: 'id,source_commit_sha,algorithm_version,entry_count,overall_score,recommendation,finding_count,severity_counts,created_at',
+        order: 'created_at.desc',
+        limit: '1',
+      });
+      const reports = await authenticatedRequest('/rest/v1/catalog_quality_runs?' + params.toString());
+      if (!Array.isArray(reports)) throw new Error('Respons laporan tidak valid.');
+      if (reports.length === 0) {
+        setQualityText('#qualityScore', '—');
+        setQualityText('#qualityRecommendation', 'Belum ada');
+        setQualityText('#qualityEntries', '—');
+        setQualityText('#qualityFindingCount', '—');
+        setQualityText('#qualityCommit', '—');
+        setQualityText('#qualityCreatedAt', '—');
+        rowsTarget.replaceChildren();
+        const row = document.createElement('tr');
+        row.appendChild(makeCell('Belum ada laporan CI tersimpan.'));
+        rowsTarget.appendChild(row);
+        status.textContent = 'Laporan belum tersedia';
+        return;
+      }
+      const report = reports[0];
+      setQualityText('#qualityScore', String(report.overall_score) + '/100');
+      setQualityText('#qualityRecommendation', ({
+        ready: 'Siap ditinjau',
+        review: 'Perlu ditinjau',
+        needs_attention: 'Perlu perhatian',
+      })[report.recommendation] || 'Tidak diketahui');
+      setQualityText('#qualityEntries', String(report.entry_count));
+      setQualityText('#qualityFindingCount', String(report.finding_count));
+      setQualityText('#qualityCommit', String(report.source_commit_sha || '—').slice(0, 12));
+      setQualityText('#qualityCreatedAt', formatDate(report.created_at));
+
+      const findingParams = new URLSearchParams({
+        select: 'software_id,rule_code,severity,deduction,message',
+        run_id: 'eq.' + report.id,
+        order: 'created_at.asc',
+        limit: '500',
+      });
+      const findings = await authenticatedRequest('/rest/v1/catalog_quality_findings?' + findingParams.toString());
+      if (!Array.isArray(findings)) throw new Error('Respons temuan tidak valid.');
+      rowsTarget.replaceChildren();
+      if (findings.length === 0) {
+        const row = document.createElement('tr');
+        row.appendChild(makeCell('Tidak ada temuan untuk laporan ini.'));
+        rowsTarget.appendChild(row);
+      } else {
+        findings.forEach((finding) => {
+          const row = document.createElement('tr');
+          row.appendChild(makeCell(finding.software_id || 'Katalog'));
+          row.appendChild(makeCell(finding.rule_code));
+          row.appendChild(makeCell(finding.severity));
+          row.appendChild(makeCell(String(finding.deduction)));
+          row.appendChild(makeCell(finding.message));
+          rowsTarget.appendChild(row);
+        });
+      }
+      status.textContent = 'Commit ' + String(report.source_commit_sha || '').slice(0, 12)
+        + ' · ' + String(report.algorithm_version || 'algoritma tidak diketahui');
+    } catch (_) {
+      status.textContent = 'Laporan tidak dapat dimuat';
+      rowsTarget.replaceChildren();
+      const row = document.createElement('tr');
+      row.appendChild(makeCell('Periksa migrasi Supabase, akses SELECT admin, dan log CI. Katalog tetap dapat dibaca terpisah.'));
+      rowsTarget.appendChild(row);
     }
   };
 
