@@ -485,6 +485,19 @@
       setMessage('Sesi lokal dihapus. Jika jaringan tersedia, token refresh untuk sesi ini juga telah dicabut.');
     }
   });
+  window.addEventListener('storage', (event) => {
+    if (event.key !== SESSION_KEY) return;
+    // A logout or session replacement in another tab invalidates this tab's UI too.
+    clearSession();
+    catalogRows = [];
+    $('#catalogRows').replaceChildren();
+    $('#qualityFindingRows').replaceChildren();
+    dashboardPanel.hidden = true;
+    loginPanel.hidden = false;
+    loginForm.reset();
+    setMessage('Sesi admin berubah atau telah ditutup di tab lain. Masuk kembali untuk melanjutkan.', 'info');
+  });
+
   searchInput.addEventListener('input', renderCatalog);
   publishFilter.addEventListener('change', renderCatalog);
 
