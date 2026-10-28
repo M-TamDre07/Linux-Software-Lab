@@ -78,7 +78,7 @@ test("null, arrays, malformed records and missing catalogue blocks fail closed",
   assert.equal(validateCatalogPayload({ schemaVersion: 2, catalog: {}, software: [null] }).valid, false);
 });
 
-test("launcher catalogue stays byte-for-byte aligned with the canonical website catalogue", () => {
+test("launcher catalogue is an exact mirror of the canonical website catalogue", () => {
   const launcherCatalogPath = path.join(
     __dirname,
     "..",
@@ -92,6 +92,6 @@ test("launcher catalogue stays byte-for-byte aligned with the canonical website 
   assert.deepEqual(
     launcherCatalog,
     canonicalCatalog,
-    "Regenerate the launcher catalogue from public/data/software.json instead of editing either copy independently."
+    "Run python scripts/sync_distribution_index.py --write to regenerate catalogue mirrors."
   );
 });
