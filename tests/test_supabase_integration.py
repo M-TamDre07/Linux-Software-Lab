@@ -81,6 +81,31 @@ class SupabaseIntegrationTests(unittest.TestCase):
         self.assertNotIn("/rest/v1/software_catalog?", js)
         self.assertIn("credentials: 'include'", js)
 
+    def test_telegram_otp_migration_fails_closed_and_requires_server_gateway(self):
+        migration = (ROOT / "supabase/migrations/20261028120000_add_telegram_otp_admin_gate.sql").read_text(encoding="utf-8").casefold()
+        self.assertIn("enable row level security", migration)
+        self.assertIn("revoke all on table public.lsl_admin_telegram_otp_challenges from public, anon, authenticated", migration)
+        self.assertIn("revoke all on table public.lsl_admin_telegram_otp_sessions from public, anon, authenticated", migration)
+        self.assertIn("revoke select on table public.software_catalog from authenticated", migration)
+        self.assertIn("revoke select on table public.catalog_quality_runs from authenticated", migration)
+        self.assertIn("revoke select on table public.catalog_quality_findings from authenticated", migration)
+        self.assertIn("for update", migration)
+        self.assertIn("attempts >= 5", migration)
+        self.assertIn("consumed_at = now()", migration)
+        self.assertIn("grant execute on function public.lsl_consume_admin_telegram_otp", migration)
+
+    def test_telegram_otp_server_routes_keep_secrets_server_side(self):
+        shared = (ROOT / "api/admin/_shared.js").read_text(encoding="utf-8")
+        request = (ROOT / "api/admin/otp/request.js").read_text(encoding="utf-8")
+        verify = (ROOT / "api/admin/otp/verify.js").read_text(encoding="utf-8")
+        self.assertIn("process.env.TELEGRAM_BOT_TOKEN", shared)
+        self.assertIn("getChatMember", request)
+        self.assertIn("sendMessage", request)
+        self.assertIn("createHmac", shared)
+        self.assertIn("lsl_consume_admin_telegram_otp", verify)
+        self.assertIn("HttpOnly", verify)
+        self.assertNotIn("TELEGRAM_BOT_TOKEN", (ROOT / "public/assets/js/admin.js").read_text(encoding="utf-8"))
+
     def test_sync_workflow_never_writes_from_pull_requests(self):
         workflow = (ROOT / ".github/workflows/supabase-catalog-sync.yml").read_text(encoding="utf-8")
         self.assertIn("if: github.ref == 'refs/heads/main'", workflow)
