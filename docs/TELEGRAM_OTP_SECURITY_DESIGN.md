@@ -19,7 +19,7 @@ The Vercel server functions expect these server-side variables:
 
 - `SUPABASE_URL`
 - `SUPABASE_PUBLISHABLE_KEY` (or the existing `SUPABASE_ANON_KEY`)
-- `SUPABASE_SERVICE_ROLE_KEY` (server-only; never use a `NEXT_PUBLIC_` name)
+- `SUPABASE_SECRET_KEY` (preferred modern server-only secret) or `SUPABASE_SERVICE_ROLE_KEY` (legacy server-only key); never use a `NEXT_PUBLIC_` name
 - `TELEGRAM_BOT_TOKEN` (server-only secret)
 - Optional `TELEGRAM_GROUP_ID`, defaulting to `-1004361361948`
 
