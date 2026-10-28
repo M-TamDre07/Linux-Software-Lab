@@ -434,6 +434,7 @@
 
   const showDashboard = async () => {
     if (!session) throw new Error('Sesi tidak tersedia.');
+    await freshSession();
     await verifyAdmin();
     otpPanel.hidden = true;
     loginPanel.hidden = true;
