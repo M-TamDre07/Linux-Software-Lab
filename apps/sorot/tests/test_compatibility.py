@@ -2,7 +2,7 @@ import copy
 import json
 import unittest
 from pathlib import Path
-from validate_compatibility import CompatibilityValidationError, validate_compatibility
+from apps.sorot.validate_compatibility import CompatibilityValidationError, validate_compatibility
 
 ROOT = Path(__file__).resolve().parents[1]
 
