@@ -86,3 +86,7 @@ jobs:
           python -m json.tool vercel.json > /dev/null
       - name: Run metadata, sitemap and link regression tests
         run: python -m unittest discover -s tests -v
+      - name: Generate deterministic catalogue health report
+        run: python scripts/catalog_intelligence.py --output /tmp/liso-catalog-health.json
+      - name: Validate generated catalogue health report
+        run: python -m json.tool /tmp/liso-catalog-health.json > /dev/null
