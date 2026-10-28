@@ -72,11 +72,11 @@ This is a policy/grant inspection, not a live request test. It does not prove th
 ## CAPTCHA and Telegram OTP status
 
 - CAPTCHA remains **not active**. It requires selecting a supported provider, configuring the server-side secret in Supabase Auth, and passing a verified provider token from the login form.
-- Telegram OTP has server-side implementation code in draft PR #40, but is **not active in production**. The flow requires a trusted Auth UUID → Telegram numeric user ID mapping, Telegram group-membership verification, private-message delivery, short-lived hashed challenges, attempt/rate limits, atomic one-time consumption, an HttpOnly OTP session cookie, and server-side routes for protected admin data.
+- Telegram OTP has server-side implementation code in draft PR #40, but is **not active in production**. The flow requires a trusted Auth UUID → Telegram numeric user ID mapping, Telegram group-membership verification, restricted admin-group delivery, short-lived hashed challenges, attempt/rate limits, atomic one-time consumption, an HttpOnly OTP session cookie, and server-side routes for protected admin data.
 - The new migration revokes direct `authenticated` SELECT on the catalog quality tables and private catalog view, while preserving the anonymous published-catalog policy. Review and test the migration in a non-production database before applying it anywhere else.
-- Never send OTP codes to the Telegram group. The bot checks membership in group `-1004361361948`, then sends the code to the mapped admin's private chat.
+- OTP and login audit notices are intentionally sent to the restricted admin group `-1004361361948`. Every member can see the code, so keep membership limited to trusted administrators and verify the mapped Telegram account is a current group member.
 - See [TELEGRAM_OTP_SECURITY_DESIGN.md](TELEGRAM_OTP_SECURITY_DESIGN.md) for required Vercel variables, mapping setup, test cases, and release gates.
-- Do not claim OTP is active until the migration is applied, the numeric Telegram ID mapping exists, the bot can send a private message, and direct REST bypass tests pass.
+- Do not claim OTP is active until the migration is applied, the numeric Telegram ID mapping exists, the bot can post to the restricted admin group, and direct REST bypass tests pass.
 
 ## Security model and limitations
 
