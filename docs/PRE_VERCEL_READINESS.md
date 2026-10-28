@@ -5,7 +5,7 @@ This is an internal project checklist, not a vendor certification. The Vercel pr
 ## Current verified state
 
 - [x] Canonical website catalogue is the source of truth; launcher distribution metadata has a deterministic sync/check.
-- [x] Website quality workflow and CodeQL were recorded as passing in the last readiness review; re-check current default-branch runs before release.
+- [x] Website Quality workflow #512 passed on 2026-10-28 for commit `92d72e9ac9be4ce32120cf45007c5ff416dd56f4`. This confirms the repository's configured quality workflow for that commit, not end-to-end authentication or deployment readiness.
 - [x] Supabase catalogue mirror and CI-generated catalogue quality report are integrated.
 - [x] Admin dashboard is read-only and requires a server-managed active-admin row plus RLS.
 - [x] The current database query confirmed one active row in `public.lsl_admin_users` for the configured maintainer UUID. This confirms registry provisioning only; it does not prove the matching Auth login works end-to-end.
@@ -13,8 +13,8 @@ This is an internal project checklist, not a vendor certification. The Vercel pr
 - [x] Software Center package candidate workflow and proof documentation are on main; the latest reviewed package workflow run was recorded as passing.
 - [x] Stale PRs #13, #23, and #32 were reviewed and closed as superseded by the current direct-main implementation. No release/tag was created.
 - [x] Supabase Edge Function inventory was checked: no Edge Functions are currently deployed.
-- [ ] **New security finding:** Supabase Security Advisor currently reports leaked-password protection disabled. Enable it in Supabase Auth password/security settings and verify the finding clears before production rollout.
-- [ ] Current CI/workflow state has not yet been re-verified after this review; inspect latest main-branch results before release.
+- [x] Telegram OTP security design is documented in [TELEGRAM_OTP_SECURITY_DESIGN.md](TELEGRAM_OTP_SECURITY_DESIGN.md); it is a design only, not an implementation.
+- [ ] **Open security finding:** Supabase Security Advisor reports leaked-password protection disabled. Enable it in Supabase Auth password/security settings and verify the finding clears before production rollout.
 
 ## Must be complete before Vercel work
 
@@ -22,6 +22,7 @@ This is an internal project checklist, not a vendor certification. The Vercel pr
 - [ ] Enable and verify Supabase leaked-password protection; review password strength and Auth security settings.
 - [ ] Select and configure a CAPTCHA provider in Supabase Auth; configure the browser widget, exact production hostname, and Content Security Policy together. CAPTCHA is not active yet.
 - [ ] Implement Telegram OTP as a trusted server-side flow, not browser-only JavaScript. LISO LAB identifiers are documented in [TELEGRAM_CONFIGURATION.md](TELEGRAM_CONFIGURATION.md): group ID `-1004361361948` and bot ID `8258093251`. Confirm each admin's Telegram numeric user ID; map Telegram IDs to Auth UUIDs; store the bot token only as a Supabase Edge Function secret; verify group membership server-side; expire and consume OTP challenges once; test revoked/non-member and rate-limit cases. OTP is not active yet.
+- [ ] Ensure OTP is enforced for all protected admin data requests. Browser-only flags are not authorization; test direct Supabase Data API requests for bypass.
 - [ ] Enforce session lifetime server-side where supported by the Supabase plan/settings; a browser-only seven-day cutoff is not sufficient on its own.
 - [ ] Re-run the full website, application, package, and security checks after the final auth implementation.
 - [ ] Review CSP, redirect URLs, Supabase Auth settings, RLS/grants, public configuration, and documentation without exposing secrets.
