@@ -1,0 +1,169 @@
+name: Software Center package proof
+
+on:
+  pull_request:
+    paths:
+      - "apps/software-center/**"
+      - ".github/workflows/software-center-package.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/software-center/**"
+      - ".github/workflows/software-center-package.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: software-center-package-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-candidate:
+    name: Build and inspect wheel and Debian package
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Install Qt runtime and Debian packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dpkg-dev python3-pyside6.qtwidgets libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0 fonts-dejavu-core
+      - name: Install test dependencies
+        run: python -m pip install -e "apps/software-center[gui,test]"
+      - name: Lint, compile, and test
+        run: |
+          ruff check apps/software-center/lsl_center apps/software-center/tests
+          python -m compileall -q apps/software-center/lsl_center
+          python -m pytest apps/software-center/tests -q
+      - name: Build wheel and validate its contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          python -m pip wheel --no-deps --wheel-dir dist apps/software-center
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+          wheels = list(Path("dist").glob("*.whl"))
+          assert len(wheels) == 1, f"Expected one wheel, got {len(wheels)}"
+          with ZipFile(wheels[0]) as archive:
+              names = set(archive.namelist())
+          required = {
+              "lsl_center/gui.py",
+              "lsl_center/cli.py",
+              "lsl_center/catalog.py",
+              "lsl_center/installer.py",
+              "lsl_center/data/catalog.json",
+              "lsl_center/data/distribution-index.json",
+              "lsl_center/data/assets/center-icon.svg",
+          }
+          missing = sorted(required - names)
+          assert not missing, f"Wheel is missing required files: {missing}"
+          assert any(name.endswith("entry_points.txt") for name in names), "Console entry points missing"
+          print(f"Wheel contents verified: {wheels[0].name}")
+          PY
+      - name: Assemble Debian package candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(python -c 'import tomllib; print(tomllib.load(open("apps/software-center/pyproject.toml", "rb"))["project"]["version"])')"
+          ROOT="$PWD/pkgroot"
+          mkdir -p "$ROOT/DEBIAN" "$ROOT/usr/lib/python3/dist-packages" "$ROOT/usr/bin" "$ROOT/usr/share/applications" "$ROOT/usr/share/icons/hicolor/scalable/apps"
+          WHEEL="$(find dist -maxdepth 1 -name '*.whl' -print -quit)"
+          test -n "$WHEEL"
+          python - "$WHEEL" "$ROOT/usr/lib/python3/dist-packages" <<'PY'
+          import sys
+          from zipfile import ZipFile
+          with ZipFile(sys.argv[1]) as archive:
+              archive.extractall(sys.argv[2])
+          PY
+          cat > "$ROOT/DEBIAN/control" <<EOF
+          Package: linux-software-lab-center
+          Version: $VERSION
+          Section: utils
+          Priority: optional
+          Architecture: all
+          Maintainer: Linux Software Lab
+          Depends: python3 (>= 3.10), python3-pyside6.qtwidgets
+          Description: Linux Software Lab application catalogue and installer
+           Desktop catalogue and CLI with shared distro detection, metadata
+           validation, checksum verification and reviewed Debian install flow.
+          EOF
+          cat > "$ROOT/usr/bin/lsl" <<'EOF'
+          #!/bin/sh
+          export PYTHONDONTWRITEBYTECODE=1
+          export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
+          exec /usr/bin/python3 -m lsl_center.cli "$@"
+          EOF
+          cat > "$ROOT/usr/bin/lsl-center" <<'EOF'
+          #!/bin/sh
+          export PYTHONDONTWRITEBYTECODE=1
+          export PYTHONPATH="/usr/lib/python3/dist-packages${PYTHONPATH:+:$PYTHONPATH}"
+          exec /usr/bin/python3 -c 'from lsl_center.gui import main; raise SystemExit(main())' "$@"
+          EOF
+          chmod 0755 "$ROOT/usr/bin/lsl" "$ROOT/usr/bin/lsl-center"
+          cp apps/software-center/lsl_center/data/assets/center-icon.svg "$ROOT/usr/share/icons/hicolor/scalable/apps/linux-software-lab-center.svg"
+          cat > "$ROOT/usr/share/applications/linux-software-lab-center.desktop" <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=Linux Software Lab Center
+          Comment=Jelajahi dan kelola katalog aplikasi Linux
+          Exec=lsl-center
+          Icon=linux-software-lab-center
+          Terminal=false
+          Categories=System;PackageManager;Utility;
+          StartupNotify=true
+          EOF
+          dpkg-deb --root-owner-group --build "$ROOT" "dist/linux-software-lab-center_${VERSION}_all.deb"
+          dpkg-deb --info "dist/linux-software-lab-center_${VERSION}_all.deb"
+          dpkg-deb --contents "dist/linux-software-lab-center_${VERSION}_all.deb" > dist/deb-contents.txt
+          grep -q 'usr/bin/lsl' dist/deb-contents.txt
+          grep -q 'usr/share/applications/linux-software-lab-center.desktop' dist/deb-contents.txt
+          grep -q 'usr/lib/python3/dist-packages/lsl_center/gui.py' dist/deb-contents.txt
+          (cd dist && sha256sum *.whl *.deb > SHA256SUMS)
+          (cd dist && sha256sum --check SHA256SUMS)
+      - name: Install, smoke-test, and purge on Debian 13
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "$PWD/dist:/dist:ro" \
+            debian:trixie-slim bash -euxc '
+              apt-get update
+              DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-pyside6.qtwidgets libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1 libxkbcommon-x11-0
+              package="$(find /dist -maxdepth 1 -name "linux-software-lab-center_*_all.deb" -print -quit)"
+              test -n "$package"
+              DEBIAN_FRONTEND=noninteractive apt-get install -y "$package"
+              dpkg-query -W -f="\${Status}\\n" linux-software-lab-center | grep -qx "install ok installed"
+              lsl --version
+              PYTHONDONTWRITEBYTECODE=1 QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(1)"
+              apt-get purge -y linux-software-lab-center
+              if dpkg-query -W -f="\${Status}" linux-software-lab-center 2>/dev/null | grep -q "install ok installed"; then
+                echo "Package remains installed after purge" >&2
+                exit 1
+              fi
+              if test -e /usr/lib/python3/dist-packages/lsl_center; then
+                echo "Package-owned Python module directory remains after purge" >&2
+                find /usr/lib/python3/dist-packages/lsl_center -maxdepth 2 -print >&2
+                exit 1
+              fi
+            '
+      - name: Upload non-release candidate artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: software-center-package-candidate-${{ github.run_number }}
+          path: |
+            dist/*.whl
+            dist/*.deb
+            dist/SHA256SUMS
+            dist/deb-contents.txt
+          if-no-files-found: error
+          retention-days: 14
