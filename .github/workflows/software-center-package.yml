@@ -139,7 +139,7 @@ jobs:
               package="$(find /dist -maxdepth 1 -name "linux-software-lab-center_*_all.deb" -print -quit)"
               test -n "$package"
               DEBIAN_FRONTEND=noninteractive apt-get install -y "$package"
-              dpkg-query -W -f="${Status}\n" linux-software-lab-center | grep -qx "install ok installed"
+              dpkg-query -W -f="\${Status}\n" linux-software-lab-center | grep -qx "install ok installed"
               lsl --version
               QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(\"GUI module import: OK\")"
               apt-get purge -y linux-software-lab-center
