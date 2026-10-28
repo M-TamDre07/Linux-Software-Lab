@@ -51,7 +51,7 @@ Do not paste credentials into GitHub, chat, or frontend code. Production-only en
 
 - The administrator's numeric Telegram user ID has not been confirmed, so no mapping can be seeded.
 - The migration has not been applied to any database by this code change.
-- OTP secrets and database state have not been tested by sending a real Telegram message from this environment.
+- OTP secrets and database state have not been tested by sending a real Telegram group message from this environment.
 - The Vercel production environment variable list includes a Telegram bot-token entry, but secret values were not read. Presence of a variable name does not prove the value is valid or that the bot can post to the configured group.
 - No production Supabase write or Vercel production deployment has been performed.
 
