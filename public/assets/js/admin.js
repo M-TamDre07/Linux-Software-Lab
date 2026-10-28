@@ -162,8 +162,22 @@
   };
 
   const freshSession = async () => {
-    if (!session) throw new Error('Sesi tidak ditemukan.');
-    if (session.expires_at <= Math.floor(Date.now() / 1000) + 45) await refreshSession();
+    if (!session) {
+      const error = new Error('Sesi tidak ditemukan. Silakan masuk kembali.');
+      error.status = 401;
+      throw error;
+    }
+    const now = Math.floor(Date.now() / 1000);
+    if (!Number.isFinite(session.authenticated_at)
+      || session.authenticated_at > now
+      || now - session.authenticated_at >= SESSION_MAX_AGE_SECONDS
+      || !Number.isFinite(session.expires_at)) {
+      clearSession();
+      const error = new Error('Sesi tidak valid atau batas usia sesi tercapai. Silakan masuk kembali.');
+      error.status = 401;
+      throw error;
+    }
+    if (session.expires_at <= now + 45) await refreshSession();
     return session;
   };
 
