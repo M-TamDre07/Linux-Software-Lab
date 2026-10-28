@@ -8,7 +8,7 @@ The static dashboard is available at `/admin/`. It is intentionally `noindex` an
 - Require an active row in `public.lsl_admin_users`; an authenticated account by itself is not an admin.
 - Read the catalogue mirror, publication status, version, metadata update date, and sync timestamp.
 - Search/filter the records and inspect a small health summary.
-- Store access/refresh tokens in browser `localStorage` to survive reloads and browser restarts, with a hard client-side reauthentication cutoff seven days after password login; access tokens are refreshed only within that window. Logout requests local-session revocation and clears browser-held tokens even if the network call fails. API requests omit cookies. Because browser storage is readable by same-origin JavaScript, strict Content Security Policy and XSS prevention remain essential; this client-side cutoff is not a substitute for server-enforced session lifetime.
+- Store access/refresh tokens in browser `localStorage` to survive reloads and browser restarts, with a client-side seven-day reauthentication cutoff enforced before every authenticated request and before token refresh. Login and refresh responses are validated for non-empty tokens, finite positive expiry, and consistent user identity. A failed/revoked refresh clears the local session; logout requests local-session revocation and clears browser-held tokens even if the network call fails. Tabs synchronize token refresh for the same session and clear the protected view when another tab logs out or switches accounts. API requests omit cookies. Because browser storage is readable by same-origin JavaScript, strict Content Security Policy and XSS prevention remain essential; these are client-side controls, not a substitute for server-enforced session lifetime or server-side second-factor enforcement.
 - Make no catalogue mutations and do not query other users, secrets, Auth administration endpoints, or private server settings.
 
 This is a read-only operational dashboard, not a full management interface. `public/data/software.json` remains the catalogue source of truth. The maintainer currently works directly on `main` by explicit project decision, so each change must pass the repository's automated quality checks after the push and any failure must be corrected before further rollout. The GitHub Actions sync updates Supabase from the canonical source. Do not write directly to the read-only mirror from the browser.
@@ -37,6 +37,8 @@ Never create an anonymous policy that allows users to insert or update `lsl_admi
 ## Browser session regression checks
 
 The client-side session parser now rejects and clears stored session data when any required token is empty, the expiry/authentication timestamps are not finite numbers, the authentication timestamp is in the future, or the seven-day reauthentication cutoff has elapsed. This is defensive browser-state handling only; it does not make localStorage trusted and does not enforce server-side session lifetime.
+
+Recent client hardening (commits `3f95dd3`, `197ddb7`, `8cbc973`, and `9b302a2`) also validates token refresh responses and checks the seven-day cutoff before every authenticated request. The cross-tab handler synchronizes refreshed tokens for the same authenticated session and clears protected UI on logout/account replacement. These code changes were verified by fetching the committed source from GitHub; a full browser end-to-end run has not yet been performed.
 
 Before treating the dashboard as release-ready, verify these cases in a browser test environment:
 
