@@ -73,6 +73,22 @@
     try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
   };
 
+  const clearDashboardData = () => {
+    catalogRows = [];
+    $('#catalogRows').replaceChildren();
+    $('#qualityFindingRows').replaceChildren();
+    ['#metricTotal', '#metricPublished', '#metricUnpublished', '#metricTesting',
+      '#qualityScore', '#qualityRecommendation', '#qualityEntries', '#qualityFindingCount',
+      '#qualityCommit', '#qualityCreatedAt'].forEach((selector) => {
+      const element = $(selector);
+      if (element) element.textContent = '—';
+    });
+    $('#catalogCount').textContent = 'Data dibersihkan karena sesi tidak aktif.';
+    $('#databaseStatus').textContent = 'Tidak terhubung';
+    $('#databaseDetail').textContent = 'Masuk kembali untuk memuat data.';
+    $('#qualityReportStatus').textContent = 'Sesi tidak aktif';
+  };
+
   const apiUrl = (path) => {
     if (!config || typeof config.url !== 'string' || typeof config.publishableKey !== 'string') {
       throw new Error('Konfigurasi Supabase tidak tersedia.');
@@ -328,6 +344,7 @@
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
         clearSession();
+        clearDashboardData();
         dashboardPanel.hidden = true;
         loginPanel.hidden = false;
         setMessage('Sesi atau izin admin tidak lagi berlaku. Masuk kembali setelah memeriksa konfigurasi akses.', 'error');
@@ -477,7 +494,7 @@
       // Always clear browser-held tokens even if network revocation cannot be confirmed.
     } finally {
       clearSession();
-      catalogRows = [];
+      clearDashboardData();
       dashboardPanel.hidden = true;
       loginPanel.hidden = false;
       loginForm.reset();
@@ -510,9 +527,7 @@
     }
     // A logout or account replacement in another tab clears this tab's protected view.
     clearSession();
-    catalogRows = [];
-    $('#catalogRows').replaceChildren();
-    $('#qualityFindingRows').replaceChildren();
+    clearDashboardData();
     dashboardPanel.hidden = true;
     loginPanel.hidden = false;
     loginForm.reset();
