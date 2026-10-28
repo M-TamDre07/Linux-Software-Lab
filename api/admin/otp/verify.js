@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { json, method, envReady, authUser, activeAdmin, sb, codeHash, genericFailure } = require('../../_shared');
+const { json, method, envReady, authUser, activeAdmin, sb, codeHash, genericFailure } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   if (!method(req, res)) return;
