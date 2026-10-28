@@ -20,12 +20,12 @@ The current database check confirms one active row in `public.lsl_admin_users` f
 To verify safely:
 
 1. In Supabase Dashboard → Authentication → Users, confirm the intended maintainer Auth user exists and copy its UUID.
-2. In SQL Editor, run this read-only check, replacing the UUID only if checking another intended account:
+2. In SQL Editor, run this read-only check, replacing the placeholder with the UUID copied from the intended Auth user:
 
    ```sql
    SELECT user_id, active, note, created_at
    FROM public.lsl_admin_users
-   WHERE user_id = 'e85e156d-fe78-4f3d-8452-dda648a4101b'::uuid;
+   WHERE user_id = 'REPLACE_WITH_AUTH_USER_UUID'::uuid;
    ```
 
 3. Open `/admin/` and test sign-in with the intended account once the environment is available.
