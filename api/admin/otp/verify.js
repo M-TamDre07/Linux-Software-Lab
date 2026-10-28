@@ -1,5 +1,5 @@
 const crypto = require('node:crypto');
-const { json, method, envReady, authUser, activeAdmin, sb, codeHash, genericFailure } = require('../_shared');
+const { json, method, envReady, authUser, activeAdmin, sb, codeHash, SERVICE_KEY, SUPABASE_URL, genericFailure } = require('../_shared');
 
 module.exports = async function handler(req, res) {
   if (!method(req, res)) return;
@@ -11,11 +11,11 @@ module.exports = async function handler(req, res) {
     if (!/^\d{6}$/.test(code)) return json(res, 400, { error: 'invalid_code' });
 
     const sessionToken = crypto.randomBytes(32).toString('hex');
-    const result = await fetch((process.env.SUPABASE_URL || '').replace(/\/$/, '') + '/rest/v1/rpc/lsl_consume_admin_telegram_otp', {
+    const result = await fetch(SUPABASE_URL + '/rest/v1/rpc/lsl_consume_admin_telegram_otp', {
       method: 'POST',
       headers: {
-        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: 'Bearer ' + process.env.SUPABASE_SERVICE_ROLE_KEY,
+        apikey: SERVICE_KEY,
+        Authorization: 'Bearer ' + SERVICE_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
