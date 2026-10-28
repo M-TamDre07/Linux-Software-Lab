@@ -41,7 +41,7 @@ Never create an anonymous policy that allows users to insert or update `lsl_admi
 - Never place an `sb_secret_` key or service-role key in HTML, JavaScript, Vercel public environment variables, local storage, or a public commit.
 - The dashboard's `noindex` metadata reduces indexing but is not an access control. Auth and RLS are required.
 - Admins can read only the tables and rows allowed by the current Supabase policies. This page does not expose the Supabase project, database credentials, all Auth users, logs, or every table.
-- The current dashboard does not create catalog edits or GitHub commits. A future editor must use a trusted server-side GitHub App or another narrowly scoped authenticated service to create a reviewed change; do not expose a GitHub personal access token in the browser.
+- The current dashboard does not create catalog edits or GitHub commits. A future editor must use a trusted server-side GitHub App or another narrowly scoped authenticated service to create a reviewed change through a pull request; do not expose a GitHub personal access token in the browser. This future publishing flow is distinct from the maintainer's current direct-main workflow for manual development.
 - The static dashboard assumes the existing site's Content Security Policy allows connections to the configured Supabase project. Keep this origin exact; avoid broad wildcard `connect-src` rules.
 
 ## Verification
