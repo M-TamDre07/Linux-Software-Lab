@@ -43,7 +43,7 @@ Do not paste credentials into GitHub, chat, or frontend code. Production-only en
    ```
 
 5. Confirm the Vercel server environment contains the required variables for **Preview** and Production. Keep bot and service-role secrets server-only.
-6. Run the preview workflow and test OTP delivery, wrong code, expired code, reuse, five failed attempts, request throttling, Telegram DM failure, non-member/revoked-member denial, disabled admin denial, expired session cookie, logout revocation, and direct Data API access as an authenticated admin.
+6. Run the preview workflow and test OTP delivery, wrong code, expired code, reuse, five failed attempts, request throttling, Telegram group-delivery failure, non-member/revoked-member denial, disabled admin denial, expired session cookie, logout revocation, and direct Data API access as an authenticated admin.
 7. Verify the existing public website can still read published catalog rows and the admin gateway can read the private rows.
 8. Only after review and successful tests, merge the PR and separately approve a production migration/deployment.
 
@@ -52,7 +52,7 @@ Do not paste credentials into GitHub, chat, or frontend code. Production-only en
 - The administrator's numeric Telegram user ID has not been confirmed, so no mapping can be seeded.
 - The migration has not been applied to any database by this code change.
 - OTP secrets and database state have not been tested by sending a real Telegram message from this environment.
-- The Vercel production environment variable list includes a Telegram bot-token entry, but secret values were not read. Presence of a variable name does not prove the value is valid or that the bot can DM the admin.
+- The Vercel production environment variable list includes a Telegram bot-token entry, but secret values were not read. Presence of a variable name does not prove the value is valid or that the bot can post to the configured group.
 - No production Supabase write or Vercel production deployment has been performed.
 
 ## Security notes
