@@ -49,6 +49,13 @@ class AdminDashboardTests(unittest.TestCase):
         self.assertIn('href="/launcher/"', source)
         self.assertNotIn("sb_secret_", source)
 
+    def test_telegram_otp_copy_matches_restricted_group_delivery(self) -> None:
+        markup = (PUBLIC / "admin" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("grup Telegram admin terbatas", markup)
+        self.assertIn("anggota grup dapat melihat kode", markup)
+        self.assertNotIn("chat pribadi bot Telegram", markup)
+        self.assertNotIn("Kode tidak dikirim ke grup", markup)
+
     def test_dashboard_requires_server_checked_admin_membership(self) -> None:
         script = (PUBLIC / "assets" / "js" / "admin.js").read_text(encoding="utf-8")
         self.assertIn("/auth/v1/token?grant_type=password", script)
