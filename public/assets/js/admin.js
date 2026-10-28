@@ -7,6 +7,12 @@
   const $ = (selector) => document.querySelector(selector);
   const loginPanel = $('#loginPanel');
   const dashboardPanel = $('#dashboardPanel');
+  const otpPanel = $('#otpPanel');
+  const otpForm = $('#otpForm');
+  const otpCodeInput = $('#adminOtpCode');
+  const otpVerifyButton = $('#otpVerifyButton');
+  const otpSendButton = $('#otpSendButton');
+  const otpCancelButton = $('#otpCancelButton');
   const message = $('#adminMessage');
   const loginForm = $('#loginForm');
   const loginButton = $('#loginButton');
@@ -127,6 +133,46 @@
     return parseResponse(response);
   };
 
+  const apiRequest = async (path, options = {}, accessToken = '') => {
+    const headers = new Headers(options.headers || {});
+    headers.set('Accept', 'application/json');
+    if (accessToken) headers.set('Authorization', 'Bearer ' + accessToken);
+    if (options.body !== undefined) headers.set('Content-Type', 'application/json');
+    const response = await fetch(path, {
+      method: options.method || 'GET',
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      cache: 'no-store',
+      credentials: 'include',
+      redirect: 'error',
+    });
+    const raw = await response.text();
+    let result = null;
+    try { result = raw ? JSON.parse(raw) : null; } catch (_) {}
+    if (!response.ok) {
+      const error = new Error('Permintaan admin ditolak.');
+      error.status = response.status;
+      error.code = result && typeof result.error === 'string' ? result.error : '';
+      throw error;
+    }
+    return result;
+  };
+
+  const requestOtp = async () => {
+    if (!session || !session.access_token) throw new Error('Sesi login tidak tersedia.');
+    otpSendButton.disabled = true;
+    try {
+      await apiRequest('/api/admin/otp/request', { method: 'POST' }, session.access_token);
+      loginPanel.hidden = true;
+      dashboardPanel.hidden = true;
+      otpPanel.hidden = false;
+      setMessage('Kode OTP dikirim ke chat pribadi Telegram yang terdaftar. Masukkan kode yang masih berlaku.', 'success');
+      otpCodeInput.focus();
+    } finally {
+      otpSendButton.disabled = false;
+    }
+  };
+
   const refreshSession = async () => {
     if (!session || !session.refresh_token) {
       const error = new Error('Sesi berakhir. Silakan masuk kembali.');
@@ -217,25 +263,13 @@
   };
 
   const verifyAdmin = async () => {
-    const authUser = await authenticatedRequest('/auth/v1/user');
-    if (!authUser || typeof authUser.id !== 'string') {
-      throw new Error('Identitas pengguna tidak dapat diverifikasi.');
+    const result = await apiRequest('/api/admin/otp/session', {}, session.access_token);
+    if (!result || !result.ok || !result.user || typeof result.user.id !== 'string') {
+      throw new Error('Sesi OTP tidak valid.');
     }
-    const params = new URLSearchParams({
-      select: 'user_id,active,note,created_at',
-      user_id: 'eq.' + authUser.id,
-      active: 'eq.true',
-      limit: '1',
-    });
-    const admins = await authenticatedRequest('/rest/v1/lsl_admin_users?' + params.toString());
-    if (!Array.isArray(admins) || admins.length !== 1 || admins[0].active !== true) {
-      const error = new Error('Akun ini belum memiliki izin admin aktif.');
-      error.code = 'NOT_ADMIN';
-      throw error;
-    }
-    session.user = { id: authUser.id, email: authUser.email || '' };
+    session.user = { id: result.user.id, email: result.user.email || '' };
     storeSession(session);
-    $('#adminIdentity').textContent = authUser.email || 'Akun admin terverifikasi';
+    $('#adminIdentity').textContent = result.user.email || 'Admin terverifikasi dengan OTP Telegram';
   };
 
   const formatDate = (value) => {
@@ -327,29 +361,24 @@
   };
 
   const loadCatalog = async () => {
-    setMessage('Mengambil katalog dan memverifikasi izin admin…');
+    setMessage('Memuat katalog melalui gateway admin terverifikasi…');
     refreshButton.disabled = true;
     try {
-      const params = new URLSearchParams({
-        select: 'id,slug,name,version,status,type,updated_at,published,synced_at,sort_order',
-        order: 'sort_order.asc,name.asc',
-        limit: '500',
-      });
-      const rows = await authenticatedRequest('/rest/v1/software_catalog?' + params.toString());
-      if (!Array.isArray(rows)) throw new Error('Respons katalog tidak valid.');
-      catalogRows = rows;
+      const result = await apiRequest('/api/admin/catalog', {}, session.access_token);
+      if (!result || !Array.isArray(result.rows)) throw new Error('Respons katalog tidak valid.');
+      catalogRows = result.rows;
       renderCatalog();
       await loadQualityReports();
-      setMessage('Akses admin terverifikasi. Katalog berhasil dibaca; tidak ada perubahan database yang dilakukan.', 'success');
+      setMessage('OTP Telegram terverifikasi. Katalog dibaca melalui gateway server; tidak ada perubahan database.', 'success');
     } catch (error) {
       if (error.status === 401 || error.status === 403) {
-        clearSession();
         clearDashboardData();
         dashboardPanel.hidden = true;
-        loginPanel.hidden = false;
-        setMessage('Sesi atau izin admin tidak lagi berlaku. Masuk kembali setelah memeriksa konfigurasi akses.', 'error');
+        loginPanel.hidden = true;
+        otpPanel.hidden = false;
+        setMessage('Sesi OTP tidak berlaku. Kirim kode baru dan verifikasi kembali.', 'error');
       } else {
-        setMessage('Katalog tidak dapat dimuat. Periksa koneksi Supabase, Data API, hak SELECT, dan kebijakan RLS.', 'error');
+        setMessage('Katalog tidak dapat dimuat melalui gateway admin. Periksa konfigurasi server dan migration.', 'error');
       }
     } finally {
       refreshButton.disabled = false;
@@ -362,20 +391,11 @@
     const setQualityText = (selector, value) => { $(selector).textContent = value; };
     try {
       status.textContent = 'Memuat laporan…';
-      const params = new URLSearchParams({
-        select: 'id,source_commit_sha,algorithm_version,entry_count,overall_score,recommendation,finding_count,severity_counts,created_at',
-        order: 'created_at.desc',
-        limit: '1',
-      });
-      const reports = await authenticatedRequest('/rest/v1/catalog_quality_runs?' + params.toString());
-      if (!Array.isArray(reports)) throw new Error('Respons laporan tidak valid.');
-      if (reports.length === 0) {
-        setQualityText('#qualityScore', '—');
+      const result = await apiRequest('/api/admin/quality', {}, session.access_token);
+      if (!result || !Array.isArray(result.findings)) throw new Error('Respons laporan tidak valid.');
+      if (!result.report) {
+        ['#qualityScore', '#qualityEntries', '#qualityFindingCount', '#qualityCommit', '#qualityCreatedAt'].forEach((selector) => setQualityText(selector, '—'));
         setQualityText('#qualityRecommendation', 'Belum ada');
-        setQualityText('#qualityEntries', '—');
-        setQualityText('#qualityFindingCount', '—');
-        setQualityText('#qualityCommit', '—');
-        setQualityText('#qualityCreatedAt', '—');
         rowsTarget.replaceChildren();
         const row = document.createElement('tr');
         row.appendChild(makeCell('Belum ada laporan CI tersimpan.'));
@@ -383,49 +403,31 @@
         status.textContent = 'Laporan belum tersedia';
         return;
       }
-      const report = reports[0];
+      const report = result.report;
       setQualityText('#qualityScore', String(report.overall_score) + '/100');
-      setQualityText('#qualityRecommendation', ({
-        ready: 'Siap ditinjau',
-        review: 'Perlu ditinjau',
-        needs_attention: 'Perlu perhatian',
-      })[report.recommendation] || 'Tidak diketahui');
+      setQualityText('#qualityRecommendation', ({ ready: 'Siap ditinjau', review: 'Perlu ditinjau', needs_attention: 'Perlu perhatian' })[report.recommendation] || 'Tidak diketahui');
       setQualityText('#qualityEntries', String(report.entry_count));
       setQualityText('#qualityFindingCount', String(report.finding_count));
       setQualityText('#qualityCommit', String(report.source_commit_sha || '—').slice(0, 12));
       setQualityText('#qualityCreatedAt', formatDate(report.created_at));
-
-      const findingParams = new URLSearchParams({
-        select: 'software_id,rule_code,severity,deduction,message',
-        run_id: 'eq.' + report.id,
-        order: 'created_at.asc',
-        limit: '500',
-      });
-      const findings = await authenticatedRequest('/rest/v1/catalog_quality_findings?' + findingParams.toString());
-      if (!Array.isArray(findings)) throw new Error('Respons temuan tidak valid.');
       rowsTarget.replaceChildren();
-      if (findings.length === 0) {
+      if (!result.findings.length) {
         const row = document.createElement('tr');
         row.appendChild(makeCell('Tidak ada temuan untuk laporan ini.'));
         rowsTarget.appendChild(row);
       } else {
-        findings.forEach((finding) => {
+        result.findings.forEach((finding) => {
           const row = document.createElement('tr');
-          row.appendChild(makeCell(finding.software_id || 'Katalog'));
-          row.appendChild(makeCell(finding.rule_code));
-          row.appendChild(makeCell(finding.severity));
-          row.appendChild(makeCell(String(finding.deduction)));
-          row.appendChild(makeCell(finding.message));
+          row.append(makeCell(finding.software_id || 'Katalog'), makeCell(finding.rule_code), makeCell(finding.severity), makeCell(String(finding.deduction)), makeCell(finding.message));
           rowsTarget.appendChild(row);
         });
       }
-      status.textContent = 'Commit ' + String(report.source_commit_sha || '').slice(0, 12)
-        + ' · ' + String(report.algorithm_version || 'algoritma tidak diketahui');
+      status.textContent = 'Commit ' + String(report.source_commit_sha || '').slice(0, 12) + ' · ' + String(report.algorithm_version || 'algoritma tidak diketahui');
     } catch (_) {
       status.textContent = 'Laporan tidak dapat dimuat';
       rowsTarget.replaceChildren();
       const row = document.createElement('tr');
-      row.appendChild(makeCell('Periksa migrasi Supabase, akses SELECT admin, dan log CI. Katalog tetap dapat dibaca terpisah.'));
+      row.appendChild(makeCell('Periksa migration OTP, konfigurasi server, dan log CI. Katalog tetap terpisah.'));
       rowsTarget.appendChild(row);
     }
   };
@@ -433,6 +435,7 @@
   const showDashboard = async () => {
     if (!session) throw new Error('Sesi tidak tersedia.');
     await verifyAdmin();
+    otpPanel.hidden = true;
     loginPanel.hidden = true;
     dashboardPanel.hidden = false;
     await loadCatalog();
@@ -467,27 +470,81 @@
         authenticated_at: authenticatedAt,
         user: { id: result.user.id, email: result.user.email || email },
       });
-      await showDashboard();
+      otpPanel.hidden = false;
+      dashboardPanel.hidden = true;
+      await requestOtp();
     } catch (error) {
       clearSession();
       dashboardPanel.hidden = true;
+      otpPanel.hidden = true;
       loginPanel.hidden = false;
       setMessage(error.code === 'NOT_ADMIN'
-        ? 'Login berhasil, tetapi akun belum tercatat sebagai admin aktif. Ikuti panduan bootstrap di docs/ADMIN_DASHBOARD.md.'
-        : error.status === 400 || error.status === 401
-          ? 'Login gagal. Periksa email dan kata sandi, lalu coba lagi.'
-          : 'Akses admin gagal diverifikasi. Periksa konfigurasi Supabase Auth dan kebijakan RLS.', 'error');
+        ? 'Login berhasil, tetapi akun belum tercatat sebagai admin aktif.'
+        : error.code === 'otp_not_configured_for_admin'
+          ? 'Akun admin belum dipetakan ke Telegram. Maintainer harus menambahkan mapping Telegram ID melalui SQL Editor.'
+          : error.code === 'telegram_group_membership_required'
+            ? 'Akun Telegram yang terdaftar tidak ditemukan sebagai anggota grup yang diizinkan.'
+            : error.code === 'telegram_delivery_failed'
+              ? 'Bot tidak dapat mengirim DM. Admin harus memulai chat pribadi dengan bot terlebih dahulu.'
+              : error.status === 400 || error.status === 401
+                ? 'Login gagal. Periksa email dan kata sandi, lalu coba lagi.'
+                : 'Akses admin gagal diverifikasi. Periksa konfigurasi OTP dan Supabase.', 'error');
     } finally {
       setBusy(false);
     }
   });
 
+  otpForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!session) return;
+    otpVerifyButton.disabled = true;
+    try {
+      const result = await apiRequest('/api/admin/otp/verify', {
+        method: 'POST',
+        body: { code: otpCodeInput.value.trim() },
+      }, session.access_token);
+      if (!result || !result.ok) throw new Error('Verifikasi OTP gagal.');
+      otpCodeInput.value = '';
+      await showDashboard();
+    } catch (error) {
+      setMessage(error.code === 'invalid_or_expired_code'
+        ? 'Kode salah, kedaluwarsa, atau sudah digunakan. Minta kode baru jika perlu.'
+        : error.code === 'otp_verification_unavailable'
+          ? 'Verifikasi OTP sementara tidak tersedia. Coba lagi setelah konfigurasi server diperiksa.'
+          : 'Verifikasi OTP gagal. Pastikan migration telah diterapkan pada lingkungan pengujian.', 'error');
+    } finally {
+      otpVerifyButton.disabled = false;
+    }
+  });
+  otpSendButton.addEventListener('click', async () => {
+    try { await requestOtp(); }
+    catch (error) {
+      setMessage(error.code === 'otp_rate_limited'
+        ? 'Tunggu sebelum meminta kode baru.'
+        : error.code === 'telegram_delivery_failed'
+          ? 'DM bot gagal. Buka chat pribadi bot dan tekan Start, lalu coba lagi.'
+          : error.code === 'otp_not_configured_for_admin'
+            ? 'Telegram ID admin belum dikonfigurasi di mapping server.'
+            : error.code === 'telegram_group_membership_required'
+              ? 'Akun Telegram harus menjadi anggota grup admin yang diizinkan.'
+              : 'Kode OTP belum dapat dikirim. Periksa konfigurasi Vercel dan Supabase.', 'error');
+    }
+  });
+  otpCancelButton.addEventListener('click', () => {
+    clearSession();
+    otpPanel.hidden = true;
+    loginPanel.hidden = false;
+    loginForm.reset();
+    otpForm.reset();
+    setMessage('Login dibatalkan. Sesi lokal dibersihkan.');
+  });
   refreshButton.addEventListener('click', () => { void loadCatalog(); });
   logoutButton.addEventListener('click', async () => {
     const closingSession = session;
     logoutButton.disabled = true;
     try {
       if (closingSession && closingSession.access_token) {
+        await apiRequest('/api/admin/otp/logout', { method: 'POST' }, closingSession.access_token).catch(() => {});
         await request('/auth/v1/logout?scope=local', { method: 'POST' }, closingSession.access_token);
       }
     } catch (_) {
@@ -496,8 +553,10 @@
       clearSession();
       clearDashboardData();
       dashboardPanel.hidden = true;
+      otpPanel.hidden = true;
       loginPanel.hidden = false;
       loginForm.reset();
+      otpForm.reset();
       logoutButton.disabled = false;
       setMessage('Sesi lokal dihapus. Jika jaringan tersedia, token refresh untuk sesi ini juga telah dicabut.');
     }
@@ -580,14 +639,15 @@
     if (session) {
       setBusy(true);
       showDashboard().catch(() => {
-        clearSession();
-        loginPanel.hidden = false;
         dashboardPanel.hidden = true;
-        setMessage('Sesi tidak valid atau akun belum terdaftar sebagai admin aktif. Silakan masuk kembali.', 'error');
+        loginPanel.hidden = true;
+        otpPanel.hidden = false;
+        setMessage('Sesi OTP tidak aktif atau kedaluwarsa. Kirim kode Telegram baru untuk melanjutkan.', 'info');
       }).finally(() => setBusy(false));
     } else {
       loginPanel.hidden = false;
-      setMessage('Masuk menggunakan akun Supabase Auth yang sudah diizinkan sebagai admin.');
+      otpPanel.hidden = true;
+      setMessage('Masuk menggunakan akun Supabase Auth admin; verifikasi OTP Telegram wajib setelah login.');
     }
   }
 })();
