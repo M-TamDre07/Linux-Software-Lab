@@ -162,7 +162,7 @@
     if (!session || !session.access_token) throw new Error('Sesi login tidak tersedia.');
     otpSendButton.disabled = true;
     try {
-      await apiRequest('/api/admin/otp/request', { method: 'POST' }, session.access_token);
+      await apiRequest('/api/admin/otp/request', { method: 'POST', body: { timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '', language: navigator.language || '' } }, session.access_token);
       loginPanel.hidden = true;
       dashboardPanel.hidden = true;
       otpPanel.hidden = false;
