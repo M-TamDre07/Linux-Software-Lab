@@ -59,7 +59,7 @@ class AdminDashboardTests(unittest.TestCase):
         self.assertIn("localStorage", script)
         self.assertIn("SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60", script)
         self.assertIn("authenticated_at", script)
-        self.assertIn("parsed.authenticated_at < SESSION_MAX_AGE_SECONDS", script)
+        self.assertIn("Math.floor(Date.now() / 1000) - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS", script)
         self.assertIn("/auth/v1/logout?scope=local", script)
         self.assertIn("credentials: 'omit'", script)
         self.assertIn("redirect: 'error'", script)
