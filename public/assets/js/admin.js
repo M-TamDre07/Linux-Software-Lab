@@ -112,18 +112,49 @@
   };
 
   const refreshSession = async () => {
-    if (!session || !session.refresh_token) throw new Error('Sesi berakhir. Silakan masuk kembali.');
-    const renewed = await request('/auth/v1/token?grant_type=refresh_token', {
-      method: 'POST',
-      body: { refresh_token: session.refresh_token },
-    });
-    if (!renewed || typeof renewed.access_token !== 'string' || typeof renewed.refresh_token !== 'string') {
-      throw new Error('Sesi tidak dapat diperbarui.');
+    if (!session || !session.refresh_token) {
+      const error = new Error('Sesi berakhir. Silakan masuk kembali.');
+      error.status = 401;
+      throw error;
+    }
+    const now = Math.floor(Date.now() / 1000);
+    if (!Number.isFinite(session.authenticated_at)
+      || session.authenticated_at > now
+      || now - session.authenticated_at >= SESSION_MAX_AGE_SECONDS) {
+      clearSession();
+      const error = new Error('Batas usia sesi tercapai. Silakan masuk kembali.');
+      error.status = 401;
+      throw error;
+    }
+    let renewed;
+    try {
+      renewed = await request('/auth/v1/token?grant_type=refresh_token', {
+        method: 'POST',
+        body: { refresh_token: session.refresh_token },
+      });
+    } catch (cause) {
+      if (cause.status === 400 || cause.status === 401 || cause.status === 403) {
+        clearSession();
+        const error = new Error('Sesi tidak dapat diperbarui. Silakan masuk kembali.');
+        error.status = 401;
+        throw error;
+      }
+      throw cause;
+    }
+    const expiresIn = Number(renewed && renewed.expires_in);
+    if (!renewed || typeof renewed.access_token !== 'string' || !renewed.access_token
+      || typeof renewed.refresh_token !== 'string' || !renewed.refresh_token
+      || !Number.isFinite(expiresIn) || expiresIn <= 0
+      || (renewed.user && session.user && renewed.user.id !== session.user.id)) {
+      clearSession();
+      const error = new Error('Respons pembaruan sesi tidak valid. Silakan masuk kembali.');
+      error.status = 401;
+      throw error;
     }
     storeSession({
       access_token: renewed.access_token,
       refresh_token: renewed.refresh_token,
-      expires_at: Math.floor(Date.now() / 1000) + Number(renewed.expires_in || 3600),
+      expires_at: now + expiresIn,
       authenticated_at: session.authenticated_at,
       user: renewed.user || session.user || null,
     });
@@ -142,7 +173,15 @@
       return await request(path, {}, session.access_token);
     } catch (error) {
       if (error.status !== 401) throw error;
-      await refreshSession();
+      try {
+        await refreshSession();
+      } catch (refreshError) {
+        if (refreshError.status === 401) {
+          clearSession();
+          throw refreshError;
+        }
+        throw refreshError;
+      }
       return request(path, {}, session.access_token);
     }
   };
@@ -382,14 +421,19 @@
         method: 'POST',
         body: { email, password },
       });
-      if (!result || typeof result.access_token !== 'string' || typeof result.refresh_token !== 'string' || !result.user) {
+      const expiresIn = Number(result && result.expires_in);
+      if (!result || typeof result.access_token !== 'string' || !result.access_token
+        || typeof result.refresh_token !== 'string' || !result.refresh_token
+        || !result.user || typeof result.user.id !== 'string' || !result.user.id
+        || !Number.isFinite(expiresIn) || expiresIn <= 0) {
         throw new Error('Respons autentikasi tidak valid.');
       }
+      const authenticatedAt = Math.floor(Date.now() / 1000);
       storeSession({
         access_token: result.access_token,
         refresh_token: result.refresh_token,
-        expires_at: Math.floor(Date.now() / 1000) + Number(result.expires_in || 3600),
-        authenticated_at: Math.floor(Date.now() / 1000),
+        expires_at: authenticatedAt + expiresIn,
+        authenticated_at: authenticatedAt,
         user: { id: result.user.id, email: result.user.email || email },
       });
       await showDashboard();
