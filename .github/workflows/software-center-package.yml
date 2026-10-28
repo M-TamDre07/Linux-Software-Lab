@@ -144,7 +144,7 @@ jobs:
               DEBIAN_FRONTEND=noninteractive apt-get install -y "$package"
               dpkg-query -W -f="\${Status}\\n" linux-software-lab-center | grep -qx "install ok installed"
               lsl --version
-              PYTHONDONTWRITEBYTECODE=1 QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(\\"GUI module import: OK\\")"
+              PYTHONDONTWRITEBYTECODE=1 QT_QPA_PLATFORM=offscreen python3 -c "import lsl_center.gui; print(1)"
               apt-get purge -y linux-software-lab-center
               if dpkg-query -W -f="\${Status}" linux-software-lab-center 2>/dev/null | grep -q "install ok installed"; then
                 echo "Package remains installed after purge" >&2
