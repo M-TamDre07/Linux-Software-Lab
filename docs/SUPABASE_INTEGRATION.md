@@ -26,7 +26,7 @@ To enable automatic GitHub-to-Supabase updates:
 3. Name it SUPABASE_SECRET_KEY and paste the key directly into GitHub's secret form. Never put the key in a commit or chat.
 4. Run the Supabase catalogue sync workflow from the default main branch. The workflow upserts current rows, marks removed IDs unpublished instead of deleting history, and verifies active IDs after synchronization.
 
-Pull-request runs only validate local data and never contact production Supabase. If the secret is absent, the production sync step emits a warning and skips writing; the public website continues using the static fallback.
+Pull-request runs only validate local data and never contact production Supabase. The maintainer currently develops directly on `main` by project decision; production writes are still limited to trusted main-branch workflows and never run for pull requests. If the secret is absent, the production sync step emits a warning and skips writing; the public website continues using the static fallback.
 
 ## Verification
 
