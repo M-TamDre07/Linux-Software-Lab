@@ -28,18 +28,33 @@
     loginButton.textContent = busy ? 'Memeriksa akses…' : 'Masuk dengan Supabase Auth';
   };
 
+  const discardStoredSession = () => {
+    try { localStorage.removeItem(SESSION_KEY); } catch (_) {}
+  };
+
   const readSession = () => {
     try {
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      return parsed && typeof parsed.access_token === 'string'
+      const now = Math.floor(Date.now() / 1000);
+      const valid = parsed && typeof parsed.access_token === 'string'
+        && parsed.access_token.length > 0
         && typeof parsed.refresh_token === 'string'
+        && parsed.refresh_token.length > 0
         && typeof parsed.expires_at === 'number'
+        && Number.isFinite(parsed.expires_at)
         && typeof parsed.authenticated_at === 'number'
-        && Math.floor(Date.now() / 1000) - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS
-        ? parsed : null;
+        && Number.isFinite(parsed.authenticated_at)
+        && parsed.authenticated_at <= now
+        && now - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS;
+      if (!valid) {
+        discardStoredSession();
+        return null;
+      }
+      return parsed;
     } catch (_) {
+      discardStoredSession();
       return null;
     }
   };
