@@ -6,7 +6,7 @@
 
 create table if not exists public.site_feedback (
   id uuid primary key default gen_random_uuid(),
-  ticket_code text not null unique check (ticket_code ~ '^LSL-[A-Z0-9]{10}
+  ticket_code text not null unique check (ticket_code ~ '^LSL-[A-Z0-9]{10}' and length(ticket_code) = 14),
   category text not null check (category in ('website', 'launcher', 'application', 'security', 'other')),
   product_slug text,
   subject text not null default 'Feedback ticket' check (length(subject) between 3 and 160),
