@@ -6,7 +6,208 @@
 
 create table if not exists public.site_feedback (
   id uuid primary key default gen_random_uuid(),
-  ticket_code text not null unique check (ticket_code ~ '^LSL-[A-Z0-9]{10}),
+  ticket_code text not null unique check (ticket_code ~ '^LSL-[A-Z0-9]{10}
+  category text not null check (category in ('website', 'launcher', 'application', 'security', 'other')),
+  product_slug text,
+  subject text not null default 'Feedback ticket' check (length(subject) between 3 and 160),
+  subject_ciphertext bytea not null,
+  body_ciphertext bytea not null,
+  contact_ciphertext bytea,
+  contact_lookup_hash text,
+  status text not null default 'open'
+    check (status in ('open', 'in_progress', 'waiting_user', 'resolved', 'closed', 'spam')),
+  source text not null default 'website'
+    check (source in ('website', 'launcher', 'application')),
+  formspree_delivery_status text not null default 'pending'
+    check (formspree_delivery_status in ('pending', 'sent', 'failed', 'not_configured')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists site_feedback_status_created_idx
+  on public.site_feedback (status, created_at desc);
+create index if not exists site_feedback_category_created_idx
+  on public.site_feedback (category, created_at desc);
+create index if not exists site_feedback_contact_hash_idx
+  on public.site_feedback (contact_lookup_hash)
+  where contact_lookup_hash is not null;
+
+create table if not exists public.site_feedback_messages (
+  id uuid primary key default gen_random_uuid(),
+  feedback_id uuid not null references public.site_feedback(id) on delete cascade,
+  sender_role text not null check (sender_role in ('visitor', 'admin', 'system')),
+  sender_admin_id uuid references auth.users(id) on delete set null,
+  body_ciphertext bytea not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists site_feedback_messages_thread_idx
+  on public.site_feedback_messages (feedback_id, created_at);
+
+create table if not exists public.site_content_settings (
+  content_key text primary key check (content_key ~ '^[a-z][a-z0-9_.-]{1,100}$'),
+  content_value jsonb not null,
+  published boolean not null default false,
+  updated_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_security_events (
+  id bigint generated always as identity primary key,
+  event_type text not null check (event_type in (
+    'login_failed', 'captcha_failed', 'otp_requested', 'otp_failed',
+    'rate_limited', 'account_blocked', 'admin_access_denied', 'suspicious_request'
+  )),
+  actor_lookup_hash text,
+  ip_lookup_hash text,
+  details jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(details) = 'object'),
+  created_at timestamptz not null default now(),
+  blocked_until timestamptz
+);
+create index if not exists admin_security_events_created_idx
+  on public.admin_security_events (created_at desc);
+create index if not exists admin_security_events_actor_idx
+  on public.admin_security_events (actor_lookup_hash, created_at desc)
+  where actor_lookup_hash is not null;
+
+create table if not exists public.admin_otp_challenges (
+  id uuid primary key default gen_random_uuid(),
+  admin_user_id uuid not null references auth.users(id) on delete cascade,
+  code_verifier text not null,
+  expires_at timestamptz not null,
+  attempts smallint not null default 0 check (attempts between 0 and 5),
+  consumed_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (expires_at > created_at)
+);
+create index if not exists admin_otp_challenges_user_idx
+  on public.admin_otp_challenges (admin_user_id, created_at desc);
+
+create table if not exists public.admin_presence (
+  admin_user_id uuid primary key references auth.users(id) on delete cascade,
+  last_seen_at timestamptz not null default now(),
+  accepting_chats boolean not null default false
+);
+
+-- These tables are private. Browsers must call trusted Edge Functions, which validate
+-- Auth, OTP, CAPTCHA, rate limits, encrypt/decrypt payloads, and audit all mutations.
+alter table public.site_feedback enable row level security;
+alter table public.site_feedback_messages enable row level security;
+alter table public.site_content_settings enable row level security;
+alter table public.admin_security_events enable row level security;
+alter table public.admin_otp_challenges enable row level security;
+alter table public.admin_presence enable row level security;
+
+revoke all on table public.site_feedback from public, anon, authenticated;
+revoke all on table public.site_feedback_messages from public, anon, authenticated;
+revoke all on table public.site_content_settings from public, anon, authenticated;
+revoke all on table public.admin_security_events from public, anon, authenticated;
+revoke all on table public.admin_otp_challenges from public, anon, authenticated;
+revoke all on table public.admin_presence from public, anon, authenticated;
+
+-- No direct browser policies are intentionally created. Service-role Edge Functions
+-- are the only data path until a narrower policy is designed and security-tested.
+),
+  category text not null check (category in ('website', 'launcher', 'application', 'security', 'other')),
+  product_slug text,
+  subject text not null check (length(subject) between 3 and 160),
+  body_ciphertext bytea not null,
+  contact_ciphertext bytea,
+  contact_lookup_hash text,
+  status text not null default 'open'
+    check (status in ('open', 'in_progress', 'waiting_user', 'resolved', 'closed', 'spam')),
+  source text not null default 'website'
+    check (source in ('website', 'launcher', 'application')),
+  formspree_delivery_status text not null default 'pending'
+    check (formspree_delivery_status in ('pending', 'sent', 'failed', 'not_configured')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists site_feedback_status_created_idx
+  on public.site_feedback (status, created_at desc);
+create index if not exists site_feedback_category_created_idx
+  on public.site_feedback (category, created_at desc);
+create index if not exists site_feedback_contact_hash_idx
+  on public.site_feedback (contact_lookup_hash)
+  where contact_lookup_hash is not null;
+
+create table if not exists public.site_feedback_messages (
+  id uuid primary key default gen_random_uuid(),
+  feedback_id uuid not null references public.site_feedback(id) on delete cascade,
+  sender_role text not null check (sender_role in ('visitor', 'admin', 'system')),
+  sender_admin_id uuid references auth.users(id) on delete set null,
+  body_ciphertext bytea not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists site_feedback_messages_thread_idx
+  on public.site_feedback_messages (feedback_id, created_at);
+
+create table if not exists public.site_content_settings (
+  content_key text primary key check (content_key ~ '^[a-z][a-z0-9_.-]{1,100}$'),
+  content_value jsonb not null,
+  published boolean not null default false,
+  updated_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.admin_security_events (
+  id bigint generated always as identity primary key,
+  event_type text not null check (event_type in (
+    'login_failed', 'captcha_failed', 'otp_requested', 'otp_failed',
+    'rate_limited', 'account_blocked', 'admin_access_denied', 'suspicious_request'
+  )),
+  actor_lookup_hash text,
+  ip_lookup_hash text,
+  details jsonb not null default '{}'::jsonb
+    check (jsonb_typeof(details) = 'object'),
+  created_at timestamptz not null default now(),
+  blocked_until timestamptz
+);
+create index if not exists admin_security_events_created_idx
+  on public.admin_security_events (created_at desc);
+create index if not exists admin_security_events_actor_idx
+  on public.admin_security_events (actor_lookup_hash, created_at desc)
+  where actor_lookup_hash is not null;
+
+create table if not exists public.admin_otp_challenges (
+  id uuid primary key default gen_random_uuid(),
+  admin_user_id uuid not null references auth.users(id) on delete cascade,
+  code_verifier text not null,
+  expires_at timestamptz not null,
+  attempts smallint not null default 0 check (attempts between 0 and 5),
+  consumed_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (expires_at > created_at)
+);
+create index if not exists admin_otp_challenges_user_idx
+  on public.admin_otp_challenges (admin_user_id, created_at desc);
+
+create table if not exists public.admin_presence (
+  admin_user_id uuid primary key references auth.users(id) on delete cascade,
+  last_seen_at timestamptz not null default now(),
+  accepting_chats boolean not null default false
+);
+
+-- These tables are private. Browsers must call trusted Edge Functions, which validate
+-- Auth, OTP, CAPTCHA, rate limits, encrypt/decrypt payloads, and audit all mutations.
+alter table public.site_feedback enable row level security;
+alter table public.site_feedback_messages enable row level security;
+alter table public.site_content_settings enable row level security;
+alter table public.admin_security_events enable row level security;
+alter table public.admin_otp_challenges enable row level security;
+alter table public.admin_presence enable row level security;
+
+revoke all on table public.site_feedback from public, anon, authenticated;
+revoke all on table public.site_feedback_messages from public, anon, authenticated;
+revoke all on table public.site_content_settings from public, anon, authenticated;
+revoke all on table public.admin_security_events from public, anon, authenticated;
+revoke all on table public.admin_otp_challenges from public, anon, authenticated;
+revoke all on table public.admin_presence from public, anon, authenticated;
+
+-- No direct browser policies are intentionally created. Service-role Edge Functions
+-- are the only data path until a narrower policy is designed and security-tested.
+),
   category text not null check (category in ('website', 'launcher', 'application', 'security', 'other')),
   product_slug text,
   subject text not null default 'Feedback ticket' check (length(subject) between 3 and 160),
