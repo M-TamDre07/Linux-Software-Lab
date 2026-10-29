@@ -40,7 +40,7 @@ function hex(bytes: Uint8Array): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 function toBytea(bytes: Uint8Array): string {
-  return "\\\\x" + hex(bytes);
+  return String.fromCharCode(92) + "x" + hex(bytes);
 }
 function safeString(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -179,15 +179,18 @@ Deno.serve(async (req: Request) => {
   const { count, error: rateError } = await supabase
     .from("admin_security_events")
     .select("id", { count: "exact", head: true })
-    .eq("event_type", "rate_limited")
+    .eq("event_type", "suspicious_request")
     .eq("ip_lookup_hash", ipHash)
+    .contains("details", { route: "feedback-create" })
     .gte("created_at", since);
-  // If the rate-limit store cannot be checked, fail closed instead of accepting unbounded traffic.
+  // Count every attempt, not only requests already blocked. This is a best-effort
+  // limit; a later atomic DB RPC should replace it before public launch.
   if (rateError) return json(503, { error: "security_check_unavailable" }, origin);
   if ((count || 0) >= RATE_LIMIT_MAX) {
     await logSecurity(supabase, "rate_limited", ipHash, { route: "feedback-create" });
     return json(429, { error: "rate_limited", retry_after_seconds: 900 }, origin);
   }
+  await logSecurity(supabase, "suspicious_request", ipHash, { route: "feedback-create", stage: "attempt" });
 
   const verifyForm = new URLSearchParams();
   verifyForm.set("secret", captchaSecret);
