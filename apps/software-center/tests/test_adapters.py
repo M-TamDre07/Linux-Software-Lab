@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 
 from lsl_center.adapters import (
-    adapter_for_family,
     enabled_adapter_for_family,
     registered_adapters,
 )
@@ -46,7 +45,10 @@ def artifact(fmt: str, kind: str, *, arch: str = "x86_64") -> Artifact:
 class AdapterRegistryTests(unittest.TestCase):
     def test_registry_has_deterministic_family_order(self) -> None:
         families = tuple(item.family for item in registered_adapters())
-        self.assertEqual(families, ("arch-family", "debian-family", "fedora-family", "suse-family"))
+        self.assertEqual(
+            families,
+            ("arch-family", "debian-family", "fedora-family", "suse-family"),
+        )
 
     def test_only_debian_adapter_is_enabled(self) -> None:
         self.assertEqual(enabled_adapter_for_family("debian-family").command, "apt-get")
@@ -56,8 +58,18 @@ class AdapterRegistryTests(unittest.TestCase):
 
     def test_arch_and_fedora_are_detected_but_installation_stays_disabled(self) -> None:
         cases = (
-            ("arch-family", "pacman", artifact("pkg.tar.zst", "arch-package"), "Arch installation remains disabled"),
-            ("fedora-family", "dnf", artifact("rpm", "rpm-package"), "Fedora/RPM installation remains disabled"),
+            (
+                "arch-family",
+                "pacman",
+                artifact("pkg.tar.zst", "arch-package"),
+                "Arch installation remains disabled",
+            ),
+            (
+                "fedora-family",
+                "dnf",
+                artifact("rpm", "rpm-package"),
+                "Fedora/RPM installation remains disabled",
+            ),
         )
         for family, manager, package, expected in cases:
             with self.subTest(family=family):
