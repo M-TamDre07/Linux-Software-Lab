@@ -232,7 +232,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const ticketCode = randomTicketCode();
-  const [bodyCiphertext, contactCiphertext, contactHash] = await Promise.all([
+  const [subjectCiphertext, bodyCiphertext, contactCiphertext, contactHash] = await Promise.all([
+    encryptField(encryptionKey, subject),
     encryptField(encryptionKey, message),
     contact ? encryptField(encryptionKey, contact) : Promise.resolve(null),
     contact ? hmacLookup(lookupKey, contact.toLowerCase()) : Promise.resolve(null),
@@ -244,7 +245,8 @@ Deno.serve(async (req: Request) => {
       ticket_code: ticketCode,
       category,
       product_slug: productSlug,
-      subject,
+      subject: "Feedback ticket",
+      subject_ciphertext: toBytea(subjectCiphertext),
       body_ciphertext: toBytea(bodyCiphertext),
       contact_ciphertext: contactCiphertext ? toBytea(contactCiphertext) : null,
       contact_lookup_hash: contactHash,
