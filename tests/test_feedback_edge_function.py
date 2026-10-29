@@ -43,7 +43,7 @@ class FeedbackEdgeFunctionTests(unittest.TestCase):
 
     def test_ticket_code_constraint_matches_generated_code(self) -> None:
         self.assertIn('return "LSL-" + hex(bytes).toUpperCase()', self.script)
-        self.assertIn("ticket_code ~ '^LSL-[A-Z0-9]{10}$'", self.migration)
+        self.assertIn("ticket_code ~ '^LSL-[A-Z0-9]{10}' and length(ticket_code) = 14", self.migration)
 
     def test_function_is_not_claimed_as_deployed(self) -> None:
         docs = (ROOT / "supabase" / "functions" / "README.md").read_text(encoding="utf-8")
