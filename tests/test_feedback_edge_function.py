@@ -48,7 +48,7 @@ class FeedbackEdgeFunctionTests(unittest.TestCase):
     def test_function_is_not_claimed_as_deployed(self) -> None:
         docs = (ROOT / "supabase" / "functions" / "README.md").read_text(encoding="utf-8")
         self.assertIn("not wired into the public website yet", docs)
-        self.assertIn("not been tested against a live/local Supabase stack", docs)
+        self.assertIn("not been deployed or tested against a live/local Supabase stack", docs)
 
 
 if __name__ == "__main__":
