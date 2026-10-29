@@ -17,7 +17,7 @@ class FeedbackEdgeFunctionTests(unittest.TestCase):
 
     def test_captcha_is_verified_server_side(self) -> None:
         self.assertIn("challenges.cloudflare.com/turnstile/v0/siteverify", self.script)
-        self.assertIn('captchaOk = verifyResponse.ok && verifyResult.success === true', self.script)
+        self.assertIn("captchaOk = verifyResponse.ok && verifyResult.success === true", self.script)
         self.assertIn("TURNSTILE_SECRET_KEY", self.script)
 
     def test_sensitive_fields_are_encrypted_before_database_insert(self) -> None:
@@ -43,22 +43,12 @@ class FeedbackEdgeFunctionTests(unittest.TestCase):
 
     def test_ticket_code_constraint_matches_generated_code(self) -> None:
         self.assertIn('return "LSL-" + hex(bytes).toUpperCase()', self.script)
-        self.assertIn("ticket_code ~ '^LSL-[A-Z0-9]{10}
+        self.assertIn("ticket_code ~ '^LSL-[A-Z0-9]{10}$'", self.migration)
 
     def test_function_is_not_claimed_as_deployed(self) -> None:
         docs = (ROOT / "supabase" / "functions" / "README.md").read_text(encoding="utf-8")
         self.assertIn("not wired into the public website yet", docs)
         self.assertIn("not been deployed or tested against a live/local Supabase stack", docs)
-
-
-if __name__ == "__main__":
-    unittest.main()
-", self.migration)
-
-    def test_function_is_not_claimed_as_deployed(self) -> None:
-        docs = (ROOT / "supabase" / "functions" / "README.md").read_text(encoding="utf-8")
-        self.assertIn("not wired into the public website yet", docs)
-        self.assertIn("not wired into the public website yet", docs)
 
 
 if __name__ == "__main__":
