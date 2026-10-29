@@ -142,22 +142,27 @@ def artifact_compatibility(
         )
     if artifact.is_source_archive:
         return False, "Arsip source bisa diunduh, tetapi bukan paket instalasi native."
-    if artifact.kind == "debian-package" or artifact.format == "deb":
-        if profile.family != "debian-family":
-            return False, "Paket .deb hanya ditawarkan untuk keluarga Debian/Ubuntu."
+    if artifact.kind in {"debian-package", "rpm-package", "arch-package", "native-package"} or artifact.format in {"deb", "rpm", "pkg.tar.zst"}:
+        from .adapters import adapter_for_family
+
+        adapter = adapter_for_family(profile.family)
+        if adapter is None:
+            return False, f"Tidak ada adapter paket terdaftar untuk keluarga {profile.family}."
+        if artifact.format not in adapter.artifact_formats:
+            return False, (
+                f"Format {artifact.format} tidak didukung adapter "
+                f"{adapter.command} untuk keluarga {profile.family}."
+            )
+        if not adapter.enabled:
+            return False, adapter.reason
         if not profile.package_manager_path:
-            return False, "Perintah apt-get tidak ditemukan pada sistem ini."
-        if not profile.pkexec_path:
+            return False, f"Perintah {adapter.command} tidak ditemukan pada sistem ini."
+        if profile.family == "debian-family" and not profile.pkexec_path:
             return False, "pkexec/Polkit tidak tersedia untuk meminta otorisasi instalasi."
-        return True, "Paket cocok dengan keluarga Debian/Ubuntu; status rilis tetap harus diperhatikan."
-    if artifact.kind == "rpm-package" or artifact.format == "rpm":
-        if profile.family not in {"fedora-family", "suse-family"}:
-            return False, "Paket .rpm tidak cocok dengan keluarga distribusi ini."
-        return False, "Adapter RPM belum diaktifkan dalam build launcher ini."
-    if artifact.kind == "arch-package" or artifact.format == "pkg.tar.zst":
-        if profile.family != "arch-family":
-            return False, "Paket Arch hanya cocok untuk Arch Linux dan turunannya."
-        return False, "Adapter Arch belum diaktifkan dalam build launcher ini."
+        return True, (
+            f"Paket cocok dengan adapter {adapter.command}; "
+            "status rilis dan hasil verifikasi tetap harus diperhatikan."
+        )
     if artifact.format in {"flatpak", "flatpakref"}:
         if not profile.flatpak_path:
             return False, "Flatpak belum terpasang pada sistem ini."
