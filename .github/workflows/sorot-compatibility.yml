@@ -1,0 +1,41 @@
+name: Sorot compatibility metadata
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/sorot/compatibility.json"
+      - "apps/sorot/validate_compatibility.py"
+      - "apps/sorot/tests/test_compatibility.py"
+      - "apps/sorot/releases/index.json"
+      - "apps/sorot/releases/**/release.json"
+      - "docs/RELEASE_EVIDENCE.md"
+      - ".github/workflows/sorot-compatibility.yml"
+  pull_request:
+    paths:
+      - "apps/sorot/compatibility.json"
+      - "apps/sorot/validate_compatibility.py"
+      - "apps/sorot/tests/test_compatibility.py"
+      - "apps/sorot/releases/index.json"
+      - "apps/sorot/releases/**/release.json"
+      - "docs/RELEASE_EVIDENCE.md"
+      - ".github/workflows/sorot-compatibility.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-metadata:
+    name: Validate Sorot release and distro metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Validate immutable artifact manifests and checksums
+        run: python apps/sorot/validate_releases.py
+      - name: Validate compatibility metadata against canonical release status
+        run: python apps/sorot/validate_compatibility.py
+      - name: Run compatibility regression tests
+        run: python -m unittest discover -s apps/sorot/tests -v

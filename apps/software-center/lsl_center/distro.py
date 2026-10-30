@@ -8,6 +8,7 @@ import shutil
 from collections.abc import Callable
 from pathlib import Path
 
+from .adapters import adapter_for_family
 from .models import Artifact, SystemProfile
 
 DEBIAN_IDS = {
@@ -108,12 +109,8 @@ def detect_system_profile(
             pretty_name = "Linux (distribution unknown)"
         else:
             pretty_name = f"{detected_os or 'Operating system'} (distribution detection unavailable)"
-    manager_name = {
-        "debian-family": "apt-get",
-        "arch-family": "pacman",
-        "fedora-family": "dnf",
-        "suse-family": "zypper",
-    }.get(family)
+    adapter = adapter_for_family(family)
+    manager_name = adapter.command if adapter is not None else None
     return SystemProfile(
         distro_id=distro_id,
         pretty_name=pretty_name,

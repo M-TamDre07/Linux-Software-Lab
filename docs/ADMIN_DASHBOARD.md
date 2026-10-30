@@ -71,8 +71,12 @@ This is a policy/grant inspection, not a live request test. It does not prove th
 
 ## CAPTCHA and Telegram OTP status
 
-- CAPTCHA is **not active yet**. It requires selecting a supported provider (for example Cloudflare Turnstile or hCaptcha), registering the exact site hostname, configuring the provider secret in Supabase Auth, and passing the provider token from the login form. Merely adding a visual checkbox does not protect the Auth endpoint.
-- Telegram OTP is **not active yet**. A live inventory check found no deployed Supabase Edge Functions in this project. OTP needs a trusted server-side endpoint (a Supabase Edge Function is suitable), a Telegram bot token stored as a server secret, a fixed allowed group ID, an explicit mapping from each Supabase Auth UUID to that person's Telegram numeric user ID, group-membership verification via Telegram `getChatMember`, short-lived hashed OTP challenges, rate limits, and one-time consumption. The bot must be able to check membership (normally make it an administrator in the group) and each admin must start a private chat with the bot before it can DM them. Never send the bot token to the browser or commit it. LISO LAB's intended identifiers are group `-1004361361948` and bot `8258093251`; these are separate from the Tama Andrea Studio project. See [TELEGRAM_OTP_SECURITY_DESIGN.md](TELEGRAM_OTP_SECURITY_DESIGN.md) for design requirements.
+- CAPTCHA remains **not active**. It requires selecting a supported provider, configuring the server-side secret in Supabase Auth, and passing a verified provider token from the login form.
+- Telegram OTP has server-side implementation code in draft PR #40, but is **not active in production**. The flow requires a trusted Auth UUID → Telegram numeric user ID mapping, Telegram group-membership verification, restricted admin-group delivery, short-lived hashed challenges, attempt/rate limits, atomic one-time consumption, an HttpOnly OTP session cookie, and server-side routes for protected admin data.
+- The new migration revokes direct `authenticated` SELECT on the catalog quality tables and private catalog view, while preserving the anonymous published-catalog policy. Review and test the migration in a non-production database before applying it anywhere else.
+- OTP and login audit notices are intentionally sent to the restricted admin group `-1004361361948`. Every member can see the code, so keep membership limited to trusted administrators and verify the mapped Telegram account is a current group member.
+- See [TELEGRAM_OTP_SECURITY_DESIGN.md](TELEGRAM_OTP_SECURITY_DESIGN.md) for required Vercel variables, mapping setup, test cases, and release gates.
+- Do not claim OTP is active until the migration is applied, the numeric Telegram ID mapping exists, the bot can post to the restricted admin group, and direct REST bypass tests pass.
 
 ## Security model and limitations
 

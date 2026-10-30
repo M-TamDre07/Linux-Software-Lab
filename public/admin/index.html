@@ -64,6 +64,22 @@
       <p class="admin-small-note">Belum terdaftar sebagai admin? Lihat panduan bootstrap akses di dokumentasi repository. Tidak ada pendaftaran admin publik.</p>
     </section>
 
+    <section class="admin-login-card" id="otpPanel" aria-labelledby="otpTitle" hidden>
+      <div class="admin-section-kicker">TELEGRAM SECOND FACTOR</div>
+      <h2 id="otpTitle">Verifikasi melalui Telegram</h2>
+      <p>Setelah akun admin diverifikasi, kode sekali pakai dan pemberitahuan keamanan dikirim ke grup Telegram admin terbatas. Kode berlaku 5 menit. Pastikan grup hanya berisi admin tepercaya karena anggota grup dapat melihat kode.</p>
+      <form id="otpForm" class="admin-login-form">
+        <label for="adminOtpCode">Kode OTP 6 digit</label>
+        <input id="adminOtpCode" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
+        <button class="btn btn-primary" id="otpVerifyButton" type="submit">Verifikasi OTP</button>
+      </form>
+      <div class="admin-toolbar-actions">
+        <button class="btn btn-secondary" id="otpSendButton" type="button">Kirim / kirim ulang kode</button>
+        <button class="btn btn-secondary" id="otpCancelButton" type="button">Batal</button>
+      </div>
+      <p class="admin-small-note">Kode dikirim ke grup admin terbatas. Jika percobaan tidak dikenal, jangan gunakan atau bagikan kode dan laporkan kepada maintainer.</p>
+    </section>
+
     <section id="dashboardPanel" hidden aria-labelledby="dashboardTitle">
       <div class="admin-toolbar">
         <div>
