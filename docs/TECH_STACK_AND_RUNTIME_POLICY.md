@@ -17,6 +17,16 @@ This policy records the current boundaries. It is not a mandate to use one frame
 - **GUI and CLI parity:** where a product has both, use one shared core for parsing, validation, OS detection, compatibility policy, and privileged operations. Presentation code must not re-implement security decisions.
 - **Framework gate:** before adding a framework, list the user problem it solves, project impact, licensing, maintenance cadence, upgrade strategy, bundle/runtime size, and test strategy. Keep the current dependency-free static website dependency-free unless evidence justifies a change.
 
+## Rust adoption
+
+Rust is an approved option for focused systems components, not a blanket replacement for Python, PySide6, or the website stack. Existing applications retain their current implementation unless a documented requirement and measurable benefit justify a bounded Rust component.
+
+The proposed first candidate is an isolated platform-core pilot for Linux Software Lab Center, covering deterministic OS/architecture detection and compatibility decisions only after the existing Python behavior has contract tests. The pilot must preserve one metadata source of truth, use a versioned interface, and prove parity before any production integration. It must not introduce a second package-manager implementation or bypass Polkit.
+
+Keep Rust out of the production runtime until its stable toolchain, MSRV, dependencies, security tests, Debian packaging, and target architecture matrix are documented. The target sequence is Debian 13 amd64 first, then Debian 13 arm64; other distributions require separate native adapter and lifecycle evidence.
+
+See [Rust Adoption Strategy](RUST_ADOPTION_STRATEGY.md) for the phased plan, interface constraints, test gates, and explicit non-goals.
+
 ## Operating-system support contract
 
 - Read the real machine's OS identity locally. On Linux, use `/etc/os-release` for distro ID, version, and ID_LIKE; use the OS runtime identity separately so a missing file does not mean "not Linux".
