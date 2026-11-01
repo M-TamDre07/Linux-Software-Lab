@@ -141,7 +141,9 @@ class WebsiteExperienceTests(unittest.TestCase):
     def test_paketscope_page_is_explicit_about_installation_state(self) -> None:
         source, _ = self.parse_page("software/paketscope.html")
         self.assertIn('id="install-status"', source)
-        self.assertIn("Belum tersedia untuk instalasi publik", source)
+        self.assertIn("Paket pengujian tersedia", source)
+        self.assertIn("Status testing", source)
+        self.assertIn("Unduh PaketScope .deb", source)
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
         app_version = next(line for line in manifest.splitlines() if line.startswith("version = ")).split('"')[1]
         self.assertIn(app_version, source)
