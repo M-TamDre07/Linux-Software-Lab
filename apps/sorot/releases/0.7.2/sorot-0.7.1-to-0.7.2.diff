@@ -1,0 +1,572 @@
+diff -ruN new/sorot-0.7.1/CHANGELOG.md n2/sorot-0.7.2/CHANGELOG.md
+--- new/sorot-0.7.1/CHANGELOG.md	2026-11-01 15:47:21.481287598 +0700
++++ n2/sorot-0.7.2/CHANGELOG.md	2026-11-01 16:18:49.078985259 +0700
+@@ -2,6 +2,19 @@
+ 
+ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/). Proyek ini masih beta; nomor versi belum menjamin kestabilan API internal.
+ 
++## [0.7.2 Beta] — 2026-11-01
++
++Rilis kestabilan dan integritas data. Tidak ada perubahan skema atau fitur.
++
++### Diperbaiki
++- **Sorot tidak menutup dengan rapi saat menerima sinyal.** `SIGTERM`/`SIGHUP` (logout, `kill`, penutupan sesi) mematikan proses tanpa menyimpan pengaturan terakhir dan tanpa menghentikan ekstensi; `SIGINT` (Ctrl+C di terminal) membuat aplikasi menggantung. Kini ketiganya menutup lewat jalur normal (simpan draf dan pengaturan, hentikan ekstensi, lepas kunci) tanpa dialog, keluar dengan kode 0; sinyal kedua keluar paksa. Modul baru `sorot.signals`.
++- **Karakter pengganti sendirian (surrogate, mis. `"\ud800"` di JSON) membuat setiap penyimpanan gagal** dengan `UnicodeEncodeError` yang tidak tertangkap, sehingga penutupan jendela terhenti di tengah jalan. Teks pengaturan kini dibersihkan saat dibaca dan penulisan berkas tidak lagi gagal karena isi.
++- **Menghentikan ekstensi yang menjalankan proses lain menunggu hingga 60 detik** dan membiarkan proses itu hidup. Ekstensi kini berjalan di grup prosesnya sendiri dan seluruh grup dimatikan saat berhenti.
++- Cadangan `config.json.bak` ditulis lewat berkas sementara lalu di-rename, sehingga crash di tengah penyalinan tidak meninggalkan cadangan terpotong.
++
++### Pengujian
++- Tes baru memakai proses Sorot sungguhan (`tests/test_signals.py`: tiga sinyal; `test_ext_host.py`: proses turunan ekstensi) dan `tests/test_integrity.py`. Kecuali tes cadangan atomik, tiap tes diperiksa gagal bila perbaikannya dibatalkan.
++
+ ## [0.7.1 Beta] — 2026-10-29
+ 
+ Rilis perbaikan dan penstabilan atas 0.7.0. Untuk pertama kalinya seluruh kode Qt 0.7.0 dijalankan pada Qt asli (PySide6 6.8.3 dan 6.12.0), dan itu menemukan bahwa **mode cermin tidak pernah berfungsi**. Tidak ada perubahan skema atau format data.
+diff -ruN new/sorot-0.7.1/README.md n2/sorot-0.7.2/README.md
+--- new/sorot-0.7.1/README.md	2026-11-01 15:47:21.471250788 +0700
++++ n2/sorot-0.7.2/README.md	2026-11-01 16:18:49.069181229 +0700
+@@ -1,4 +1,4 @@
+-# Sorot 0.7.1 Beta
++# Sorot 0.7.2 Beta
+ 
+ Teleprompter overlay untuk Linux. Naskah tampil dalam jendela transparan yang menggulir **mengikuti kecepatan bicaramu**, di atas aplikasi lain. Naskah dan pengaturan **hanya disimpan di komputermu**; aplikasi berfungsi penuh tanpa internet, tanpa akun, dan tanpa API key.
+ 
+@@ -30,10 +30,10 @@
+ 
+ | Sistem | Cara |
+ |---|---|
+-| **Debian 13** | `sudo apt install ./sorot_0.7.1_all.deb` |
+-| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.1-py3-none-any.whl` |
++| **Debian 13** | `sudo apt install ./sorot_0.7.2_all.deb` |
++| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.2-py3-none-any.whl` |
+ | **Arch Linux** (dan turunannya) | `cd arch && makepkg -si` (folder `arch/` dari rilis) — lihat [PACKAGING.md](docs/PACKAGING.md) |
+-| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.1-py3-none-any.whl` |
++| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.2-py3-none-any.whl` |
+ | **Tanpa root, ke `~/.local`** | `./scripts/install-user.sh` (butuh `python3-venv` dan akses PyPI) |
+ | **Pengembangan** | `make dev` lalu `sorot` |
+ 
+diff -ruN new/sorot-0.7.1/docs/TEST-REPORT.md n2/sorot-0.7.2/docs/TEST-REPORT.md
+--- new/sorot-0.7.1/docs/TEST-REPORT.md	2026-11-01 15:47:21.471649101 +0700
++++ n2/sorot-0.7.2/docs/TEST-REPORT.md	2026-11-01 16:18:49.069620886 +0700
+@@ -1,6 +1,6 @@
+-# Laporan tes — Sorot 0.7.1 Beta
++# Laporan tes — Sorot 0.7.2 Beta
+ 
+-Tanggal: 2026-10-29 s.d. 11-01 · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
++Tanggal: 2026-10-29 s.d. 11-01 (0.7.1 dan 0.7.2) · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
+ 
+ > **Berbeda dari laporan 0.7.0:** kali ini PySide6, pytest, pytest-qt, ruff, mypy, lintian, desktop-file-validate, shellcheck, Xvfb dan window manager (openbox) **tersedia**, sehingga kode Qt 0.7.0 yang sebelumnya tidak pernah dijalankan akhirnya dijalankan pada Qt asli. Hasilnya: **mode cermin di 0.7.0 tidak berfungsi sama sekali**, dan ditemukan beberapa cacat lain (lihat CHANGELOG 0.7.1). Semua temuan itu sudah diperbaiki dan dijaga tes regresi.
+ 
+@@ -8,12 +8,12 @@
+ 
+ | Pemeriksaan | Hasil |
+ |---|---|
+-| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **573 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
+-| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **573 lulus**, 1 dilewati |
++| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **582 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
++| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **582 lulus**, 1 dilewati |
+ | 128 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **128 lulus**; tes penjaga membuktikan platform memang `xcb` |
+ | 128 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **124 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
+-| Tes non-GUI saja | 446 lulus |
+-| `ruff check src tests`, `mypy src` (46 berkas) | bersih (sebelumnya 1 dan 7 temuan) |
++| Tes non-GUI saja | 455 lulus |
++| `ruff check src tests`, `mypy src` (47 berkas) | bersih (sebelumnya 1 dan 7 temuan) |
+ | `scripts/release.py check` | konsisten (0.7.1) |
+ | `lintian` (level bawaan), `desktop-file-validate`, `shellcheck`, `dash -n` pada skrip maintainer, `groff -ww` pada man page | bersih |
+ | Build dua kali (`.deb`, `.tar.gz`, `.zip`, wheel, `PKGBUILD`, `.SRCINFO`) | `SHA256SUMS` identik; `sha256sum -c` OK |
+@@ -22,6 +22,16 @@
+ 
+ Catatan menjalankan: tes pengemasan memanggil `python3` dari `PATH`, jadi jalankan dengan venv aktif (`make test`). Tanpa window manager, tes fokus keyboard gagal di Xvfb; gunakan `make test-x11`.
+ 
++## Tambahan 0.7.2 (kestabilan dan integritas)
++
++| Cacat | Bukti |
++|---|---|
++| `SIGTERM`/`SIGHUP` mematikan Sorot tanpa menyimpan; `SIGINT` (Ctrl+C) membuatnya menggantung | Direproduksi pada proses sungguhan (kode keluar 143/129, SIGINT menggantung sampai timeout); kini keluar kode 0, pengaturan tersimpan. 3 tes proses nyata, gagal bila `SignalBridge` dicabut |
++| Karakter surrogate sendirian (`"\ud800"` di JSON) lolos ke konfigurasi lalu **setiap** penyimpanan melempar `UnicodeEncodeError` tak tertangkap (menghentikan `closeEvent` di tengah jalan) | Direproduksi; kini dibersihkan saat dibaca dan penulisan tak lagi gagal karena isi. Tes gagal bila perbaikan dicabut |
++| `stop()` ekstensi menunggu 60 dtk dan membiarkan proses turunan hidup | Direproduksi dengan ekstensi nyata yang memanggil subproses; kini grup proses dimatikan (stop < 10 dtk, proses turunan mati). Tes gagal bila `start_new_session` dicabut |
++| `config.json.bak` disalin langsung (crash di tengah menyisakan cadangan terpotong) | Diperbaiki dengan salin-lalu-rename; **tidak** diperiksa lewat mutasi (hanya diuji hasil akhirnya) |
++| Tes sinyal awalnya memakai `python -I` sehingga gagal di venv 3.11 tanpa sorot terpasang | Ditemukan oleh tes di Python 3.11; diperbaiki |
++
+ ## Cacat yang ditemukan dan diperbaiki (semua punya tes regresi yang terbukti gagal tanpa perbaikannya)
+ 
+ | Cacat | Bukti |
+diff -ruN new/sorot-0.7.1/docs/UPGRADING.md n2/sorot-0.7.2/docs/UPGRADING.md
+--- new/sorot-0.7.1/docs/UPGRADING.md	2026-11-01 15:47:21.472180458 +0700
++++ n2/sorot-0.7.2/docs/UPGRADING.md	2026-11-01 16:18:49.070070878 +0700
+@@ -18,10 +18,10 @@
+ 
+ | Cara pasang | Perintah pembaruan | Catatan |
+ |---|---|---|
+-| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.1_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
+-| Arch Linux | `tar xf sorot-0.7.1.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.1-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
+-| pipx | `pipx install --force ./sorot-0.7.1-py3-none-any.whl` | |
+-| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.1-py3-none-any.whl` | |
++| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.2_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
++| Arch Linux | `tar xf sorot-0.7.2.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.2-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
++| pipx | `pipx install --force ./sorot-0.7.2-py3-none-any.whl` | |
++| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.2-py3-none-any.whl` | |
+ | Skrip pengguna | `./scripts/install-user.sh` dari sumber versi baru | Aman diulang; hanya mengganti venv di `~/.local/share/sorot/venv`. |
+ | Salinan sumber | `git pull`, lalu `python -m pip install -e ".[dev]"` | |
+ 
+@@ -29,8 +29,9 @@
+ 
+ ## Jalur versi
+ 
+-| Dari | Ke 0.7.1 | Yang terjadi |
++| Dari | Ke 0.7.2 | Yang terjadi |
+ |---|---|---|
++| 0.7.1 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema atau format. Perbaikan kestabilan: penutupan rapi saat sinyal, penyimpanan tidak lagi gagal oleh karakter surrogate, proses turunan ekstensi ikut berhenti. |
+ | 0.7.0 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema (tetap 4). Perbaikan: mode cermin yang sebelumnya tidak berfungsi, hitung mundur yang terbaca, `config.json` berisi angka tak wajar (`1e999`) tidak lagi membuat aplikasi crash. |
+ | 0.6.x | langsung | Cadangan otomatis dibuat. Skema pengaturan naik 3 → 4: hanya **menambah** kunci tampilan baru (`font_weight`, `line_spacing`, `letter_spacing`, `mirror`, `show_countdown`, `profile`) yang nilai bawaannya persis sama dengan tampilan lama; tidak ada yang berubah untukmu. Profil milikmu (`~/.local/share/sorot/profiles/`) ikut dicadangkan. |
+ | 0.5.x | langsung | Data dipakai di tempat. Tidak ada perubahan skema (tetap versi 3). Cadangan otomatis dibuat pada peluncuran pertama (data ada tetapi belum ada catatan versi). |
+diff -ruN new/sorot-0.7.1/packaging/RELEASE_DATE n2/sorot-0.7.2/packaging/RELEASE_DATE
+--- new/sorot-0.7.1/packaging/RELEASE_DATE	2026-11-01 15:47:21.473283886 +0700
++++ n2/sorot-0.7.2/packaging/RELEASE_DATE	2026-11-01 16:18:49.070827006 +0700
+@@ -1 +1 @@
+-2026-10-29
++2026-11-01
+diff -ruN new/sorot-0.7.1/packaging/debian-changelog n2/sorot-0.7.2/packaging/debian-changelog
+--- new/sorot-0.7.1/packaging/debian-changelog	2026-11-01 15:47:21.473595883 +0700
++++ n2/sorot-0.7.2/packaging/debian-changelog	2026-11-01 16:18:49.071129655 +0700
+@@ -1,3 +1,13 @@
++sorot (0.7.2) stable; urgency=medium
++
++  * Close cleanly on SIGTERM, SIGHUP and SIGINT (save, stop extensions,
++    release the lock) instead of dying or hanging.
++  * Stop lone surrogate characters in settings from making every save fail,
++    write the settings backup atomically, and kill the whole process group of
++    an extension when it stops (it could block for 60 s and leave children).
++
++ -- Muhammad Andreatama <muhammadandreatama@outlook.com>  Sun, 01 Nov 2026 00:00:00 +0000
++
+ sorot (0.7.1) stable; urgency=medium
+ 
+   * Fix mirror mode, which raised TypeError on the first paint and never
+diff -ruN new/sorot-0.7.1/src/sorot/__init__.py n2/sorot-0.7.2/src/sorot/__init__.py
+--- new/sorot-0.7.1/src/sorot/__init__.py	2026-11-01 15:47:21.475514946 +0700
++++ n2/sorot-0.7.2/src/sorot/__init__.py	2026-11-01 16:18:49.072932164 +0700
+@@ -1,7 +1,7 @@
+ """Sorot — teleprompter overlay desktop untuk Linux."""
+ 
+-__version__ = "0.7.1"
+-VERSION_LABEL = "0.7.1 Beta"
++__version__ = "0.7.2"
++VERSION_LABEL = "0.7.2 Beta"
+ APP_NAME = "Sorot"
+ ORG_NAME = "Sorot"
+ AUTHOR = "Muhammad Andreatama"
+diff -ruN new/sorot-0.7.1/src/sorot/app.py n2/sorot-0.7.2/src/sorot/app.py
+--- new/sorot-0.7.1/src/sorot/app.py	2026-11-01 15:47:21.478911572 +0700
++++ n2/sorot-0.7.2/src/sorot/app.py	2026-11-01 16:18:49.076539943 +0700
+@@ -142,9 +142,13 @@
+         QMessageBox.critical(None, APP_NAME, f"Aplikasi gagal memulai antarmuka.\n\n{type(exc).__name__}: {exc}\n\nBackend: {choice.description}")
+         return 1
+     window.show()
++    from sorot.signals import SignalBridge
++
++    bridge = SignalBridge(window.close_for_signal, app)
+     try:
+         return app.exec()
+     finally:
++        bridge.restore()
+         lock.release()
+ 
+ 
+diff -ruN new/sorot-0.7.1/src/sorot/core/config.py n2/sorot-0.7.2/src/sorot/core/config.py
+--- new/sorot-0.7.1/src/sorot/core/config.py	2026-11-01 15:47:21.476357635 +0700
++++ n2/sorot-0.7.2/src/sorot/core/config.py	2026-11-01 16:18:49.073296471 +0700
+@@ -14,6 +14,7 @@
+ 
+ import json
+ import logging
++import os
+ import re
+ import shutil
+ import time
+@@ -23,7 +24,7 @@
+ from typing import Any
+ 
+ from sorot.core import paths
+-from sorot.core.fileio import atomic_write_text
++from sorot.core.fileio import atomic_write_text, scrub_text
+ from sorot.core.script_stats import DEFAULT_WPM, MAX_WPM, MIN_WPM
+ 
+ LOGGER = logging.getLogger(__name__)
+@@ -120,7 +121,7 @@
+ 
+ 
+ def _to_str(value: Any, default: str, max_len: int = 500) -> str:
+-    return value.strip()[:max_len] if isinstance(value, str) else default
++    return scrub_text(value).strip()[:max_len] if isinstance(value, str) else default
+ 
+ 
+ def _to_optional_int(value: Any) -> int | None:
+@@ -156,7 +157,7 @@
+ def _to_str_list(value: Any, max_items: int = 50) -> list[str]:
+     if not isinstance(value, list):
+         return []
+-    return [item.strip()[:200] for item in value if isinstance(item, str) and item.strip()][:max_items]
++    return [scrub_text(item).strip()[:200] for item in value if isinstance(item, str) and item.strip()][:max_items]
+ 
+ 
+ # --------------------------------------------------------------------------
+@@ -431,8 +432,10 @@
+         except (OSError, UnicodeDecodeError):
+             pass
+         if self.path.exists():
+-            try:
+-                shutil.copy2(self.path, self.backup_path)
++            try:  # copy beside the target and rename, so a crash never leaves a truncated .bak
++                partial = self.backup_path.with_name(f".{self.backup_path.name}.tmp")
++                shutil.copy2(self.path, partial)
++                os.replace(partial, self.backup_path)
+             except OSError as exc:
+                 LOGGER.warning("Cadangan pengaturan gagal dibuat: %s", exc.strerror or exc)
+         atomic_write_text(self.path, payload)
+diff -ruN new/sorot-0.7.1/src/sorot/core/fileio.py n2/sorot-0.7.2/src/sorot/core/fileio.py
+--- new/sorot-0.7.1/src/sorot/core/fileio.py	2026-11-01 15:47:21.475844530 +0700
++++ n2/sorot-0.7.2/src/sorot/core/fileio.py	2026-11-01 16:18:49.073888951 +0700
+@@ -12,6 +12,15 @@
+     """A user-facing problem while reading or writing a script file."""
+ 
+ 
++def scrub_text(text: str) -> str:
++    """Replace lone surrogates (legal in a Python ``str`` and as JSON ``\\ud800`` escapes, illegal in UTF-8) with U+FFFD."""
++    try:
++        text.encode("utf-8")
++    except UnicodeEncodeError:
++        return "".join("\ufffd" if "\ud800" <= ch <= "\udfff" else ch for ch in text)
++    return text
++
++
+ def atomic_write_text(path: Path, text: str, *, mode: int = 0o600) -> None:  # private by default
+     """Write ``text`` to ``path`` so readers never observe a partial file.
+ 
+@@ -23,7 +32,7 @@
+     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+     tmp_path = Path(tmp_name)
+     try:
+-        with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
++        with os.fdopen(fd, "w", encoding="utf-8", errors="replace", newline="") as handle:  # content must never make a save fail
+             handle.write(text)
+             handle.flush()
+             os.fsync(handle.fileno())
+diff -ruN new/sorot-0.7.1/src/sorot/extensions/host.py n2/sorot-0.7.2/src/sorot/extensions/host.py
+--- new/sorot-0.7.1/src/sorot/extensions/host.py	2026-11-01 15:47:21.476815505 +0700
++++ n2/sorot-0.7.2/src/sorot/extensions/host.py	2026-11-01 16:18:49.074527644 +0700
+@@ -13,6 +13,7 @@
+ import logging
+ import os
+ import queue
++import signal
+ import subprocess
+ import sys
+ import threading
+@@ -68,6 +69,20 @@
+     return env
+ 
+ 
++def _kill_group(proc: subprocess.Popen[bytes]) -> None:
++    """Kill the extension and every process it started (it leads its own session). Safe to call twice."""
++    try:
++        if hasattr(os, "killpg"):
++            os.killpg(proc.pid, signal.SIGKILL)  # the pid is the group id because of start_new_session
++            return
++    except (ProcessLookupError, PermissionError, OSError):
++        pass
++    try:
++        proc.kill()
++    except OSError:
++        pass
++
++
+ class ExtensionProcess:
+     def __init__(self, info: ExtensionInfo, app_version: str, *, on_notify: Callable[[str, str], None] | None = None,
+                  python: str | None = None) -> None:
+@@ -106,7 +121,7 @@
+                 [self.python, "-B", "-X", "utf8", "-m", "sorot.extensions.runner", str(self.info.path), manifest.entry],
+                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.info.path,
+                 env=scrubbed_environment({"PYTHONPATH": str(Path(__file__).resolve().parents[2])}),
+-                close_fds=True,
++                close_fds=True, start_new_session=True,  # own process group, so stop() can end anything the extension spawned
+             )
+         except OSError as exc:
+             raise ExtensionCrashed(f"Proses ekstensi tidak dapat dimulai: {exc.strerror or exc}") from exc
+@@ -134,11 +149,7 @@
+                 proc.wait(timeout=1.5)
+             except (queue.Full, subprocess.TimeoutExpired, OSError):
+                 pass
+-        if proc.poll() is None:
+-            try:
+-                proc.kill()
+-            except OSError:
+-                pass
++        _kill_group(proc)
+         try:
+             proc.wait(timeout=3)
+         except subprocess.TimeoutExpired:
+@@ -223,7 +234,7 @@
+                     break
+                 if len(line) > protocol.MAX_LINE_BYTES:
+                     LOGGER.warning("Ekstensi %s mengirim pesan terlalu besar; dihentikan.", self.ext_id)
+-                    proc.kill()
++                    _kill_group(proc)
+                     break
+                 try:
+                     message = protocol.decode(line)
+diff -ruN new/sorot-0.7.1/src/sorot/signals.py n2/sorot-0.7.2/src/sorot/signals.py
+--- new/sorot-0.7.1/src/sorot/signals.py	1970-01-01 07:00:00.000000000 +0700
++++ n2/sorot-0.7.2/src/sorot/signals.py	2026-11-01 16:18:49.073049924 +0700
+@@ -0,0 +1,58 @@
++"""Close Sorot cleanly on SIGTERM, SIGHUP and SIGINT.
++
++Without this a logout, ``kill`` or Ctrl+C either killed the process with no save
++(settings changed in the last moments were lost, extension processes were
++orphaned) or, for SIGINT, left it hanging because Python's handler never runs
++while Qt's loop is blocked in C++. A short idle timer lets the interpreter run
++the handler; the handler then closes the window through the normal path.
++"""
++from __future__ import annotations
++
++import logging
++import os
++import signal
++from collections.abc import Callable
++
++from PySide6.QtCore import QObject, QTimer
++
++LOGGER = logging.getLogger(__name__)
++SIGNALS = tuple(s for s in (getattr(signal, n, None) for n in ("SIGINT", "SIGTERM", "SIGHUP")) if s is not None)
++
++
++class SignalBridge(QObject):
++    """Parent it to the QApplication. ``close_window`` must save and quit without asking anything."""
++
++    def __init__(self, close_window: Callable[[], None], parent: QObject | None = None) -> None:
++        super().__init__(parent)
++        self._close_window = close_window
++        self._received = 0
++        self._previous: dict[int, object] = {}
++        for sig in SIGNALS:
++            try:
++                self._previous[sig] = signal.signal(sig, self._handle)
++            except (ValueError, OSError):  # not the main thread / unsupported
++                LOGGER.debug("Sinyal %s tidak dapat dipasang", sig)
++        self._tick = QTimer(self)
++        self._tick.setInterval(200)
++        self._tick.timeout.connect(lambda: None)  # wakes the interpreter so it can run the handler
++        self._tick.start()
++
++    def _handle(self, signum: int, _frame: object) -> None:
++        self._received += 1
++        if self._received > 1:  # second signal: the user really wants out
++            LOGGER.warning("Sinyal %s kedua; keluar segera.", signum)
++            os._exit(128 + signum)
++        LOGGER.info("Sinyal %s diterima; menutup dengan rapi.", signum)
++        try:
++            self._close_window()
++        except Exception:  # noqa: BLE001 - never let shutdown code swallow the signal
++            LOGGER.exception("Penutupan lewat sinyal gagal")
++            os._exit(128 + signum)
++
++    def restore(self) -> None:
++        self._tick.stop()
++        for sig, handler in self._previous.items():
++            try:
++                signal.signal(sig, handler)  # type: ignore[arg-type]
++            except (ValueError, OSError, TypeError):
++                pass
+diff -ruN new/sorot-0.7.1/src/sorot/ui/main_window.py n2/sorot-0.7.2/src/sorot/ui/main_window.py
+--- new/sorot-0.7.1/src/sorot/ui/main_window.py	2026-11-01 15:47:21.478502143 +0700
++++ n2/sorot-0.7.2/src/sorot/ui/main_window.py	2026-11-01 16:18:49.076041415 +0700
+@@ -114,6 +114,7 @@
+         super().__init__()
+         self.store = config_store or ConfigStore()
+         self.draft = draft_store or DraftStore()
++        self._closing_by_signal = False
+         self.library = library or ScriptLibrary()
+         self.config = self.store.load().config
+         self.session_api_key = ""
+@@ -1327,6 +1328,12 @@
+         )
+ 
+     # ================================================================ closing
++    def close_for_signal(self) -> None:
++        """Called on SIGTERM/SIGHUP/SIGINT: save everything and quit, never prompting."""
++        self._closing_by_signal = True
++        self.close()
++        QApplication.quit()
++
+     def closeEvent(self, event) -> None:  # noqa: N802
+         if not self._confirm_discard(f"Keluar dari {APP_NAME}"):
+             event.ignore()
+@@ -1651,6 +1658,8 @@
+ 
+     def _confirm_discard(self, action: str) -> bool:
+         """Ask before an action that would replace unsaved work. True = go on."""
++        if self._closing_by_signal:  # nobody to ask; the draft file already holds the text
++            return True
+         if not (self.editor.document().isModified() and self.editor.toPlainText().strip()):
+             return True
+         box = QMessageBox(self)
+diff -ruN new/sorot-0.7.1/tests/test_ext_host.py n2/sorot-0.7.2/tests/test_ext_host.py
+--- new/sorot-0.7.1/tests/test_ext_host.py	2026-11-01 15:47:21.479803729 +0700
++++ n2/sorot-0.7.2/tests/test_ext_host.py	2026-11-01 16:18:49.078663286 +0700
+@@ -234,3 +234,44 @@
+         assert "Dinonaktifkan" in host.status("uji.host")
+     finally:
+         host.shutdown()
++
++
++GRANDCHILD_CODE = '''
++import subprocess, sys
++
++def activate(api):
++    def spawn(text):
++        child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
++        return str(child.pid)
++    api.register_transform("spawn", "Anak", spawn)
++'''
++
++
++def _alive(pid: int) -> bool:
++    import os
++    try:
++        os.kill(pid, 0)
++    except ProcessLookupError:
++        return False
++    try:  # a zombie still answers kill(0)
++        return "Z" not in open(f"/proc/{pid}/stat").read().rsplit(")", 1)[1].split()[0]
++    except OSError:
++        return False
++
++
++@pytest.mark.skipif(not __import__("os").path.exists("/proc/self/stat"), reason="needs /proc")
++def test_stopping_an_extension_also_stops_processes_it_started(tmp_path):
++    process = ExtensionProcess(info_for(tmp_path, GRANDCHILD_CODE, "uji.anak"), APP)
++    process.start()
++    try:
++        pid = int(process.call("transform", {"id": "spawn", "text": "x"})["text"])
++        assert _alive(pid)
++        started = time.monotonic()
++        process.stop(kill=True)
++        assert time.monotonic() - started < 10, "stop() menunggu proses turunan"
++        deadline = time.monotonic() + 5
++        while _alive(pid) and time.monotonic() < deadline:
++            time.sleep(0.05)
++        assert not _alive(pid), "proses turunan ekstensi masih hidup setelah ekstensi dihentikan"
++    finally:
++        process.stop(kill=True)
+diff -ruN new/sorot-0.7.1/tests/test_integrity.py n2/sorot-0.7.2/tests/test_integrity.py
+--- new/sorot-0.7.1/tests/test_integrity.py	1970-01-01 07:00:00.000000000 +0700
++++ n2/sorot-0.7.2/tests/test_integrity.py	2026-11-01 16:18:49.078918732 +0700
+@@ -0,0 +1,49 @@
++"""Data-integrity regressions: hostile text must never make a save fail, and backups are never partial."""
++from __future__ import annotations
++
++import json
++
++from sorot.core.config import ConfigStore
++from sorot.core.fileio import atomic_write_text, scrub_text
++from sorot.core.scripts import DraftStore
++
++LONE = "A\ud800B\udc00C"
++
++
++def test_scrub_text_replaces_only_lone_surrogates():
++    assert scrub_text(LONE) == "A�B�C"
++    assert scrub_text("sudah baik — ✓ 😀") == "sudah baik — ✓ 😀"
++
++
++def test_atomic_write_never_fails_on_unencodable_text(tmp_path):
++    target = tmp_path / "x.txt"
++    atomic_write_text(target, LONE)
++    assert target.read_text(encoding="utf-8") in {"A?B?C", "A\ufffdB\ufffdC"}
++    assert not list(tmp_path.glob(".*.tmp"))
++
++
++def test_draft_with_lone_surrogates_is_saved(tmp_path):
++    draft = DraftStore(tmp_path / "draft.txt")
++    draft.save("halo " + LONE)
++    assert draft.load().startswith("halo ")
++
++
++def test_config_with_json_surrogate_escapes_loads_and_saves(tmp_path):
++    path = tmp_path / "config.json"
++    path.write_text(json.dumps({"schema_version": 4, "font_family": LONE, "last_directory": LONE}), encoding="utf-8")
++    store = ConfigStore(path)
++    loaded = store.load()
++    assert "\ud800" not in loaded.config.font_family
++    store.save(loaded.config)  # used to raise UnicodeEncodeError on every save
++    assert json.loads(path.read_text(encoding="utf-8"))["font_family"] == loaded.config.font_family
++
++
++def test_config_backup_is_a_complete_copy_and_leaves_no_temp_file(tmp_path):
++    path = tmp_path / "config.json"
++    store = ConfigStore(path)
++    config = store.load().config
++    store.save(config)
++    config.font_size += 1
++    store.save(config)
++    assert json.loads(store.backup_path.read_text(encoding="utf-8"))["font_size"] == config.font_size - 1
++    assert not list(tmp_path.glob(".*.tmp"))
+diff -ruN new/sorot-0.7.1/tests/test_signals.py n2/sorot-0.7.2/tests/test_signals.py
+--- new/sorot-0.7.1/tests/test_signals.py	1970-01-01 07:00:00.000000000 +0700
++++ n2/sorot-0.7.2/tests/test_signals.py	2026-11-01 16:18:49.076838539 +0700
+@@ -0,0 +1,56 @@
++"""SIGTERM/SIGHUP/SIGINT must close the real application cleanly (save, release the lock, exit 0)."""
++from __future__ import annotations
++
++import os
++import signal
++import subprocess
++import sys
++import time
++from pathlib import Path
++
++import pytest
++
++SRC = Path(__file__).resolve().parents[1] / "src"
++pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="POSIX signals")
++
++
++def _env(root: Path) -> dict[str, str]:
++    run = root / "run"
++    run.mkdir(parents=True, exist_ok=True)
++    run.chmod(0o700)
++    env = {k: v for k, v in os.environ.items() if not k.startswith(("XDG_", "SOROT_"))}
++    env.update(
++        HOME=str(root), XDG_DATA_HOME=str(root / "d"), XDG_CONFIG_HOME=str(root / "c"),
++        XDG_STATE_HOME=str(root / "s"), XDG_RUNTIME_DIR=str(run), QT_QPA_PLATFORM="offscreen",
++        PYTHONPATH=str(SRC),
++    )
++    return env
++
++
++def _wait_for(path_glob: Path, pattern: str, needle: str, timeout: float) -> bool:
++    end = time.monotonic() + timeout
++    while time.monotonic() < end:
++        for file in path_glob.glob(pattern):
++            if needle in file.read_text(encoding="utf-8", errors="replace"):
++                return True
++        time.sleep(0.1)
++    return False
++
++
++@pytest.mark.parametrize("sig", [signal.SIGTERM, signal.SIGHUP, signal.SIGINT])
++def test_a_termination_signal_closes_the_application_cleanly(tmp_path, sig):
++    root = tmp_path / "appdata"
++    root.mkdir()
++    proc = subprocess.Popen([sys.executable, "-m", "sorot"], env=_env(root), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
++    try:
++        assert _wait_for(root / "s", "**/*.log", "Memulai Sorot", 30), "aplikasi tidak sempat mulai"
++        time.sleep(1.5)  # let the window and the signal bridge come up
++        proc.send_signal(sig)
++        code = proc.wait(timeout=20)
++    finally:
++        if proc.poll() is None:
++            proc.kill()
++            proc.wait()
++    assert code == 0, f"keluar dengan kode {code}"
++    assert (root / "c" / "sorot" / "config.json").is_file(), "pengaturan tidak disimpan saat ditutup"
++    assert _wait_for(root / "s", "**/*.log", "menutup dengan rapi", 2)
