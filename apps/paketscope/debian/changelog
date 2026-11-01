@@ -1,3 +1,13 @@
+paketscope (3.0.0~dev5-1) unstable; urgency=medium
+
+  * Add AppStream metadata (io.github.mtamdre07.paketscope) with the developer
+    profile, GPL-3.0-or-later license, homepage, and bug tracker.
+  * Add Homepage and Vcs fields to the package control file.
+  * Expose the parsed Flatpak branch in application details.
+  * Use a PEP 440 upstream version (3.0.0.dev5) so pip and wheel builds work.
+
+ -- Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>  Sun, 01 Nov 2026 10:00:00 +0700
+
 paketscope (3.0.0~dev4) unstable; urgency=medium
 
   * Show source-attributed application descriptions, package type, and provenance notes.
