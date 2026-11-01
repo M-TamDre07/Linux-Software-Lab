@@ -1,0 +1,451 @@
+diff --git a/apps/paketscope/debian/changelog b/apps/paketscope/debian/changelog
+index ef66942..5f46818 100644
+--- a/apps/paketscope/debian/changelog
++++ b/apps/paketscope/debian/changelog
+@@ -1,3 +1,13 @@
++paketscope (3.0.0~dev5-1) unstable; urgency=medium
++
++  * Add AppStream metadata (io.github.mtamdre07.paketscope) with the developer
++    profile, GPL-3.0-or-later license, homepage, and bug tracker.
++  * Add Homepage and Vcs fields to the package control file.
++  * Expose the parsed Flatpak branch in application details.
++  * Use a PEP 440 upstream version (3.0.0.dev5) so pip and wheel builds work.
++
++ -- Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>  Sun, 01 Nov 2026 10:00:00 +0700
++
+ paketscope (3.0.0~dev4) unstable; urgency=medium
+ 
+   * Show source-attributed application descriptions, package type, and provenance notes.
+diff --git a/apps/paketscope/debian/control b/apps/paketscope/debian/control
+index c37f947..bc328ef 100644
+--- a/apps/paketscope/debian/control
++++ b/apps/paketscope/debian/control
+@@ -2,6 +2,9 @@ Source: paketscope
+ Section: utils
+ Priority: optional
+ Maintainer: Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>
++Homepage: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope
++Vcs-Git: https://github.com/M-TamDre07/Linux-Software-Lab.git
++Vcs-Browser: https://github.com/M-TamDre07/Linux-Software-Lab
+ Build-Depends: debhelper-compat (= 13)
+ Standards-Version: 4.7.0
+ Rules-Requires-Root: no
+diff --git a/apps/paketscope/debian/copyright b/apps/paketscope/debian/copyright
+new file mode 100644
+index 0000000..f58ea16
+--- /dev/null
++++ b/apps/paketscope/debian/copyright
+@@ -0,0 +1,23 @@
++Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
++Upstream-Name: PaketScope
++Upstream-Contact: Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>
++Source: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope
++
++Files: *
++Copyright: 2026 Muhammad Andreatama
++License: GPL-3+
++ This program is free software: you can redistribute it and/or modify
++ it under the terms of the GNU General Public License as published by
++ the Free Software Foundation, either version 3 of the License, or
++ (at your option) any later version.
++ .
++ This program is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU General Public License for more details.
++ .
++ You should have received a copy of the GNU General Public License
++ along with this program.  If not, see <https://www.gnu.org/licenses/>.
++ .
++ On Debian systems, the complete text of the GNU General Public
++ License version 3 can be found in /usr/share/common-licenses/GPL-3.
+diff --git a/apps/paketscope/debian/paketscope.install b/apps/paketscope/debian/paketscope.install
+index 7d3062f..d9acac9 100644
+--- a/apps/paketscope/debian/paketscope.install
++++ b/apps/paketscope/debian/paketscope.install
+@@ -2,3 +2,4 @@ usr/bin/paketscope
+ usr/lib/python3/dist-packages/paketscope usr/lib/python3/dist-packages/
+ usr/share/applications/paketscope.desktop
+ usr/share/icons/hicolor/scalable/apps/paketscope.svg
++usr/share/metainfo/io.github.mtamdre07.paketscope.metainfo.xml usr/share/metainfo/
+diff --git a/apps/paketscope/debian/rules b/apps/paketscope/debian/rules
+index 9d02773..a793624 100755
+--- a/apps/paketscope/debian/rules
++++ b/apps/paketscope/debian/rules
+@@ -10,3 +10,4 @@ override_dh_auto_install:
+ 	install -D -m 0755 packaging/paketscope-launcher debian/tmp/usr/bin/paketscope
+ 	install -D -m 0644 packaging/paketscope.desktop debian/tmp/usr/share/applications/paketscope.desktop
+ 	install -D -m 0644 paketscope/assets/paketscope.svg debian/tmp/usr/share/icons/hicolor/scalable/apps/paketscope.svg
++	install -D -m 0644 packaging/io.github.mtamdre07.paketscope.metainfo.xml debian/tmp/usr/share/metainfo/io.github.mtamdre07.paketscope.metainfo.xml
+diff --git a/apps/paketscope/packaging/io.github.mtamdre07.paketscope.metainfo.xml b/apps/paketscope/packaging/io.github.mtamdre07.paketscope.metainfo.xml
+new file mode 100644
+index 0000000..2d1f7e6
+--- /dev/null
++++ b/apps/paketscope/packaging/io.github.mtamdre07.paketscope.metainfo.xml
+@@ -0,0 +1,37 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<component type="desktop-application">
++  <id>io.github.mtamdre07.paketscope</id>
++  <launchable type="desktop-id">paketscope.desktop</launchable>
++  <name>PaketScope</name>
++  <summary>Inspect and manage installed Linux applications</summary>
++  <developer id="io.github.mtamdre07">
++    <name>Muhammad Andreatama</name>
++  </developer>
++  <metadata_license>CC0-1.0</metadata_license>
++  <project_license>GPL-3.0-or-later</project_license>
++  <description>
++    <p>PaketScope gives you a searchable view of applications installed on a Debian-family desktop, from APT/dpkg and Flatpak.</p>
++    <p>Package changes go through APT itself: every install, remove, or purge is simulated first, shown to you for confirmation, and re-simulated before it runs. It never runs a bulk upgrade or autoremove.</p>
++    <p>This is a development preview (3.0.0~dev4). It is currently validated for Debian 13 only.</p>
++  </description>
++  <categories>
++    <category>System</category>
++    <category>PackageManager</category>
++  </categories>
++  <url type="homepage">https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope</url>
++  <url type="bugtracker">https://github.com/M-TamDre07/Linux-Software-Lab/issues</url>
++  <url type="vcs-browser">https://github.com/M-TamDre07/Linux-Software-Lab</url>
++  <releases>
++    <release version="3.0.0~dev5" date="2026-11-01" type="development">
++      <description>
++        <p>Adds AppStream metadata and the developer profile shown by software centers. Exposes the Flatpak branch in details; no other behaviour change.</p>
++      </description>
++    </release>
++    <release version="3.0.0~dev4" date="2026-10-24" type="development">
++      <description>
++        <p>Development preview: APT/dpkg and Flatpak inventory, confirmed APT install, remove, and purge.</p>
++      </description>
++    </release>
++  </releases>
++  <content_rating type="oars-1.1"/>
++</component>
+diff --git a/apps/paketscope/paketscope/__init__.py b/apps/paketscope/paketscope/__init__.py
+index 48b02b1..a399495 100644
+--- a/apps/paketscope/paketscope/__init__.py
++++ b/apps/paketscope/paketscope/__init__.py
+@@ -1,3 +1,3 @@
+ """PaketScope desktop application."""
+ 
+-__version__ = "3.0.0.dev4"
++__version__ = "3.0.0.dev5"
+diff --git a/apps/paketscope/paketscope/application_details.py b/apps/paketscope/paketscope/application_details.py
+index 20e98ce..7845501 100644
+--- a/apps/paketscope/paketscope/application_details.py
++++ b/apps/paketscope/paketscope/application_details.py
+@@ -50,6 +50,7 @@ class ApplicationDetails:
+     priority: str = ""
+     essential: str = ""
+     architecture: str = ""
++    branch: str = ""
+     installation: str = ""
+     launchers: tuple[DesktopLauncher, ...] = ()
+     runtime: str = ""
+@@ -358,6 +359,7 @@ def _flatpak_details(application: InstalledApplication) -> ApplicationDetails:
+         ),
+         description=application.description,
+         architecture=architecture,
++        branch=branch,
+         installation=application.installation,
+         runtime=_flatpak_value(app_id, "--show-runtime"),
+         commit=commit,
+diff --git a/apps/paketscope/paketscope/code_inspector.py b/apps/paketscope/paketscope/code_inspector.py
+index 56f617d..0b7e7c0 100644
+--- a/apps/paketscope/paketscope/code_inspector.py
++++ b/apps/paketscope/paketscope/code_inspector.py
+@@ -8,12 +8,12 @@ from __future__ import annotations
+ import ast
+ import hashlib
+ import os
+-from itertools import islice
+ import re
+ import stat
+ import struct
+ from dataclasses import dataclass
+ from datetime import datetime, timezone
++from itertools import islice
+ from pathlib import Path
+ 
+ MAX_FILES = 2500
+diff --git a/apps/paketscope/paketscope/collectors.py b/apps/paketscope/paketscope/collectors.py
+index 54e8095..857a2a1 100644
+--- a/apps/paketscope/paketscope/collectors.py
++++ b/apps/paketscope/paketscope/collectors.py
+@@ -4,7 +4,12 @@ from __future__ import annotations
+ from collections.abc import Iterable
+ 
+ from .commands import CommandTimedOut, CommandUnavailable, run_command
+-from .domain import InventorySnapshot, InstalledApplication, parse_dpkg_output, parse_flatpak_output
++from .domain import (
++    InstalledApplication,
++    InventorySnapshot,
++    parse_dpkg_output,
++    parse_flatpak_output,
++)
+ from .providers import InventoryProvider, ProviderResult
+ 
+ 
+diff --git a/apps/paketscope/paketscope/domain.py b/apps/paketscope/paketscope/domain.py
+index 9623549..b336dc6 100644
+--- a/apps/paketscope/paketscope/domain.py
++++ b/apps/paketscope/paketscope/domain.py
+@@ -1,9 +1,9 @@
+ """Pure data types and parsers used by the inventory collectors."""
+ from __future__ import annotations
+ 
++from collections.abc import Iterable
+ from dataclasses import asdict, dataclass
+ from datetime import datetime, timezone
+-from typing import Iterable
+ 
+ 
+ @dataclass(frozen=True, slots=True)
+@@ -38,7 +38,7 @@ class InventorySnapshot:
+         cls,
+         applications: Iterable[InstalledApplication],
+         diagnostics: Iterable[str] = (),
+-    ) -> "InventorySnapshot":
++    ) -> InventorySnapshot:
+         ordered = tuple(sorted(
+             applications,
+             key=lambda item: (item.name.casefold(), item.source.casefold(), item.identifier.casefold()),
+diff --git a/apps/paketscope/paketscope/package_manager.py b/apps/paketscope/paketscope/package_manager.py
+index 9dc7cf9..0c769f6 100644
+--- a/apps/paketscope/paketscope/package_manager.py
++++ b/apps/paketscope/paketscope/package_manager.py
+@@ -10,7 +10,6 @@ from dataclasses import dataclass
+ 
+ from .commands import CommandResult, CommandTimedOut, CommandUnavailable, run_command
+ 
+-
+ APT_PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9+.-]*(?::[a-z0-9][a-z0-9-]*)?$")
+ SEARCH_QUERY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _+.-]{0,79}$")
+ ACTIONS = frozenset({"install", "remove", "purge"})
+diff --git a/apps/paketscope/paketscope/services.py b/apps/paketscope/paketscope/services.py
+index 51bff0a..687f722 100644
+--- a/apps/paketscope/paketscope/services.py
++++ b/apps/paketscope/paketscope/services.py
+@@ -11,15 +11,16 @@ import io
+ import json
+ import os
+ import stat
++from collections.abc import Iterable
+ from pathlib import Path
+-from typing import Any, Iterable
++from typing import Any
+ 
+ from .backup import MAX_BACKUP_BYTES, decrypt_backup, encrypt_backup
+ from .collectors import collect_inventory
+ from .domain import InstalledApplication, InventorySnapshot
+ from .exporting import csv_safe_record, write_private_file
+-from .updates import UpdateCheckResult, check_updates
+ from .providers import InventoryProvider
++from .updates import UpdateCheckResult, check_updates
+ 
+ 
+ class PaketScopeService:
+diff --git a/apps/paketscope/paketscope/system_inspector.py b/apps/paketscope/paketscope/system_inspector.py
+index 7e31192..8d99f41 100644
+--- a/apps/paketscope/paketscope/system_inspector.py
++++ b/apps/paketscope/paketscope/system_inspector.py
+@@ -7,8 +7,8 @@ import platform
+ import shutil
+ import stat
+ import subprocess
+-from itertools import islice
+ from datetime import datetime, timezone
++from itertools import islice
+ from pathlib import Path
+ from typing import Any
+ 
+diff --git a/apps/paketscope/paketscope/ui/data_actions.py b/apps/paketscope/paketscope/ui/data_actions.py
+index 1f6ee08..5748985 100644
+--- a/apps/paketscope/paketscope/ui/data_actions.py
++++ b/apps/paketscope/paketscope/ui/data_actions.py
+@@ -5,7 +5,6 @@ from PySide6.QtCore import Slot
+ from PySide6.QtWidgets import QFileDialog, QInputDialog, QLineEdit, QMessageBox
+ 
+ 
+-
+ class DataActionsMixin:
+     """UI handlers for exporting inventory and restoring backups."""
+ 
+diff --git a/apps/paketscope/paketscope/ui/inspection_dialog.py b/apps/paketscope/paketscope/ui/inspection_dialog.py
+index 51eb0b2..969c82b 100644
+--- a/apps/paketscope/paketscope/ui/inspection_dialog.py
++++ b/apps/paketscope/paketscope/ui/inspection_dialog.py
+@@ -2,17 +2,29 @@
+ from __future__ import annotations
+ 
+ import json
+-from typing import Callable
++from collections.abc import Callable
+ 
+ from PySide6.QtCore import Qt, Slot
+ from PySide6.QtWidgets import (
+-    QDialog, QFileDialog, QHBoxLayout, QLabel, QMessageBox, QPushButton,
+-    QPlainTextEdit, QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout,
++    QDialog,
++    QFileDialog,
++    QHBoxLayout,
++    QLabel,
++    QMessageBox,
++    QPlainTextEdit,
++    QPushButton,
++    QTableWidget,
++    QTableWidgetItem,
++    QTabWidget,
++    QVBoxLayout,
+     QWidget,
+ )
+ 
+ from ..code_inspector import (
+-    CodeFileAnalysis, CodeInspectionReport, inspect_code_path, read_inspected_source,
++    CodeFileAnalysis,
++    CodeInspectionReport,
++    inspect_code_path,
++    read_inspected_source,
+ )
+ from ..system_inspector import (
+     collect_system_snapshot,
+diff --git a/apps/paketscope/paketscope/ui/main_window.py b/apps/paketscope/paketscope/ui/main_window.py
+index b4ad901..5bd2ae2 100644
+--- a/apps/paketscope/paketscope/ui/main_window.py
++++ b/apps/paketscope/paketscope/ui/main_window.py
+@@ -1,8 +1,8 @@
+ """Main desktop window and event coordination."""
+ from __future__ import annotations
+ 
++from collections.abc import Callable
+ from pathlib import Path
+-from typing import Callable
+ 
+ from PySide6.QtCore import QModelIndex, Qt, QThreadPool, Slot
+ from PySide6.QtGui import QIcon
+@@ -22,16 +22,16 @@ from PySide6.QtWidgets import (
+ )
+ 
+ from .. import __version__
++from ..application_details import ApplicationDetails, inspect_application
+ from ..domain import InstalledApplication, InventorySnapshot
+ from ..services import PaketScopeService
+-from ..application_details import ApplicationDetails, inspect_application
+-from .models import InventoryModel, InventoryProxy
+-from .workers import Worker
++from .application_details_dialog import ApplicationDetailsDialog
+ from .data_actions import DataActionsMixin
++from .inspection_dialog import InspectionDialog
+ from .inventory_actions import InventoryActionsMixin
++from .models import InventoryModel, InventoryProxy
+ from .package_actions import PackageManagementActionsMixin
+-from .inspection_dialog import InspectionDialog
+-from .application_details_dialog import ApplicationDetailsDialog
++from .workers import Worker
+ 
+ 
+ class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin):
+diff --git a/apps/paketscope/paketscope/ui/models.py b/apps/paketscope/paketscope/ui/models.py
+index 3ee9778..bb9ff2a 100644
+--- a/apps/paketscope/paketscope/ui/models.py
++++ b/apps/paketscope/paketscope/ui/models.py
+@@ -1,7 +1,13 @@
+ """Qt table models for the installed-application inventory."""
+ from __future__ import annotations
+ 
+-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, QSortFilterProxyModel, Qt
++from PySide6.QtCore import (
++    QAbstractTableModel,
++    QModelIndex,
++    QObject,
++    QSortFilterProxyModel,
++    Qt,
++)
+ 
+ from ..domain import InstalledApplication
+ from .theme import COLUMNS
+diff --git a/apps/paketscope/paketscope/ui/workers.py b/apps/paketscope/paketscope/ui/workers.py
+index 041c11a..975e761 100644
+--- a/apps/paketscope/paketscope/ui/workers.py
++++ b/apps/paketscope/paketscope/ui/workers.py
+@@ -1,7 +1,7 @@
+ """Background task helpers for long-running desktop operations."""
+ from __future__ import annotations
+ 
+-from typing import Callable
++from collections.abc import Callable
+ 
+ from PySide6.QtCore import QObject, QRunnable, Signal, Slot
+ 
+diff --git a/apps/paketscope/pyproject.toml b/apps/paketscope/pyproject.toml
+index 0ae6fba..c3d895e 100644
+--- a/apps/paketscope/pyproject.toml
++++ b/apps/paketscope/pyproject.toml
+@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "paketscope"
+-version = "3.0.0.dev4"
++version = "3.0.0.dev5"
+ description = "Native local-first package inventory for Debian-family desktops"
+ readme = "README.md"
+ requires-python = ">=3.10"
+diff --git a/apps/paketscope/tests/test_domain.py b/apps/paketscope/tests/test_domain.py
+index df38e02..c0ed365 100644
+--- a/apps/paketscope/tests/test_domain.py
++++ b/apps/paketscope/tests/test_domain.py
+@@ -1,4 +1,4 @@
+-from paketscope.domain import parse_dpkg_output, parse_flatpak_output, InventorySnapshot
++from paketscope.domain import InventorySnapshot, parse_dpkg_output, parse_flatpak_output
+ 
+ 
+ def test_parse_dpkg_only_keeps_installed_rows():
+diff --git a/apps/paketscope/tests/test_exporting.py b/apps/paketscope/tests/test_exporting.py
+index 5b61471..027d810 100644
+--- a/apps/paketscope/tests/test_exporting.py
++++ b/apps/paketscope/tests/test_exporting.py
+@@ -17,6 +17,7 @@ def test_normal_values_are_not_modified():
+ 
+ import os
+ import stat
++
+ import pytest
+ 
+ 
+diff --git a/apps/paketscope/tests/test_package_manager.py b/apps/paketscope/tests/test_package_manager.py
+index 58e933d..5301736 100644
+--- a/apps/paketscope/tests/test_package_manager.py
++++ b/apps/paketscope/tests/test_package_manager.py
+@@ -1,7 +1,6 @@
+ import pytest
+ 
+ from paketscope import __version__
+-
+ from paketscope.commands import CommandResult
+ from paketscope.package_manager import (
+     PackageOperationError,
+@@ -155,7 +154,7 @@ def test_apply_rejects_invalid_package_before_running_command(monkeypatch):
+ 
+ 
+ def test_app_version_matches_development_package_version():
+-    assert __version__ == "3.0.0.dev4"
++    assert __version__ == "3.0.0.dev5"
+ 
+ 
+ 
+diff --git a/apps/paketscope/tests/test_system_inspector.py b/apps/paketscope/tests/test_system_inspector.py
+index b39d448..2fb9dee 100644
+--- a/apps/paketscope/tests/test_system_inspector.py
++++ b/apps/paketscope/tests/test_system_inspector.py
+@@ -2,11 +2,11 @@ import pytest
+ 
+ from paketscope import admin_helper
+ from paketscope.system_inspector import (
++    collect_system_snapshot,
+     run_privileged_metadata_inspection,
+     run_privileged_text_file_read,
+     validate_admin_payload,
+     validate_admin_text_request,
+-    collect_system_snapshot,
+ )
+ 
+ 
