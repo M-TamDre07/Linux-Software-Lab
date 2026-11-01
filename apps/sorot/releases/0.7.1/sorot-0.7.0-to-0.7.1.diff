@@ -1,0 +1,1713 @@
+diff -ruN orig/sorot-0.7.0/.github/workflows/ci.yml new/sorot-0.7.1/.github/workflows/ci.yml
+--- orig/sorot-0.7.0/.github/workflows/ci.yml	2026-11-01 15:47:17.421085792 +0700
++++ new/sorot-0.7.1/.github/workflows/ci.yml	2026-11-01 15:47:21.471023503 +0700
+@@ -6,6 +6,9 @@
+   push:
+   pull_request:
+ 
++permissions:
++  contents: read
++
+ jobs:
+   test:
+     runs-on: ubuntu-latest
+@@ -27,6 +30,52 @@
+       - run: mypy src
+       - run: python -m pytest -q
+ 
++  gui-x11:
++    # Tes GUI pada backend xcb sungguhan (Xvfb) dengan window manager, bukan hanya `offscreen`:
++    # tanpa window manager tidak ada yang memberi fokus keyboard sehingga tes fokus gagal.
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: "3.12"
++      - name: Pustaka sistem untuk Qt xcb
++        run: >
++          sudo apt-get update && sudo apt-get install -y --no-install-recommends
++          xvfb openbox xdotool x11-utils libegl1 libgl1 libxkbcommon0 libxkbcommon-x11-0 libfontconfig1 libdbus-1-3
++          libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 libxcb-xkb1
++          fonts-dejavu-core
++      - run: python -m pip install -e ".[dev]"
++      - name: Tes GUI di X11
++        env:
++          SOROT_TEST_QPA: xcb
++        run: xvfb-run -a -s "-screen 0 1920x1080x24" sh -c 'openbox >/dev/null 2>&1 & sleep 1; exec python -m pytest -q -m gui'
++
++  gui-wayland:
++    # Tes GUI pada backend Wayland asli (weston headless). Compositor headless tidak punya seat input,
++    # jadi tes fokus keyboard dan clipboard dilewati dengan alasan; sisanya (transparansi, ukuran, tata letak) berjalan.
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: "3.12"
++      - name: Pustaka sistem untuk Qt Wayland
++        run: >
++          sudo apt-get update && sudo apt-get install -y --no-install-recommends
++          weston libwayland-client0 libwayland-cursor0 libwayland-egl1 libxkbcommon0 libegl1 libgl1 libfontconfig1 libdbus-1-3
++          fonts-dejavu-core
++      - run: python -m pip install -e ".[dev]"
++      - name: Tes GUI di Wayland
++        env:
++          SOROT_TEST_QPA: wayland
++          WAYLAND_DISPLAY: wl-test
++        run: |
++          export XDG_RUNTIME_DIR="$(mktemp -d)"; chmod 700 "$XDG_RUNTIME_DIR"
++          weston --backend=headless --renderer=pixman --socket=wl-test --no-config --width=1280 --height=800 >/dev/null 2>&1 &
++          sleep 3
++          python -m pytest -q -m gui -rs
++
+   package:
+     runs-on: ubuntu-latest
+     needs: test
+diff -ruN orig/sorot-0.7.0/.mypy_cache/.gitignore new/sorot-0.7.1/.mypy_cache/.gitignore
+--- orig/sorot-0.7.0/.mypy_cache/.gitignore	2026-11-01 15:47:18.161377441 +0700
++++ new/sorot-0.7.1/.mypy_cache/.gitignore	1970-01-01 07:00:00.000000000 +0700
+@@ -1,2 +0,0 @@
+-# Automatically created by mypy
+-*
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.0.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.0.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.1.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.1.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.10.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.10.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.11.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.11.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.12.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.12.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.13.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.13.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.14.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.14.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.15.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.15.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.2.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.2.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.3.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.3.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.4.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.4.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.5.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.5.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.6.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.6.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.7.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.7.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.8.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.8.db differ
+Binary files orig/sorot-0.7.0/.mypy_cache/3.11/cache.9.db and new/sorot-0.7.1/.mypy_cache/3.11/cache.9.db differ
+diff -ruN orig/sorot-0.7.0/.mypy_cache/CACHEDIR.TAG new/sorot-0.7.1/.mypy_cache/CACHEDIR.TAG
+--- orig/sorot-0.7.0/.mypy_cache/CACHEDIR.TAG	2026-11-01 15:47:18.161583434 +0700
++++ new/sorot-0.7.1/.mypy_cache/CACHEDIR.TAG	1970-01-01 07:00:00.000000000 +0700
+@@ -1,3 +0,0 @@
+-Signature: 8a477f597d28d172789f06886806bc55
+-# This file is a cache directory tag automatically created by mypy.
+-# For information about cache directory tags see https://bford.info/cachedir/
+diff -ruN orig/sorot-0.7.0/.ruff_cache/.gitignore new/sorot-0.7.1/.ruff_cache/.gitignore
+--- orig/sorot-0.7.0/.ruff_cache/.gitignore	2026-11-01 15:47:18.150522393 +0700
++++ new/sorot-0.7.1/.ruff_cache/.gitignore	1970-01-01 07:00:00.000000000 +0700
+@@ -1,2 +0,0 @@
+-# Automatically created by ruff.
+-*
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/13311972700998277996 and new/sorot-0.7.1/.ruff_cache/0.16.9/13311972700998277996 differ
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/18422463868113289424 and new/sorot-0.7.1/.ruff_cache/0.16.9/18422463868113289424 differ
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/5356738336199248781 and new/sorot-0.7.1/.ruff_cache/0.16.9/5356738336199248781 differ
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/6144035568812509236 and new/sorot-0.7.1/.ruff_cache/0.16.9/6144035568812509236 differ
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/7103933286531046490 and new/sorot-0.7.1/.ruff_cache/0.16.9/7103933286531046490 differ
+Binary files orig/sorot-0.7.0/.ruff_cache/0.16.9/99915624883462131 and new/sorot-0.7.1/.ruff_cache/0.16.9/99915624883462131 differ
+diff -ruN orig/sorot-0.7.0/.ruff_cache/CACHEDIR.TAG new/sorot-0.7.1/.ruff_cache/CACHEDIR.TAG
+--- orig/sorot-0.7.0/.ruff_cache/CACHEDIR.TAG	2026-11-01 15:47:18.150163682 +0700
++++ new/sorot-0.7.1/.ruff_cache/CACHEDIR.TAG	1970-01-01 07:00:00.000000000 +0700
+@@ -1 +0,0 @@
+-Signature: 8a477f597d28d172789f06886806bc55
+\ No newline at end of file
+diff -ruN orig/sorot-0.7.0/CHANGELOG.md new/sorot-0.7.1/CHANGELOG.md
+--- orig/sorot-0.7.0/CHANGELOG.md	2026-11-01 15:47:17.421441449 +0700
++++ new/sorot-0.7.1/CHANGELOG.md	2026-11-01 15:47:21.481287598 +0700
+@@ -2,6 +2,35 @@
+ 
+ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/). Proyek ini masih beta; nomor versi belum menjamin kestabilan API internal.
+ 
++## [0.7.1 Beta] — 2026-10-29
++
++Rilis perbaikan dan penstabilan atas 0.7.0. Untuk pertama kalinya seluruh kode Qt 0.7.0 dijalankan pada Qt asli (PySide6 6.8.3 dan 6.12.0), dan itu menemukan bahwa **mode cermin tidak pernah berfungsi**. Tidak ada perubahan skema atau format data.
++
++### Diperbaiki
++- **Mode cermin (“Rig cermin”) tidak berfungsi di 0.7.0**: `FlipEffect.draw` membongkar tuple `(pixmap, offset)` yang tidak pernah dikembalikan PySide6, sehingga `TypeError` terjadi pada paint pertama. Kini offset dihitung dari bounding rect; hasilnya identik piksel demi piksel dengan cermin horizontal pada skala 1×, 1,5× dan 2×.
++- **`config.json` berisi `1e999`, `Infinity` atau bilangan bulat raksasa membuat Sorot crash di setiap peluncuran** (bahkan `--diagnostics`) dan impor profil bernilai sama melempar `OverflowError` yang tidak tertangkap. Penyaring angka kini menolak nilai itu (memakai nilai bawaan), dan `ConfigStore.load()`/`restore_backup()` mengarantina berkas yang tetap gagal diproses alih-alih crash.
++- Hitung mundur digambar langsung di atas teks naskah sehingga sulit dibaca; kini angka berada di atas latar hampir buram berwarna latar overlay.
++- Halaman **Tampilan** membutuhkan lebar ±1000 px sehingga jendela bawaan (1100 px) terbuka dengan scrollbar horizontal dan kolom kanan terpotong. Tombol profil disusun dua baris dan label kotak centang dipersingkat (penjelasan pindah ke tooltip); kini tidak ada halaman yang bergulir ke samping pada ukuran bawaan.
++- `Alamat API` yang tidak valid secara sintaks (mis. `http://[`) melempar `ValueError` mentah di slot UI; kini menjadi pesan konfigurasi yang jelas. Respons API berbentuk tak terduga (mis. `choices` berupa objek) kini dilaporkan sebagai “respons tidak dikenali”, bukan `KeyError`.
++- Pemilih profil kini memakai indeks dari sinyal `activated`, bukan `currentData()` yang bisa tertinggal.
++- **Crash acak (segfault) di Wayland**: pengumpul sampah Python dapat berjalan di thread pekerja saat Qt sedang menyentuh objek yang sama. Ditelusuri dengan `gdb` (C backtrace) hingga race pada traversal GC Shiboken. `sorot.gc_guard.MainThreadGC` kini mematikan GC otomatis dan menjalankannya hanya dari timer di thread utama. Bukti: ≈3 crash per 10 peluncuran weston baru sebelum perbaikan; 0 dari 12 sesudahnya (di bawah `gdb`); ada tes yang memastikan `app.main` memasang penjaga itu.
++- Tanda centang tema kini berupa **PNG** (`check-*.png`, juga `@2x`), bukan SVG. Plugin SVG Qt bersifat opsional dan tidak ada di setiap pemasangan; tanpanya kotak centang tampil kosong. Sumber SVG ada di `packaging/check-icons/`, dibangkitkan ulang dengan `scripts/make-check-icons.py`. Tes membuktikan hasil render sama tanpa plugin SVG.
++- Stylesheet tema memberi tanda kutip pada path ikon (path berisi spasi tidak lagi merusak aturan).
++- `scripts/install-user.sh`: `${BUILD}[keyring]` (peringatan shellcheck SC1087).
++
++### Pengujian
++- Tes GUI 0.7.0 yang ditulis tetapi tidak pernah dijalankan kini dijalankan; ada tiga jenis kesalahan di dalamnya, semuanya diperbaiki: pernyataan versi `0.5.0` yang usang, tes yang meninggalkan naskah “belum disimpan” sehingga dialog konfirmasi tutup menggantung teardown tanpa batas, dan dua tes profil yang sebenarnya **hampa** (penangan tidak dipanggil dan tes tetap lulus).
++- `test_install_files_layouts` tidak mungkin lulus di bawah pytest asli (fixture `HOME` terisolasi membuat `tmp_path/home`); diperbaiki.
++- Tes regresi baru: paint cermin pixel-exact (widget biasa dan teks overlay), latar hitung mundur, tidak ada scroll horizontal di semua halaman, angka non-finite/raksasa pada konfigurasi dan profil (termasuk CLI), config yang gagal diproses, URL API cacat, bentuk respons API aneh. Tiap tes regresi diperiksa gagal bila perbaikannya dibatalkan.
++- `ruff` dan `mypy` kini bersih (sebelumnya 1 dan 7 temuan). Tes diparametrisasi agar `QImage.flipped` (Qt ≥ 6.9) tidak dipakai di Qt 6.8.
++
++### Diubah
++- CI: ditambah `permissions: contents: read`, job GUI di X11 (Xvfb + openbox, backend `xcb`) dan job GUI di Wayland (weston headless). Secara lokal: `make test-x11` dan `make test-wayland`; tes memilih platform lewat `SOROT_TEST_QPA` dan tes penjaga memastikan platform yang diminta benar-benar dipakai.
++- Dokumentasi memperbaiki klaim keliru: paket `.deb` **tidak dapat dipasang di Ubuntu 24.04** (hanya Debian 13); status pengujian di COMPATIBILITY/TEST-REPORT diperbarui sesuai bukti.
++
++### Belum diuji
++- Compositor desktop nyata (GNOME/KDE), selalu-di-atas di Wayland (weston headless tidak punya seat dan tidak menjamin itu), fokus keyboard/clipboard di Wayland (4 tes dilewati karena tanpa seat), `makepkg`/Arch, GitHub Actions, Debian 13 bersih lewat `apt`, penyedia AI dan rclone nyata, pembaca layar. Lihat docs/TEST-REPORT.md.
++
+ ## [0.7.0 Beta] — 2026-10-27
+ 
+ Tampilan yang dapat dikendalikan penuh dan dibagikan: **Profil Tampilan**, mode cermin, dan hitung mundur ([docs/PROFILES.md](docs/PROFILES.md)).
+diff -ruN orig/sorot-0.7.0/CONTRIBUTING.md new/sorot-0.7.1/CONTRIBUTING.md
+--- orig/sorot-0.7.0/CONTRIBUTING.md	2026-11-01 15:47:17.421581102 +0700
++++ new/sorot-0.7.1/CONTRIBUTING.md	2026-11-01 15:47:21.481350985 +0700
+@@ -14,6 +14,8 @@
+ ```bash
+ make test            # ruff + mypy + pytest (GUI offscreen)
+ make test-fast       # tanpa tes GUI
++make test-x11        # tes GUI di X11 sungguhan (Xvfb + openbox)
++make test-wayland    # tes GUI di Wayland asli (weston headless)
+ make release-check   # versi, changelog, kontak, aset konsisten
+ ```
+ 
+diff -ruN orig/sorot-0.7.0/Makefile new/sorot-0.7.1/Makefile
+--- orig/sorot-0.7.0/Makefile	2026-11-01 15:47:17.421985411 +0700
++++ new/sorot-0.7.1/Makefile	2026-11-01 15:47:21.471194287 +0700
+@@ -5,7 +5,7 @@
+ DIST ?= dist
+ 
+ .DEFAULT_GOAL := help
+-.PHONY: help dev lint typecheck test test-fast release-check wheel deb source arch dist install uninstall-user clean
++.PHONY: help dev lint typecheck test test-fast test-x11 test-wayland release-check wheel deb source arch dist install uninstall-user clean
+ 
+ help:  ## tampilkan daftar target
+ 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
+@@ -26,6 +26,12 @@
+ test-fast:  ## pytest tanpa tes GUI
+ 	QT_QPA_PLATFORM=offscreen $(PYTHON) -m pytest -m "not gui"
+ 
++test-x11:  ## tes GUI di X11 sungguhan (butuh xvfb dan openbox; tanpa window manager tes fokus gagal)
++	SOROT_TEST_QPA=xcb xvfb-run -a -s "-screen 0 1920x1080x24" sh -c 'openbox >/dev/null 2>&1 & sleep 1; exec $(PYTHON) -m pytest -m gui'
++
++test-wayland:  ## tes GUI di Wayland asli (weston headless; tes fokus/clipboard dilewati karena tanpa seat)
++	XDG_RUNTIME_DIR=$$(mktemp -d) sh -c 'chmod 700 $$XDG_RUNTIME_DIR; weston --backend=headless --renderer=pixman --socket=wl-test --no-config >/dev/null 2>&1 & wpid=$$!; sleep 3; SOROT_TEST_QPA=wayland WAYLAND_DISPLAY=wl-test $(PYTHON) -m pytest -m gui -rs; rc=$$?; kill $$wpid; exit $$rc'
++
+ release-check:  ## periksa versi, changelog, kontak, dan aset konsisten di semua berkas
+ 	$(PYTHON) scripts/release.py check
+ 
+diff -ruN orig/sorot-0.7.0/README.md new/sorot-0.7.1/README.md
+--- orig/sorot-0.7.0/README.md	2026-11-01 15:47:17.422112597 +0700
++++ new/sorot-0.7.1/README.md	2026-11-01 15:47:21.471250788 +0700
+@@ -1,4 +1,4 @@
+-# Sorot 0.7.0 Beta
++# Sorot 0.7.1 Beta
+ 
+ Teleprompter overlay untuk Linux. Naskah tampil dalam jendela transparan yang menggulir **mengikuti kecepatan bicaramu**, di atas aplikasi lain. Naskah dan pengaturan **hanya disimpan di komputermu**; aplikasi berfungsi penuh tanpa internet, tanpa akun, dan tanpa API key.
+ 
+@@ -30,9 +30,10 @@
+ 
+ | Sistem | Cara |
+ |---|---|
+-| **Debian 13 / Ubuntu** | `sudo apt install ./sorot_0.7.0_all.deb` |
++| **Debian 13** | `sudo apt install ./sorot_0.7.1_all.deb` |
++| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.1-py3-none-any.whl` |
+ | **Arch Linux** (dan turunannya) | `cd arch && makepkg -si` (folder `arch/` dari rilis) — lihat [PACKAGING.md](docs/PACKAGING.md) |
+-| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.0-py3-none-any.whl` |
++| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.1-py3-none-any.whl` |
+ | **Tanpa root, ke `~/.local`** | `./scripts/install-user.sh` (butuh `python3-venv` dan akses PyPI) |
+ | **Pengembangan** | `make dev` lalu `sorot` |
+ 
+diff -ruN orig/sorot-0.7.0/docs/COMPATIBILITY.md new/sorot-0.7.1/docs/COMPATIBILITY.md
+--- orig/sorot-0.7.0/docs/COMPATIBILITY.md	2026-11-01 15:47:17.422781718 +0700
++++ new/sorot-0.7.1/docs/COMPATIBILITY.md	2026-11-01 15:47:21.471482551 +0700
+@@ -6,10 +6,10 @@
+ 
+ | Komponen | Minimum | Bukti |
+ |---|---|---|
+-| Python | 3.11 (kode memakai `StrEnum`) | Diuji dengan Python 3.12.3. Python 3.13.5 **berjalan** pada laporan pengguna (0.4.0). 3.11: **BELUM DIUJI** (CI disiapkan, belum dijalankan) |
+-| PySide6 / Qt | 6.8 (deb: `python3-pyside6.qtwidgets >= 6.8.2.1`) | Diuji dengan PySide6 6.12.0 (wheel PyPI). PySide6 6.8.2.1 dari paket Debian 13 **berjalan** pada laporan pengguna (0.4.0); suite tes belum dijalankan pada versi itu |
++| Python | 3.11 (kode memakai `StrEnum`) | Seluruh suite tes dijalankan pada Python 3.11.18 dan 3.13.18; wheel dipasang dan CLI dijalankan pada Python 3.12.3 (0.7.1). Python 3.13.5 juga **berjalan** pada laporan pengguna (0.4.0) |
++| PySide6 / Qt | 6.8 (deb: `python3-pyside6.qtwidgets >= 6.8.2.1`) | Seluruh suite tes lulus pada PySide6 6.8.3 (Python 3.11) dan 6.12.0 (Python 3.13), keduanya wheel PyPI (0.7.1). Paket Debian 13 (6.8.2.1) sendiri **berjalan** pada laporan pengguna (0.4.0); suite belum dijalankan pada paket distro itu |
+ | Arsitektur paket | `all` (Python murni) | Benar: tidak ada kode native; dependensi PySide6 yang native ditarik lewat `Depends` |
+-| Platform build/uji | Ubuntu 24.04 x86_64, Qt `offscreen` dan `xcb` (Xvfb) | Lihat laporan tes |
++| Platform build/uji | Ubuntu 24.04 x86_64; Qt `offscreen`, dan `xcb` pada Xvfb dengan window manager openbox | Lihat laporan tes |
+ 
+ ## Laporan lapangan
+ 
+@@ -21,12 +21,13 @@
+ |---|---|
+ | Debian 13, GNOME Wayland (lewat XWayland, pilihan otomatis) | **BELUM DIUJI** pada sesi nyata |
+ | Debian 13, KDE Plasma Wayland via XWayland (xcb) | aplikasi **berjalan** (laporan pengguna, 0.4.0); overlay **BELUM DIUJI** |
+-| Debian 13, GNOME Wayland asli (`SOROT_QT_PLATFORM=wayland`) | **BELUM DIUJI** |
++| Wayland asli pada **weston headless** (Ubuntu 24.04, tanpa seat) | 124 tes GUI lulus (4 dilewati: fokus/clipboard); latar transparan terkomposit terbukti lewat tangkapan compositor; segfault acak ditemukan dan diperbaiki (lihat CHANGELOG). Selalu-di-atas dan posisi tidak dapat dibuktikan di sana |
++| Debian 13, GNOME Wayland asli (`SOROT_QT_PLATFORM=wayland`) | **BELUM DIUJI** pada desktop nyata |
+ | KDE Plasma X11, Wayland asli | **BELUM DIUJI** |
+-| Xfce, Cinnamon (X11) | **BELUM DIUJI** (backend xcb diuji hanya di Xvfb tanpa window manager sungguhan) |
+-| Ubuntu, Linux Mint | **BELUM DIUJI**; nama paket PySide6 berbeda per rilis |
++| X11 dengan window manager (diuji: Xvfb + openbox, **tanpa compositor**) | Terverifikasi lewat properti jendela di X server: `_NET_WM_STATE_ABOVE` aktif, dekorasi dimatikan (Motif hints), posisi dan ukuran sama dengan yang dihitung aplikasi, *input shape* kosong saat klik-tembus aktif dan penuh saat dimatikan, seluruh 128 tes GUI lulus. **Transparansi nyata** (butuh compositor) dan desktop Xfce/Cinnamon/KDE/GNOME **BELUM DIUJI** |
++| Ubuntu 24.04 | Paket `.deb` **tidak dapat dipasang** (`apt install -s` gagal: `python3-pyside6.qtwidgets` tidak ada; Ubuntu 24.04 hanya punya PySide2). Wheel dipasang di venv Python 3.12 dan `sorot --version`/`--upgrade-info` berjalan. Ubuntu rilis lebih baru dan Linux Mint: **BELUM DIUJI** |
+ | Arch Linux (dan turunannya), paket dari `PKGBUILD` | **BELUM DIUJI** — `makepkg` belum pernah dijalankan; nama paket `pyside6` dan hasil `namcap` belum diverifikasi (lihat [PACKAGING.md](PACKAGING.md)) |
+-| Instalasi lewat wheel (pip/pipx) pada distro mana pun | Wheel dibangun dan isinya diperiksa (termasuk aset SVG); **dijalankan** pada desktop nyata: BELUM DIUJI |
++| Instalasi lewat wheel (pip/pipx) pada distro mana pun | Wheel dibangun, isinya diperiksa (termasuk aset PNG), dipasang di venv Ubuntu 24.04/Python 3.12 dan CLI-nya berjalan; **dijalankan** pada desktop nyata: BELUM DIUJI |
+ 
+ ## Kemampuan overlay yang diharapkan per backend
+ 
+diff -ruN orig/sorot-0.7.0/docs/PACKAGING.md new/sorot-0.7.1/docs/PACKAGING.md
+--- orig/sorot-0.7.0/docs/PACKAGING.md	2026-11-01 15:47:17.423225410 +0700
++++ new/sorot-0.7.1/docs/PACKAGING.md	2026-11-01 15:47:21.471888673 +0700
+@@ -6,7 +6,7 @@
+ |---|---|---|---|
+ | `sorot_X_all.deb` | Debian, Ubuntu, dan turunannya | `scripts/build-deb.sh` | Dibangun dan diperiksa struktur isinya; pemasangan pada Debian 13 bersih **BELUM DIUJI** (lihat TEST-REPORT) |
+ | `PKGBUILD` + `.SRCINFO` + arsip sumber | **Arch Linux** dan turunannya (Manjaro, EndeavourOS, …) | `scripts/build-arch.sh` | Templat dirender dan divalidasi sintaksnya; `makepkg` **BELUM DIJALANKAN** (tidak ada Arch di lingkungan build) |
+-| `sorot-X-py3-none-any.whl` | pip, pipx, distribusi mana pun | `scripts/build-wheel.sh` | Dibangun; isi diperiksa (termasuk aset SVG) |
++| `sorot-X-py3-none-any.whl` | pip, pipx, distribusi mana pun | `scripts/build-wheel.sh` | Dibangun; isi diperiksa (termasuk aset PNG) |
+ | `sorot-X.tar.gz`, `sorot-X.zip` | Sumber; dasar paket distro lain | `scripts/build-source.sh` | Dibangun; dua build identik |
+ | `install-user.sh` | Pemasangan ke `~/.local` tanpa root | skrip | Diwarisi dari 0.5.0 |
+ | `make install` | Paket distro lain (Fedora, Nix, Alpine, …) | `Makefile` | Lihat bagian “Distro lain” |
+diff -ruN orig/sorot-0.7.0/docs/PROFILES.md new/sorot-0.7.1/docs/PROFILES.md
+--- orig/sorot-0.7.0/docs/PROFILES.md	2026-11-01 15:47:17.423361515 +0700
++++ new/sorot-0.7.1/docs/PROFILES.md	2026-11-01 15:47:21.471964510 +0700
+@@ -63,7 +63,7 @@
+ 
+ ## Mode cermin dan hitung mundur
+ 
+-* **Mode cermin** membalik teks overlay dan pratinjau secara visual untuk rig beam-splitter. Hanya tampilan: tombol overlay dan bingkai jendela tidak dibalik. Fitur ini memakai efek grafis Qt dan **belum diuji pada compositor nyata** (lihat [TEST-REPORT.md](TEST-REPORT.md)).
++* **Mode cermin** membalik teks overlay dan pratinjau secara visual untuk rig beam-splitter. Hanya tampilan: tombol overlay dan bingkai jendela tidak dibalik. Fitur ini memakai efek grafis Qt. Di 0.7.0 efek ini **tidak berfungsi sama sekali** (error pada paint pertama); sejak 0.7.1 hasilnya diverifikasi identik piksel demi piksel dengan cermin horizontal pada skala 1×, 1,5× dan 2×, tetapi **belum diuji pada compositor nyata** atau Wayland (lihat [TEST-REPORT.md](TEST-REPORT.md)).
+ * **Hitung mundur** menampilkan angka besar di overlay selama “Jeda sebelum mulai” (di *Gulir*). Bila jeda 0 detik, tidak ada hitung mundur.
+ 
+ ## Belum ada (rencana)
+diff -ruN orig/sorot-0.7.0/docs/RELEASE-CHECKLIST.md new/sorot-0.7.1/docs/RELEASE-CHECKLIST.md
+--- orig/sorot-0.7.0/docs/RELEASE-CHECKLIST.md	2026-11-01 15:47:17.423481082 +0700
++++ new/sorot-0.7.1/docs/RELEASE-CHECKLIST.md	2026-11-01 15:47:21.472049463 +0700
+@@ -18,11 +18,12 @@
+ - [ ] Jika skema pengaturan naik: langkah baru di `MIGRATIONS` + tes; jika format cadangan berubah: tetap baca format lama
+ - [ ] Perbarui `docs/UPGRADING.md` bila jalur versi atau perilaku pembaruan berubah
+ - [ ] Isi `Source:` di `packaging/copyright`, `Homepage:` di `control.in`, dan `url=` di `PKGBUILD.in` setelah URL repositori ada; perbarui `SECURITY.md` dengan pelaporan privat
+-- [ ] CI GitHub Actions hijau (matriks Python 3.11/3.12/3.13 dan job Arch) — workflow belum pernah dijalankan
+-- [ ] **Debian 13 bersih**: `apt install ./sorot_X_all.deb`, jalankan, `remove` dan `purge`; periksa dependensi `python3-pyside6.qtwidgets`
++- [ ] CI GitHub Actions hijau (matriks Python 3.11/3.12/3.13, job `gui-x11`, `package`, dan Arch) — workflow belum pernah dijalankan; semua langkahnya sudah dijalankan manual secara lokal (lihat [TEST-REPORT.md](TEST-REPORT.md))
++- [ ] **Debian 13 bersih** (bukan Ubuntu: `.deb` tidak dapat dipasang di Ubuntu 24.04): `apt install ./sorot_X_all.deb`, jalankan, `remove` dan `purge`; periksa dependensi `python3-pyside6.qtwidgets` dan apakah tanda centang tema (PNG) tampil; siklus `dpkg` dengan `--force-depends` sudah dijalankan di Ubuntu
+ - [ ] **Arch Linux bersih** (mis. `archlinux:base-devel` atau VM): `makepkg -si` dari `dist/arch`, `namcap PKGBUILD` dan `namcap *.pkg.tar.zst`, jalankan, `pacman -Rns`
+-- [ ] **Skenario pembaruan nyata**: pasang versi sebelumnya, buat naskah, pasang versi baru, pastikan cadangan otomatis muncul dan naskah utuh; `sorot --restore` dari cadangan itu
++- [ ] **Skenario pembaruan nyata di desktop**: sudah dijalankan lewat CLI/wheel (0.7.0 → 0.7.1, lihat TEST-REPORT); ulangi dengan aplikasi yang berjalan penuh di desktop nyata
+ - [ ] [Pengujian manual](MANUAL-TESTING.md) minimal baris 1 dan 3; perbarui `docs/COMPATIBILITY.md`
++- [ ] **Wayland** (GNOME dan KDE) dan **compositor nyata**: overlay transparan, selalu-di-atas, klik-tembus, dan **mode cermin** terlihat benar di layar fisik / beam-splitter; yang sudah diverifikasi hanya X11 tanpa compositor dan Wayland di weston headless
+ - [ ] Uji integrasi Drive dengan rclone asli dan akun uji; uji AI dengan satu penyedia nyata
+ - [ ] Uji ekstensi contoh pada desktop nyata dan pasang satu ekstensi dari ZIP
+ - [ ] Konfirmasi nomor GoPay (`src/sorot/support.py`), tautan Saweria, dan alamat email kontak benar; sadari semuanya menjadi publik di repositori dan paket
+diff -ruN orig/sorot-0.7.0/docs/TEST-REPORT.md new/sorot-0.7.1/docs/TEST-REPORT.md
+--- orig/sorot-0.7.0/docs/TEST-REPORT.md	2026-11-01 15:47:17.423612778 +0700
++++ new/sorot-0.7.1/docs/TEST-REPORT.md	2026-11-01 15:47:21.471649101 +0700
+@@ -1,49 +1,63 @@
+-# Laporan tes — Sorot 0.7.0 Beta
++# Laporan tes — Sorot 0.7.1 Beta
+ 
+-Tanggal: 2026-10-27 · Lingkungan: Ubuntu 24.04 x86_64, Python 3.12.3, setuptools 68.1.2, wheel 0.42.0, dpkg-deb. **Bukan Debian 13, bukan Arch Linux, bukan sesi desktop nyata.**
++Tanggal: 2026-10-29 s.d. 11-01 · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
+ 
+-> **Batasan penting — baca dulu.** PySide6, pytest, pytest-qt, ruff, mypy, lintian, desktop-file-validate, dan makepkg **tidak tersedia** di lingkungan build ini (tanpa jaringan).
+-> * Semua kode Qt baru di 0.7.0 — **efek cermin, spasi baris dan spasi huruf, ketebalan huruf, label hitung mundur, panel Profil tampilan di jendela utama** — **belum pernah dijalankan pada Qt asli**. Hanya diperiksa sintaksnya dan diuji logikanya lewat *stub PySide6* (lihat bawah), yang tidak membuktikan bahwa API Qt dipanggil dengan benar atau bahwa hasilnya tampak benar.
+-> * 11 tes GUI baru sudah ditulis (5 overlay, 6 jendela) tetapi **tidak dijalankan**; bisa saja ada yang gagal.
+-> * Tes non-GUI dijalankan dengan *runner mini sementara* (bukan pytest asli, bukan bagian rilis).
+-> * `ruff` dan `mypy` tidak dijalankan; hanya `compileall`.
++> **Berbeda dari laporan 0.7.0:** kali ini PySide6, pytest, pytest-qt, ruff, mypy, lintian, desktop-file-validate, shellcheck, Xvfb dan window manager (openbox) **tersedia**, sehingga kode Qt 0.7.0 yang sebelumnya tidak pernah dijalankan akhirnya dijalankan pada Qt asli. Hasilnya: **mode cermin di 0.7.0 tidak berfungsi sama sekali**, dan ditemukan beberapa cacat lain (lihat CHANGELOG 0.7.1). Semua temuan itu sudah diperbaiki dan dijaga tes regresi.
+ 
+-## Yang dijalankan (runner sementara)
++## Hasil
+ 
+ | Pemeriksaan | Hasil |
+ |---|---|
+-| `tests/test_profiles.py` (baru, 51 kasus: validasi, penerapan sebagian, JSON, penyimpanan pengguna, tautan simbolik, kontribusi ekstensi, CLI, kunci konfigurasi baru) | lulus |
+-| `tests/test_upgrade.py` (54), `tests/test_packaging.py` (30), `tests/test_examples.py` (6, termasuk contoh ekstensi bersubproses) | lulus |
+-| Seluruh tes non-GUI 0.7.0 | **366 lulus, 2 gagal, 57 dilewati** |
+-| Dua kegagalan | **identik dengan 0.5.0 dan 0.6.0** (runner tidak punya `monkeypatch.syspath_prepend`; satu tes bergantung pustaka sistem) — bukan regresi, tetapi perlu pytest asli |
+-| `python -m compileall` dan `python3 scripts/release.py check` | bersih / konsisten |
+-
+-57 kasus dilewati = modul GUI/Qt yang tidak bisa diimpor tanpa PySide6.
++| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **573 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
++| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **573 lulus**, 1 dilewati |
++| 128 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **128 lulus**; tes penjaga membuktikan platform memang `xcb` |
++| 128 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **124 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
++| Tes non-GUI saja | 446 lulus |
++| `ruff check src tests`, `mypy src` (46 berkas) | bersih (sebelumnya 1 dan 7 temuan) |
++| `scripts/release.py check` | konsisten (0.7.1) |
++| `lintian` (level bawaan), `desktop-file-validate`, `shellcheck`, `dash -n` pada skrip maintainer, `groff -ww` pada man page | bersih |
++| Build dua kali (`.deb`, `.tar.gz`, `.zip`, wheel, `PKGBUILD`, `.SRCINFO`) | `SHA256SUMS` identik; `sha256sum -c` OK |
++| Fuzz 60.000 input acak pada parser konfigurasi, profil, naskah; 75.000 pada manifest ekstensi, protokol, respons AI, rclone | 0 crash tersisa (3 cacat nyata ditemukan dan diperbaiki: angka non-finite/raksasa pada konfigurasi dan profil, URL API cacat, bentuk respons API aneh; satu temuan lain ternyata positif palsu) |
++| Naskah 2 MB (305.000 kata) | statistik dihitung dalam 0,05 dtk |
+ 
+-### Uji mutasi (kode profil)
+-Kunci dirusak sementara dan tes harus gagal: kunci non-tampilan lolos ✔ (tertangkap, tetapi hanya satu kasus karena ada lapis pertahanan kedua yang tetap menyaringnya), penerapan profil mereset kunci yang tidak tercantum ✔, nama profil bawaan bisa ditimpa ✔, tautan simbolik diikuti ✔, versi format tidak diperiksa ✔. Satu mutasi (batas ukuran di `loads`) **lolos** karena tes hanya menyentuh `read_file`; tes ditambahkan dan kini menangkapnya.
++Catatan menjalankan: tes pengemasan memanggil `python3` dari `PATH`, jadi jalankan dengan venv aktif (`make test`). Tanpa window manager, tes fokus keyboard gagal di Xvfb; gunakan `make test-x11`.
+ 
+-Dua kesalahan di tes saya sendiri yang ditemukan lewat proses ini: `"ya"` ternyata nilai boolean yang sah (`_to_bool`), dan satu tes GUI akan salah karena profil “Kertas terang” tidak mencantumkan `letter_spacing` (diganti memakai `font_size`).
++## Cacat yang ditemukan dan diperbaiki (semua punya tes regresi yang terbukti gagal tanpa perbaikannya)
+ 
+-### Uji asap dengan stub PySide6
+-Modul PySide6 palsu yang permisif memungkinkan `ui.main_window`, `overlay`, `widgets`, `appearance` **di-import** dan metode `_refresh_profiles`, `_matching_profile`, `_sync_profile_combo`, `_on_profile_chosen`, `_save_profile`, `_export_profile`, `_import_profile`, `_delete_profile`, `_countdown_tick`, `_cancel_start_delay`, `_delayed_start` dijalankan dengan widget tiruan terhadap kode profil asli. Hasilnya benar (profil diterapkan/disimpan/diekspor/diimpor/dihapus; hitung mundur turun dan dibersihkan). Ini menangkap salah ketik dan kesalahan logika; **bukan** pengganti tes Qt.
++| Cacat | Bukti |
++|---|---|
++| Mode cermin: `TypeError` pada paint pertama | Dijalankan pada Qt asli; kini identik piksel dengan cermin horizontal pada skala 1×, 1,5×, 2× dan pada Qt 6.8.3 |
++| `1e999` / `Infinity` / bilangan raksasa di `config.json` membuat aplikasi crash tiap peluncuran (juga `--diagnostics`); impor profil bernilai sama | Direproduksi dari ujung ke ujung; kini aplikasi mulai dan memakai nilai bawaan |
++| Hitung mundur tak terbaca (digambar di atas teks) | Tangkapan layar sebelum/sesudah |
++| Halaman Tampilan bergulir ke samping pada jendela bawaan 1100 px (butuh ±1000 px konten) | Diukur: konten 997 → 858 px |
++| Alamat API cacat (`http://[`) melempar `ValueError` mentah di UI; respons API berbentuk aneh melempar `KeyError` | Ditemukan fuzz, direproduksi |
++| Tes: 3 jenis kesalahan di tes GUI 0.7.0 (versi usang, teardown menggantung oleh dialog tak terjawab, 2 tes hampa), 1 tes pengemasan yang mustahil lulus, 1 tes `drift` rapuh | Dijalankan |
++| Dokumentasi: README menyebut `.deb` untuk Ubuntu padahal tidak bisa dipasang di Ubuntu 24.04 | `apt-get install -s` gagal: `python3-pyside6.qtwidgets` tidak ada |
++| Segfault acak di Wayland (≈3 dari 10 peluncuran weston baru) | Ditelusuri dengan `gdb` ke race GC Python vs. thread pekerja Qt; `MainThreadGC` memperbaikinya: 0 crash dalam 12 putaran di bawah `gdb`. Tes regresi memastikan `app.main` memasang penjaga (dengan penjaga dilepas, tes gagal) |
++| Tanda centang tema bergantung pada plugin SVG Qt yang opsional | Diganti PNG; tes subproses tanpa plugin SVG membandingkan piksel dan gagal bila perbaikan dibatalkan |
+ 
+ ## Pengujian di luar suite
+ 
+ | Pengujian | Hasil |
+ |---|---|
+-| `dpkg -i` `sorot_0.6.0_all.deb` lalu `sorot_0.7.0_all.deb` (`--force-depends`) dengan data pengguna 0.6.0 bersistem skema 3 | 0.7.0 menggantikan 0.6.0; `--upgrade-info` mengenali “diperbarui dari 0.6.0”, skema di disk 3 / didukung 4; `--profiles`, `--export-profile`, `--import-profile` bekerja; profil milikmu masuk ke `--backup`; berkas `config.json` lama tidak diubah |
+-| Build dua kali (`.deb`, `.tar.gz`, `.zip`, wheel, `PKGBUILD`, `.SRCINFO`) | `SHA256SUMS` identik; `sha256sum -c` OK |
++| **Pembaruan nyata**: wheel 0.7.0 yang dibagikan dipasang di venv Python 3.12 → data dibuat (konfigurasi, naskah, profil milikmu) → upgrade ke wheel 0.7.1 | Cadangan otomatis dibuat sebelum menyimpan apa pun; pemberitahuan "baru diperbarui"; naskah, pengaturan, dan profil utuh |
++| Rollback: naskah dihapus dan `config.json` dirusak lalu `sorot --restore` cadangan | Keduanya pulih; kondisi sebelum pemulihan disimpan sebagai `…-pre-restore-…zip` |
++| `.deb` 0.7.0 yang dibagikan → `.deb` 0.7.1 → `remove` → `purge` (`dpkg`, `--force-depends`) | Skrip maintainer berjalan, versi naik, `remove` dan `purge` bersih |
++| `apt-get install -s` `.deb` di Ubuntu 24.04 | **Gagal** (dependensi tidak ada) — hanya Debian 13 yang menyediakannya; didokumentasikan |
++| Wheel dipasang di venv Python 3.12 (Ubuntu) | `sorot --version`, `--upgrade-info` berjalan; aset PNG ikut terpasang |
++| Overlay di **X11 nyata dengan window manager** (Xvfb + openbox) | `_NET_WM_STATE_ABOVE` aktif; dekorasi mati (Motif hints); posisi dan ukuran sama dengan perhitungan aplikasi; *input shape* kosong saat klik-tembus aktif, penuh saat dimatikan (dibaca langsung dari server X lewat ekstensi SHAPE) |
++| Aplikasi penuh (`app.main`) dijalankan 6 dtk di `offscreen` tanpa error di log; hook pembaruan jalan | OK |
+ 
+ ## BELUM DIUJI
+ 
+-- **Semua tampilan Qt baru** (lihat di atas): apakah `FlipEffect` benar-benar membalik teks pada overlay transparan, apakah hasilnya benar di Wayland/X11/compositor tertentu, apakah `setLineHeight` memberi hasil yang diharapkan dan timeline gulir tetap akurat dengan spasi baris besar, apakah label hitung mundur tampak dan terbaca, dan tata letak panel Profil tampilan.
+-- Mode cermin hanya membalik tampilan: input mouse pada teks tidak dibalik (tidak relevan untuk teks baca-saja, tetapi belum dicoba).
+-- Pratinjau di pengaturan: tinggi tetap 112 px; belum diperiksa apakah spasi baris besar terpotong.
+-- Pintasan, jendela utama penuh (`app.main`) dan hook pembaruan saat aplikasi berjalan penuh, pemberitahuan cadangan otomatis di jendela, dialog Tentang → Kontak.
+-- **Arch Linux**: `makepkg`, `namcap`, nama paket `pyside6`; job `arch` di CI belum pernah dijalankan.
+-- `ruff`, `mypy`, `lintian`, `desktop-file-validate`; instalasi `.deb` via apt di Debian 13 bersih.
+-- Yang sudah tercantum BELUM DIUJI pada laporan 0.5.0 (compositor nyata, penyedia AI, rclone/keyring, ekstensi pihak ketiga, GitHub Actions, pembaca layar).
++- **Desktop nyata** (GNOME, KDE, Xfce, Cinnamon) baik Wayland maupun XWayland. Yang sudah dibuktikan di weston headless: aplikasi jalan, overlay tak berbingkai, latar transparan terkomposit (dibaca dari tangkapan compositor), dan 124 tes GUI lulus. Yang tidak dapat dibuktikan di sana: selalu-di-atas, posisi (compositor yang memutuskan), fokus keyboard dan clipboard (tanpa seat).
++- **Arch Linux**: `makepkg`, `namcap`, nama paket `pyside6`; job `arch` di CI belum pernah dijalankan. `PKGBUILD` dan `.SRCINFO` hanya diperiksa konsistensi dan reproduktibilitasnya.
++- **Mirror Debian dan Arch tidak dapat dijangkau dari lingkungan ini** (kebijakan egress memblokirnya), jadi dua item di bawah tidak dapat diuji di sini apa pun usahanya.
++- **Debian 13 bersih lewat `apt`** (dependensi `python3-pyside6.qtwidgets` ada di Debian 13 menurut situs paket Debian, tetapi pemasangan nyata di Debian 13 belum dilakukan; `.deb` hanya dipasang dengan `--force-depends` di Ubuntu) dan menjalankan aplikasi dari paket itu dengan PySide6 dari apt (6.8.2.1).
++- **GitHub Actions**: workflow (termasuk job `gui-x11` baru) belum pernah dijalankan; YAML hanya divalidasi sintaksnya.
++- Pratinjau di pengaturan (tinggi tetap 112 px) memotong baris pada spasi baris besar; hanya dilihat, tidak dianggap cacat.
++- Penyedia AI nyata, rclone/Drive nyata, ekstensi pihak ketiga, keyring nyata, pembaca layar, HiDPI pada layar fisik.
++- Pintasan global dan dialog yang membutuhkan interaksi manusia (lihat [MANUAL-TESTING.md](MANUAL-TESTING.md)).
+ 
+ ## Cakupan terdahulu
+-Laporan 0.5.0 (378 lulus dengan pytest + PySide6 + ruff + mypy) dan 0.6.0 menjadi acuan untuk area yang tidak disentuh 0.7.0.
++Laporan 0.5.0 dan 0.6.0 tetap menjadi acuan untuk area yang tidak disentuh 0.7.1 (ekstensi, Drive, AI).
+diff -ruN orig/sorot-0.7.0/docs/UPGRADING.md new/sorot-0.7.1/docs/UPGRADING.md
+--- orig/sorot-0.7.0/docs/UPGRADING.md	2026-11-01 15:47:17.423949213 +0700
++++ new/sorot-0.7.1/docs/UPGRADING.md	2026-11-01 15:47:21.472180458 +0700
+@@ -18,10 +18,10 @@
+ 
+ | Cara pasang | Perintah pembaruan | Catatan |
+ |---|---|---|
+-| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.0_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
+-| Arch Linux | `tar xf sorot-0.7.0.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.0-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
+-| pipx | `pipx install --force ./sorot-0.7.0-py3-none-any.whl` | |
+-| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.0-py3-none-any.whl` | |
++| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.1_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
++| Arch Linux | `tar xf sorot-0.7.1.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.1-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
++| pipx | `pipx install --force ./sorot-0.7.1-py3-none-any.whl` | |
++| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.1-py3-none-any.whl` | |
+ | Skrip pengguna | `./scripts/install-user.sh` dari sumber versi baru | Aman diulang; hanya mengganti venv di `~/.local/share/sorot/venv`. |
+ | Salinan sumber | `git pull`, lalu `python -m pip install -e ".[dev]"` | |
+ 
+@@ -29,12 +29,13 @@
+ 
+ ## Jalur versi
+ 
+-| Dari | Ke 0.7.0 | Yang terjadi |
++| Dari | Ke 0.7.1 | Yang terjadi |
+ |---|---|---|
++| 0.7.0 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema (tetap 4). Perbaikan: mode cermin yang sebelumnya tidak berfungsi, hitung mundur yang terbaca, `config.json` berisi angka tak wajar (`1e999`) tidak lagi membuat aplikasi crash. |
+ | 0.6.x | langsung | Cadangan otomatis dibuat. Skema pengaturan naik 3 → 4: hanya **menambah** kunci tampilan baru (`font_weight`, `line_spacing`, `letter_spacing`, `mirror`, `show_countdown`, `profile`) yang nilai bawaannya persis sama dengan tampilan lama; tidak ada yang berubah untukmu. Profil milikmu (`~/.local/share/sorot/profiles/`) ikut dicadangkan. |
+ | 0.5.x | langsung | Data dipakai di tempat. Tidak ada perubahan skema (tetap versi 3). Cadangan otomatis dibuat pada peluncuran pertama (data ada tetapi belum ada catatan versi). |
+-| 0.4.x (*Tama Prompter*) | pasang 0.7.0 | Data diimpor sekali dari `~/.config/tama-prompter` dan `~/.local/share/tama-prompter`; **berkas lama tidak diubah**. API key keyring lama tetap terbaca. |
+-| 0.3.x | pasang 0.7.0 | Pengaturan dan naskah terakhir diimpor sekali dari `~/.config/TamaAndrea/TamaPrompter.conf` (hanya dibaca). Kamu dapat melompat langsung; tidak perlu singgah di 0.4/0.5. |
++| 0.4.x (*Tama Prompter*) | pasang 0.7.1 | Data diimpor sekali dari `~/.config/tama-prompter` dan `~/.local/share/tama-prompter`; **berkas lama tidak diubah**. API key keyring lama tetap terbaca. |
++| 0.3.x | pasang 0.7.1 | Pengaturan dan naskah terakhir diimpor sekali dari `~/.config/TamaAndrea/TamaPrompter.conf` (hanya dibaca). Kamu dapat melompat langsung; tidak perlu singgah di 0.4/0.5. |
+ | < 0.3 | — | Tidak didukung. |
+ 
+ Hanya impor dari instalasi lama yang berjalan otomatis; **jangan menghapus folder lama** (`tama-prompter`, `TamaAndrea`) sampai kamu yakin semuanya terbawa.
+diff -ruN orig/sorot-0.7.0/packaging/RELEASE_DATE new/sorot-0.7.1/packaging/RELEASE_DATE
+--- orig/sorot-0.7.0/packaging/RELEASE_DATE	2026-11-01 15:47:17.425609952 +0700
++++ new/sorot-0.7.1/packaging/RELEASE_DATE	2026-11-01 15:47:21.473283886 +0700
+@@ -1 +1 @@
+-2026-10-27
++2026-10-29
+diff -ruN orig/sorot-0.7.0/packaging/check-icons/check-dark.svg new/sorot-0.7.1/packaging/check-icons/check-dark.svg
+--- orig/sorot-0.7.0/packaging/check-icons/check-dark.svg	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/packaging/check-icons/check-dark.svg	2026-11-01 15:47:21.474327918 +0700
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.4 5.9 10.2 11 4.2" fill="none" stroke="#1B1300" stroke-width="2.2" stroke-linecap="square"/></svg>
+diff -ruN orig/sorot-0.7.0/packaging/check-icons/check-light.svg new/sorot-0.7.1/packaging/check-icons/check-light.svg
+--- orig/sorot-0.7.0/packaging/check-icons/check-light.svg	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/packaging/check-icons/check-light.svg	2026-11-01 15:47:21.474383414 +0700
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.4 5.9 10.2 11 4.2" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/></svg>
+diff -ruN orig/sorot-0.7.0/packaging/debian-changelog new/sorot-0.7.1/packaging/debian-changelog
+--- orig/sorot-0.7.0/packaging/debian-changelog	2026-11-01 15:47:17.426490709 +0700
++++ new/sorot-0.7.1/packaging/debian-changelog	2026-11-01 15:47:21.473595883 +0700
+@@ -1,3 +1,21 @@
++sorot (0.7.1) stable; urgency=medium
++
++  * Fix mirror mode, which raised TypeError on the first paint and never
++    worked in 0.7.0.
++  * Fix a crash at start-up (and in profile import) when a setting held
++    1e999, Infinity or an enormous integer; unusable settings files are now
++    quarantined instead of stopping the application.
++  * Make the start-delay countdown readable, stop the Display page from
++    scrolling sideways at the default window size, and report malformed API
++    URLs and unexpected API responses as ordinary errors.
++  * Fix random segfaults on Wayland (Python GC racing Qt from worker threads;
++    collection now runs only on the main thread) and draw the theme check
++    marks from PNG files so they do not depend on the optional Qt SVG plugin.
++  * Test-suite and CI fixes (X11 and Wayland GUI jobs); document that the
++    .deb needs Debian 13 (it is not installable on Ubuntu 24.04).
++
++ -- Muhammad Andreatama <muhammadandreatama@outlook.com>  Thu, 29 Oct 2026 00:00:00 +0000
++
+ sorot (0.7.0) stable; urgency=medium
+ 
+   * Add display profiles (shareable JSON look files, built-in/user/extension
+diff -ruN orig/sorot-0.7.0/pyproject.toml new/sorot-0.7.1/pyproject.toml
+--- orig/sorot-0.7.0/pyproject.toml	2026-11-01 15:47:17.427871195 +0700
++++ new/sorot-0.7.1/pyproject.toml	2026-11-01 15:47:21.474439166 +0700
+@@ -35,10 +35,10 @@
+ [tool.setuptools.packages.find]
+ where = ["src"]
+ 
+-# Without this the wheel silently omits the SVG assets (checkbox indicators used by the theme).
++# Without this the wheel silently omits the PNG assets (checkbox indicators used by the theme).
+ # tests/test_packaging.py fails if an asset on disk is not declared here.
+ [tool.setuptools.package-data]
+-"sorot.ui" = ["assets/*.svg"]
++"sorot.ui" = ["assets/*.png"]
+ 
+ [tool.pytest.ini_options]
+ testpaths = ["tests"]
+diff -ruN orig/sorot-0.7.0/scripts/build-deb.sh new/sorot-0.7.1/scripts/build-deb.sh
+--- orig/sorot-0.7.0/scripts/build-deb.sh	2026-11-01 15:47:17.428617216 +0700
++++ new/sorot-0.7.1/scripts/build-deb.sh	2026-11-01 15:47:21.474876753 +0700
+@@ -11,7 +11,7 @@
+ 
+ # ---- code and launcher ----------------------------------------------------------
+ install -d "$STAGE/usr/lib/sorot" "$STAGE/usr/bin"
+-(cd "$ROOT/src" && find sorot \( -name '*.py' -o -name '*.svg' \) -print0 | sort -z | xargs -0 -I{} install -D -m 0644 {} "$STAGE/usr/lib/sorot/{}")
++(cd "$ROOT/src" && find sorot \( -name '*.py' -o -name '*.png' \) -print0 | sort -z | xargs -0 -I{} install -D -m 0644 {} "$STAGE/usr/lib/sorot/{}")
+ install -m 0755 "$ROOT/packaging/sorot.sh" "$STAGE/usr/bin/sorot"
+ # ---- everything else: one shared definition of the file layout ---------------------
+ "$ROOT/scripts/install-files.sh" --layout deb "$STAGE" /usr
+diff -ruN orig/sorot-0.7.0/scripts/install-user.sh new/sorot-0.7.1/scripts/install-user.sh
+--- orig/sorot-0.7.0/scripts/install-user.sh	2026-11-01 15:47:17.429485111 +0700
++++ new/sorot-0.7.1/scripts/install-user.sh	2026-11-01 15:47:21.475207283 +0700
+@@ -21,7 +21,7 @@
+ BUILD="$(mktemp -d)"
+ trap 'rm -rf "$BUILD"' EXIT
+ cp -r "$ROOT/src" "$ROOT/pyproject.toml" "$ROOT/README.md" "$ROOT/LICENSE" "$BUILD/"
+-"$PREFIX/venv/bin/python" -m pip install --quiet "$BUILD[keyring]"
++"$PREFIX/venv/bin/python" -m pip install --quiet "${BUILD}[keyring]"
+ 
+ cat > "$BIN/sorot" <<LAUNCHER
+ #!/bin/sh
+diff -ruN orig/sorot-0.7.0/scripts/lib.sh new/sorot-0.7.1/scripts/lib.sh
+--- orig/sorot-0.7.0/scripts/lib.sh	2026-11-01 15:47:17.429640753 +0700
++++ new/sorot-0.7.1/scripts/lib.sh	2026-11-01 15:47:21.474586525 +0700
+@@ -2,6 +2,7 @@
+ # Shared by the build scripts. Source it; do not run it.
+ # Provides: ROOT, VERSION, RELEASE_DATE and a reproducible environment (SOURCE_DATE_EPOCH, LC_ALL, TZ).
+ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++# shellcheck disable=SC2034  # used by the scripts that source this file
+ VERSION="$(python3 "$ROOT/scripts/release.py" version)"
+ RELEASE_DATE="$(tr -d '[:space:]' < "$ROOT/packaging/RELEASE_DATE")"
+ export SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date -u -d "$RELEASE_DATE 00:00:00" +%s)}"
+diff -ruN orig/sorot-0.7.0/scripts/make-check-icons.py new/sorot-0.7.1/scripts/make-check-icons.py
+--- orig/sorot-0.7.0/scripts/make-check-icons.py	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/scripts/make-check-icons.py	2026-11-01 15:47:21.474642428 +0700
+@@ -0,0 +1,47 @@
++#!/usr/bin/env python3
++"""Render packaging/check-icons/*.svg into the PNGs the theme uses (src/sorot/ui/assets/check-*.png, plus @2x).
++
++Why PNG: Qt style sheets load ``image: url(...)`` through Qt's image plugins, and SVG support is a *plugin*
++(libqsvg) that a distribution may not install; PNG is built into QtGui. Without the plugin the SVG tick simply
++vanished. The PNGs are committed; rerun this only when the SVG sources change (needs PySide6 with QtSvg).
++"""
++from __future__ import annotations
++
++import os
++import sys
++from pathlib import Path
++
++os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
++from PySide6.QtCore import QRectF, Qt  # noqa: E402
++from PySide6.QtGui import QGuiApplication, QImage, QPainter  # noqa: E402
++from PySide6.QtSvg import QSvgRenderer  # noqa: E402
++
++ROOT = Path(__file__).resolve().parents[1]
++SIZE = 14
++
++
++def render(svg: Path, pixels: int) -> QImage:
++    image = QImage(pixels, pixels, QImage.Format.Format_ARGB32)
++    image.fill(Qt.GlobalColor.transparent)
++    painter = QPainter(image)
++    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
++    QSvgRenderer(str(svg)).render(painter, QRectF(0, 0, pixels, pixels))
++    painter.end()
++    return image
++
++
++def main() -> int:
++    QGuiApplication(sys.argv)
++    out = ROOT / "src" / "sorot" / "ui" / "assets"
++    for svg in sorted((ROOT / "packaging" / "check-icons").glob("*.svg")):
++        for scale, suffix in ((1, ""), (2, "@2x")):
++            target = out / f"{svg.stem}{suffix}.png"
++            if not render(svg, SIZE * scale).save(str(target), "PNG"):
++                print(f"gagal menulis {target}", file=sys.stderr)
++                return 1
++            print(target.relative_to(ROOT))
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())
+diff -ruN orig/sorot-0.7.0/scripts/release.py new/sorot-0.7.1/scripts/release.py
+--- orig/sorot-0.7.0/scripts/release.py	2026-11-01 15:47:17.429818284 +0700
++++ new/sorot-0.7.1/scripts/release.py	2026-11-01 15:47:21.475093519 +0700
+@@ -116,11 +116,11 @@
+     # Every asset on disk must be declared as package data, or wheels silently omit it.
+     pyproject = read(root, "pyproject.toml")
+     assets = root / "src/sorot/ui/assets"
+-    if assets.is_dir() and any(assets.glob("*")) and 'assets/*.svg' not in pyproject:
++    if assets.is_dir() and any(assets.glob("*")) and 'assets/*.png' not in pyproject:
+         problems.append("pyproject.toml: aset UI tidak dideklarasikan di [tool.setuptools.package-data]")
+     for asset in sorted(assets.glob("*")) if assets.is_dir() else []:
+-        if asset.suffix != ".svg":
+-            problems.append(f"{asset.name}: tipe aset tidak tercakup package-data (*.svg)")
++        if asset.suffix != ".png":
++            problems.append(f"{asset.name}: tipe aset tidak tercakup package-data (*.png)")
+     return problems
+ 
+ 
+diff -ruN orig/sorot-0.7.0/src/sorot/__init__.py new/sorot-0.7.1/src/sorot/__init__.py
+--- orig/sorot-0.7.0/src/sorot/__init__.py	2026-11-01 15:47:17.430413297 +0700
++++ new/sorot-0.7.1/src/sorot/__init__.py	2026-11-01 15:47:21.475514946 +0700
+@@ -1,7 +1,7 @@
+ """Sorot — teleprompter overlay desktop untuk Linux."""
+ 
+-__version__ = "0.7.0"
+-VERSION_LABEL = "0.7.0 Beta"
++__version__ = "0.7.1"
++VERSION_LABEL = "0.7.1 Beta"
+ APP_NAME = "Sorot"
+ ORG_NAME = "Sorot"
+ AUTHOR = "Muhammad Andreatama"
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/__init__.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/__init__.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/app.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/app.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/crash.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/crash.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/legacy_import.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/legacy_import.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/logging_setup.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/logging_setup.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/single_instance.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/single_instance.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/__pycache__/support.cpython-313.pyc and new/sorot-0.7.1/src/sorot/__pycache__/support.cpython-313.pyc differ
+diff -ruN orig/sorot-0.7.0/src/sorot/app.py new/sorot-0.7.1/src/sorot/app.py
+--- orig/sorot-0.7.0/src/sorot/app.py	2026-11-01 15:47:17.430903144 +0700
++++ new/sorot-0.7.1/src/sorot/app.py	2026-11-01 15:47:21.478911572 +0700
+@@ -108,12 +108,9 @@
+     app.setApplicationVersion(__version__)
+     app.setDesktopFileName("sorot")
+ 
+-    # Collect reference cycles on the GUI thread only (see sorot/gcguard.py); a worker thread
+-    # finalising a Qt object can crash the process.
+-    from sorot.gcguard import GuiThreadGC
++    from sorot.gc_guard import MainThreadGC
+ 
+-    gc_guard = GuiThreadGC(app)
+-    gc_guard.start()
++    MainThreadGC(app)  # automatic GC in a worker thread can crash PySide; see sorot/gc_guard.py (parented to app, so it lives as long as it)
+ 
+     from sorot.single_instance import InstanceLock
+ 
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/__init__.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/__init__.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/cancel.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/cancel.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/config.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/config.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/fileio.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/fileio.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/paths.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/paths.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/profiles.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/profiles.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/redact.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/redact.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/script_markup.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/script_markup.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/script_stats.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/script_stats.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/scripts.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/scripts.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/timeline.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/timeline.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/core/__pycache__/upgrade.cpython-313.pyc and new/sorot-0.7.1/src/sorot/core/__pycache__/upgrade.cpython-313.pyc differ
+diff -ruN orig/sorot-0.7.0/src/sorot/core/config.py new/sorot-0.7.1/src/sorot/core/config.py
+--- orig/sorot-0.7.0/src/sorot/core/config.py	2026-11-01 15:47:17.431403626 +0700
++++ new/sorot-0.7.1/src/sorot/core/config.py	2026-11-01 15:47:21.476357635 +0700
+@@ -92,7 +92,7 @@
+         return default
+     try:
+         number = int(float(value))
+-    except (TypeError, ValueError):
++    except (TypeError, ValueError, OverflowError):  # OverflowError: 1e999 / Infinity / ints too large for a float
+         return default
+     return max(low, min(high, number))
+ 
+@@ -128,7 +128,7 @@
+         return None
+     try:
+         return int(float(value))
+-    except (TypeError, ValueError):
++    except (TypeError, ValueError, OverflowError):
+         return None
+ 
+ 
+@@ -414,7 +414,13 @@
+                 "Pengaturan dibuat oleh versi Sorot yang lebih baru. Nilai yang dikenal tetap dipakai, "
+                 "sisanya dipertahankan saat menyimpan."
+             )
+-        config = AppConfig.from_dict(upgrade_schema(data))
++        try:
++            config = AppConfig.from_dict(upgrade_schema(data))
++        except Exception as exc:  # defence in depth: a hostile or odd value must never stop the app starting
++            moved = self._quarantine()
++            LOGGER.warning("Konfigurasi tidak dapat diproses (%s); memakai nilai bawaan.", type(exc).__name__)
++            where = f" Berkas lama disimpan sebagai {moved.name}." if moved else ""
++            return LoadResult(AppConfig(), notices=[f"Isi berkas pengaturan tidak valid sehingga nilai bawaan dipakai.{where}"], is_new=True)
+         return LoadResult(config, notices, loaded_schema=schema if isinstance(schema, int) else None)
+ 
+     def save(self, config: AppConfig) -> None:
+@@ -439,7 +445,10 @@
+                 return False
+         except (OSError, ValueError, UnicodeDecodeError):
+             return False
+-        restored = AppConfig.from_dict(upgrade_schema(data))
++        try:
++            restored = AppConfig.from_dict(upgrade_schema(data))
++        except Exception:  # an unusable backup is reported as "no valid backup", never as a crash
++            return False
+         atomic_write_text(self.path, json.dumps(restored.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n")
+         return True
+ 
+diff -ruN orig/sorot-0.7.0/src/sorot/core/upgrade.py new/sorot-0.7.1/src/sorot/core/upgrade.py
+--- orig/sorot-0.7.0/src/sorot/core/upgrade.py	2026-11-01 15:47:17.432549029 +0700
++++ new/sorot-0.7.1/src/sorot/core/upgrade.py	2026-11-01 15:47:21.476290761 +0700
+@@ -23,6 +23,7 @@
+ import zipfile
+ from dataclasses import dataclass, field
+ from pathlib import Path, PurePosixPath
++from typing import Any
+ 
+ from sorot.core import paths
+ from sorot.core.fileio import atomic_write_text
+@@ -214,13 +215,14 @@
+     if target.exists():
+         raise BackupError(f"Berkas sudah ada dan tidak ditimpa: {target}")
+ 
+-    manifest = {
++    files: dict[str, dict[str, Any]] = {}
++    manifest: dict[str, Any] = {
+         "format": BACKUP_FORMAT,
+         "app": "sorot",
+         "app_version": app_version,
+         "schema_version": schema_version,
+         "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+-        "files": {},
++        "files": files,
+     }
+     fd, tmp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+     os.close(fd)
+@@ -228,7 +230,7 @@
+     try:
+         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as archive:
+             for arcname, path in entries:
+-                manifest["files"][arcname] = {"sha256": _sha256_file(path), "size": path.stat().st_size}
++                files[arcname] = {"sha256": _sha256_file(path), "size": path.stat().st_size}
+                 archive.write(path, arcname)
+             archive.writestr(MANIFEST_NAME, json.dumps(manifest, indent=2, sort_keys=True))
+         os.chmod(tmp, 0o600)
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/__init__.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/__init__.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/discovery.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/discovery.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/host.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/host.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/installer.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/installer.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/manifest.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/manifest.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/protocol.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/protocol.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/extensions/__pycache__/state.cpython-313.pyc and new/sorot-0.7.1/src/sorot/extensions/__pycache__/state.cpython-313.pyc differ
+diff -ruN orig/sorot-0.7.0/src/sorot/gc_guard.py new/sorot-0.7.1/src/sorot/gc_guard.py
+--- orig/sorot-0.7.0/src/sorot/gc_guard.py	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/src/sorot/gc_guard.py	2026-11-01 15:47:21.478849730 +0700
+@@ -0,0 +1,52 @@
++"""Run Python's cyclic garbage collector on the Qt main thread only.
++
++Why: Sorot does slow work (extension discovery, AI, rclone) on worker threads. CPython runs an *automatic*
++collection in whichever thread happens to trigger it, so a worker thread could traverse Shiboken (PySide)
++wrapper objects while the GUI thread, which holds no GIL while it is inside Qt, creates, reparents or deletes
++them. A gdb backtrace of a real crash showed exactly that::
++
++    visit_decref <- libshiboken6 (object traverse) <- gc_collect_main <- worker thread
++
++It was rare (about one run in three on a freshly started Wayland compositor, never seen on X11/offscreen) and
++non-deterministic, which is why it never showed up as a failing test. With automatic collection disabled and
++all collections issued from a ``QTimer`` on the GUI thread, a worker can never be the one traversing wrappers.
++"""
++from __future__ import annotations
++
++import gc
++import threading
++
++from PySide6.QtCore import QObject, QTimer
++
++INTERVAL_MS = 1000
++FULL_EVERY = 30  # every Nth tick collects all generations, the others only the young ones
++
++
++class MainThreadGC(QObject):
++    """Disable automatic GC and collect from the thread this object lives in (create it on the GUI thread)."""
++
++    def __init__(self, parent: QObject | None = None, interval_ms: int = INTERVAL_MS) -> None:
++        super().__init__(parent)
++        self._was_enabled = gc.isenabled()
++        self._ticks = 0
++        self.collections_on_other_threads = 0
++        self._owner = threading.get_ident()
++        gc.disable()
++        self._timer = QTimer(self)
++        self._timer.setInterval(interval_ms)
++        self._timer.timeout.connect(self.collect)
++        self._timer.start()
++
++    def collect(self) -> int:
++        """One collection pass; returns the number of unreachable objects found."""
++        if threading.get_ident() != self._owner:  # never from a worker: that is the bug this class prevents
++            self.collections_on_other_threads += 1
++            return 0
++        self._ticks += 1
++        return gc.collect(2 if self._ticks % FULL_EVERY == 0 else 1)
++
++    def stop(self) -> None:
++        """Hand collection back to CPython (used at shutdown and by tests)."""
++        self._timer.stop()
++        if self._was_enabled:
++            gc.enable()
+diff -ruN orig/sorot-0.7.0/src/sorot/gcguard.py new/sorot-0.7.1/src/sorot/gcguard.py
+--- orig/sorot-0.7.0/src/sorot/gcguard.py	2026-11-01 15:47:17.813639123 +0700
++++ new/sorot-0.7.1/src/sorot/gcguard.py	1970-01-01 07:00:00.000000000 +0700
+@@ -1,57 +0,0 @@
+-"""Run Python's cyclic garbage collector on the GUI thread only.
+-
+-Why: PySide objects (dialogs, windows, tasks) routinely end up in reference cycles. When
+-automatic GC fires on a *worker* thread (extension discovery, AI/Drive requests all allocate
+-heavily there) it can finalise such a cycle and destroy Qt objects off the GUI thread, which
+-crashes the process with a segmentation fault. Disabling automatic collection and running it
+-from a GUI-thread timer removes that hazard while still reclaiming cycles.
+-
+-Cost control: young generations are collected often (cheap), the full heap rarely, so a
+-scrolling overlay never sees a long pause.
+-"""
+-from __future__ import annotations
+-
+-import gc
+-
+-from PySide6.QtCore import QObject, QTimer
+-
+-TICK_MS = 1000
+-GEN1_EVERY = 10  # ticks
+-FULL_EVERY = 120  # ticks
+-
+-
+-class GuiThreadGC(QObject):
+-    """Owns the GC policy while active. Must be created and started on the GUI thread."""
+-
+-    def __init__(self, parent: QObject | None = None, *, interval_ms: int = TICK_MS) -> None:
+-        super().__init__(parent)
+-        self._ticks = 0
+-        self._was_enabled = gc.isenabled()
+-        self._timer = QTimer(self)
+-        self._timer.setInterval(interval_ms)
+-        self._timer.timeout.connect(self.collect_due)
+-
+-    @property
+-    def active(self) -> bool:
+-        return self._timer.isActive()
+-
+-    def start(self) -> None:
+-        if not self._timer.isActive():
+-            self._was_enabled = gc.isenabled()
+-            gc.disable()
+-            self._timer.start()
+-
+-    def stop(self) -> None:
+-        """Hand collection back to the interpreter (restoring the previous setting)."""
+-        self._timer.stop()
+-        if self._was_enabled:
+-            gc.enable()
+-
+-    def collect_due(self) -> int:
+-        """Collect the generation(s) due on this tick; returns the number of unreachable objects found."""
+-        self._ticks += 1
+-        if self._ticks % FULL_EVERY == 0:
+-            return gc.collect(2)
+-        if self._ticks % GEN1_EVERY == 0:
+-            return gc.collect(1)
+-        return gc.collect(0)
+Binary files orig/sorot-0.7.0/src/sorot/services/__pycache__/ai_service.cpython-313.pyc and new/sorot-0.7.1/src/sorot/services/__pycache__/ai_service.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/services/__pycache__/drive_service.cpython-313.pyc and new/sorot-0.7.1/src/sorot/services/__pycache__/drive_service.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/services/__pycache__/keyring_service.cpython-313.pyc and new/sorot-0.7.1/src/sorot/services/__pycache__/keyring_service.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/services/__pycache__/platform_info.cpython-313.pyc and new/sorot-0.7.1/src/sorot/services/__pycache__/platform_info.cpython-313.pyc differ
+diff -ruN orig/sorot-0.7.0/src/sorot/services/ai_service.py new/sorot-0.7.1/src/sorot/services/ai_service.py
+--- orig/sorot-0.7.0/src/sorot/services/ai_service.py	2026-11-01 15:47:17.727600570 +0700
++++ new/sorot-0.7.1/src/sorot/services/ai_service.py	2026-11-01 15:47:21.477338200 +0700
+@@ -77,14 +77,18 @@
+         if value.endswith(suffix):
+             value = value[: -len(suffix)]
+             break
+-    parsed = urlparse(value)
+-    if parsed.scheme not in {"https", "http"} or not parsed.netloc or not parsed.hostname:
++    try:
++        parsed = urlparse(value)
++        hostname = parsed.hostname  # also parses the netloc, so "http://[" raises here rather than later
++    except ValueError as exc:
++        raise AIError(AIErrorKind.CONFIG, "Alamat API harus berupa URL http:// atau https:// yang valid.") from exc
++    if parsed.scheme not in {"https", "http"} or not parsed.netloc or not hostname:
+         raise AIError(AIErrorKind.CONFIG, "Alamat API harus berupa URL http:// atau https:// yang valid.")
+     if parsed.username or parsed.password:
+         raise AIError(AIErrorKind.CONFIG, "Jangan menaruh username, password, atau API key di URL. Gunakan kolom API key.")
+     if parsed.query or parsed.fragment:
+         raise AIError(AIErrorKind.CONFIG, "URL API tidak boleh berisi query string atau fragment.")
+-    if parsed.scheme != "https" and parsed.hostname not in _LOOPBACK_HOSTS:
++    if parsed.scheme != "https" and hostname not in _LOOPBACK_HOSTS:
+         raise AIError(AIErrorKind.CONFIG, "Untuk API jarak jauh, gunakan HTTPS agar API key dikirim dengan enkripsi.")
+     return value
+ 
+@@ -290,7 +294,7 @@
+         if isinstance(result, list):
+             result = "\n".join(part.get("text", "") for part in result if isinstance(part, dict))
+         result = str(result or "").strip()
+-    except (ValueError, UnicodeDecodeError, AttributeError, IndexError, TypeError) as exc:
++    except (ValueError, UnicodeDecodeError, AttributeError, IndexError, KeyError, TypeError) as exc:
+         raise AIError(AIErrorKind.INVALID_RESPONSE, "Respons API tidak dikenali sebagai format Chat Completions yang kompatibel.") from exc
+     if not result:
+         raise AIError(AIErrorKind.INVALID_RESPONSE, "API berhasil merespons, tetapi tidak mengembalikan teks. Periksa model atau kompatibilitas provider.")
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/__init__.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/__init__.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/ai_dialog.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/ai_dialog.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/appearance.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/appearance.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/dialogs.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/dialogs.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/drive_controller.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/drive_controller.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/extension_manager.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/extension_manager.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/extensions_page.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/extensions_page.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/highlighter.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/highlighter.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/main_window.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/main_window.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/overlay.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/overlay.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/task_worker.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/task_worker.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/theme.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/theme.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/__pycache__/widgets.cpython-313.pyc and new/sorot-0.7.1/src/sorot/ui/__pycache__/widgets.cpython-313.pyc differ
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/appearance.py new/sorot-0.7.1/src/sorot/ui/appearance.py
+--- orig/sorot-0.7.0/src/sorot/ui/appearance.py	2026-11-01 15:47:17.729492339 +0700
++++ new/sorot-0.7.1/src/sorot/ui/appearance.py	2026-11-01 15:47:21.477734337 +0700
+@@ -58,9 +58,14 @@
+     """Mirrors a widget left-to-right (for beam-splitter teleprompter rigs). Display only; input is not mirrored."""
+ 
+     def draw(self, painter: QPainter) -> None:  # noqa: N802
+-        pixmap, offset = self.sourcePixmap()
++        # PySide6 returns only the QPixmap (the C++ ``offset`` out-parameter is not exposed), so the
++        # offset is recomputed from the effect's bounding rect. 0.7.0 unpacked a tuple here and raised
++        # TypeError on the first real paint, i.e. mirror mode never worked.
++        coords = Qt.CoordinateSystem.LogicalCoordinates
++        pixmap = self.sourcePixmap(coords)
+         if pixmap.isNull():
+             return
++        offset = self.boundingRectFor(self.sourceBoundingRect(coords)).toAlignedRect().topLeft()
+         width = pixmap.deviceIndependentSize().width()
+         painter.save()
+         painter.translate(offset.x() * 2 + width, 0)
+Binary files orig/sorot-0.7.0/src/sorot/ui/assets/check-dark.png and new/sorot-0.7.1/src/sorot/ui/assets/check-dark.png differ
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/assets/check-dark.svg new/sorot-0.7.1/src/sorot/ui/assets/check-dark.svg
+--- orig/sorot-0.7.0/src/sorot/ui/assets/check-dark.svg	2026-11-01 15:47:17.729656019 +0700
++++ new/sorot-0.7.1/src/sorot/ui/assets/check-dark.svg	1970-01-01 07:00:00.000000000 +0700
+@@ -1 +0,0 @@
+-<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.4 5.9 10.2 11 4.2" fill="none" stroke="#1B1300" stroke-width="2.2" stroke-linecap="square"/></svg>
+Binary files orig/sorot-0.7.0/src/sorot/ui/assets/check-dark@2x.png and new/sorot-0.7.1/src/sorot/ui/assets/check-dark@2x.png differ
+Binary files orig/sorot-0.7.0/src/sorot/ui/assets/check-light.png and new/sorot-0.7.1/src/sorot/ui/assets/check-light.png differ
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/assets/check-light.svg new/sorot-0.7.1/src/sorot/ui/assets/check-light.svg
+--- orig/sorot-0.7.0/src/sorot/ui/assets/check-light.svg	2026-11-01 15:47:17.729833671 +0700
++++ new/sorot-0.7.1/src/sorot/ui/assets/check-light.svg	1970-01-01 07:00:00.000000000 +0700
+@@ -1 +0,0 @@
+-<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.4 5.9 10.2 11 4.2" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="square"/></svg>
+Binary files orig/sorot-0.7.0/src/sorot/ui/assets/check-light@2x.png and new/sorot-0.7.1/src/sorot/ui/assets/check-light@2x.png differ
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/main_window.py new/sorot-0.7.1/src/sorot/ui/main_window.py
+--- orig/sorot-0.7.0/src/sorot/ui/main_window.py	2026-11-01 15:47:17.730804556 +0700
++++ new/sorot-0.7.1/src/sorot/ui/main_window.py	2026-11-01 15:47:21.478502143 +0700
+@@ -34,8 +34,7 @@
+ )
+ 
+ from sorot import APP_NAME, AUTHOR, VERSION_LABEL, __version__
+-from sorot.core import paths
+-from sorot.core import profiles
++from sorot.core import paths, profiles
+ from sorot.core.config import (
+     ALIGNMENT_LABELS,
+     COLOR_PRESETS,
+@@ -536,10 +535,14 @@
+         self.profile_import_btn = QPushButton("Impor…")
+         self.profile_export_btn = QPushButton("Ekspor…")
+         self.profile_delete_btn = QPushButton("Hapus")
+-        profile_row = QHBoxLayout()
+-        for button in (self.profile_save_btn, self.profile_import_btn, self.profile_export_btn, self.profile_delete_btn):
+-            profile_row.addWidget(button)
+-        profile_row.addStretch(1)
++        # Two rows: four buttons side by side forced the whole page to ~1000 px, so the default 1100 px window scrolled sideways.
++        profile_row = QGridLayout()
++        profile_row.setHorizontalSpacing(6)
++        profile_row.setVerticalSpacing(6)
++        profile_row.addWidget(self.profile_save_btn, 0, 0, 1, 3)
++        profile_row.addWidget(self.profile_import_btn, 1, 0)
++        profile_row.addWidget(self.profile_export_btn, 1, 1)
++        profile_row.addWidget(self.profile_delete_btn, 1, 2)
+         pl.addWidget(self.profile_combo)
+         pl.addWidget(self.profile_note)
+         pl.addLayout(profile_row)
+@@ -596,9 +599,10 @@
+         left.addWidget(guide_panel)
+ 
+         mode_panel, ml = self._panel("Cermin dan hitung mundur")
+-        self.mirror_check = QCheckBox("Balik teks horizontal (mode cermin untuk beam-splitter)")
+-        self.mirror_check.setToolTip("Hanya tampilan: tombol dan jendela tidak ikut dibalik. Pratinjau memperlihatkan hasilnya.")
+-        self.countdown_check = QCheckBox("Tampilkan hitung mundur besar saat jeda mulai (lihat “Jeda sebelum mulai”)")
++        self.mirror_check = QCheckBox("Mode cermin (balik teks)")
++        self.mirror_check.setToolTip("Membalik teks secara horizontal untuk rig beam-splitter. Hanya tampilan: tombol dan jendela tidak ikut dibalik. Pratinjau memperlihatkan hasilnya.")
++        self.countdown_check = QCheckBox("Hitung mundur besar")
++        self.countdown_check.setToolTip("Tampilkan angka besar di overlay selama “Jeda sebelum mulai” (di halaman Naskah).")
+         ml.addWidget(self.mirror_check)
+         ml.addWidget(self.countdown_check)
+         left.addWidget(mode_panel)
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/overlay.py new/sorot-0.7.1/src/sorot/ui/overlay.py
+--- orig/sorot-0.7.0/src/sorot/ui/overlay.py	2026-11-01 15:47:17.730987676 +0700
++++ new/sorot-0.7.1/src/sorot/ui/overlay.py	2026-11-01 15:47:21.478585336 +0700
+@@ -257,7 +257,10 @@
+         appearance.apply_line_spacing(self.text_view.document(), a["line_spacing"])
+         appearance.set_mirrored(self.text_view, bool(a["mirror"]))
+         appearance.set_mirrored(self.countdown_label, bool(a["mirror"]))
+-        self.countdown_label.setStyleSheet(f"QLabel {{ background: transparent; color: {a['text_color']}; }}")
++        # A near-opaque backdrop in the overlay's own colour: a bare digit drawn over moving script text was unreadable.
++        backdrop = QColor(a["background_color"])
++        backdrop_css = f"rgba({backdrop.red()}, {backdrop.green()}, {backdrop.blue()}, 235)"
++        self.countdown_label.setStyleSheet(f"QLabel {{ background: {backdrop_css}; color: {a['text_color']}; }}")
+         margin = a["margin"]
+         self._inner.setContentsMargins(margin + 2, max(6, margin - 3), margin, max(6, margin - 3))
+         self.decor.color = QColor(a["text_color"])
+diff -ruN orig/sorot-0.7.0/src/sorot/ui/theme.py new/sorot-0.7.1/src/sorot/ui/theme.py
+--- orig/sorot-0.7.0/src/sorot/ui/theme.py	2026-11-01 15:47:17.731195015 +0700
++++ new/sorot-0.7.1/src/sorot/ui/theme.py	2026-11-01 15:47:21.478777780 +0700
+@@ -66,7 +66,7 @@
+ 
+ 
+ def _check_icon(p: Palette) -> str:
+-    name = "check-light.svg" if p.name == "light" else "check-dark.svg"
++    name = "check-light.png" if p.name == "light" else "check-dark.png"  # PNG: no Qt image plugin needed (see scripts/make-check-icons.py)
+     return (Path(__file__).parent / "assets" / name).as_posix()
+ 
+ 
+@@ -136,7 +136,7 @@
+ 
+ QCheckBox {{ spacing: 9px; color: {p.text}; padding: 3px 0; }}
+ QCheckBox::indicator {{ width: 14px; height: 14px; border: 1px solid {p.line_strong}; border-radius: 2px; background: {p.inset}; }}
+-QCheckBox::indicator:checked {{ background: {p.accent}; border-color: {p.accent}; image: url({check}); }}
++QCheckBox::indicator:checked {{ background: {p.accent}; border-color: {p.accent}; image: url("{check}"); }}
+ QCheckBox::indicator:hover {{ border-color: {p.muted}; }}
+ QCheckBox:focus {{ color: {p.accent}; }}
+ 
+Binary files orig/sorot-0.7.0/tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/ext_helpers.cpython-313.pyc and new/sorot-0.7.1/tests/__pycache__/ext_helpers.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/fake_rclone.cpython-313.pyc and new/sorot-0.7.1/tests/__pycache__/fake_rclone.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/fake_server.cpython-313.pyc and new/sorot-0.7.1/tests/__pycache__/fake_server.cpython-313.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_ai_service.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_ai_service.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_config.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_config.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_drive_service.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_drive_service.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_examples.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_examples.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_ext_discovery_install.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_ext_discovery_install.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_ext_host.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_ext_host.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_ext_manifest.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_ext_manifest.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_fileio.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_fileio.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_gui_extensions.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_gui_extensions.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_gui_integrations.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_gui_integrations.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_gui_overlay.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_gui_overlay.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_gui_window.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_gui_window.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_instance_crash.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_instance_crash.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_packaging.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_packaging.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_platform_info.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_platform_info.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_profiles.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_profiles.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_redact_logging.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_redact_logging.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_script_markup.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_script_markup.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_script_stats.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_script_stats.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_scripts.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_scripts.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_support.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_support.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_timeline.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_timeline.cpython-313-pytest-9.1.1.pyc differ
+Binary files orig/sorot-0.7.0/tests/__pycache__/test_upgrade.cpython-313-pytest-9.1.1.pyc and new/sorot-0.7.1/tests/__pycache__/test_upgrade.cpython-313-pytest-9.1.1.pyc differ
+diff -ruN orig/sorot-0.7.0/tests/conftest.py new/sorot-0.7.1/tests/conftest.py
+--- orig/sorot-0.7.0/tests/conftest.py	2026-11-01 15:47:17.813843228 +0700
++++ new/sorot-0.7.1/tests/conftest.py	2026-11-01 15:47:21.479155157 +0700
+@@ -2,7 +2,6 @@
+ from __future__ import annotations
+ 
+ import faulthandler
+-import gc
+ import os
+ import sys
+ from pathlib import Path
+@@ -40,7 +39,7 @@
+                 item.add_marker(skip)
+ 
+ 
+-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
++os.environ.setdefault("QT_QPA_PLATFORM", os.environ.get("SOROT_TEST_QPA", "offscreen"))
+ 
+ 
+ @pytest.fixture(autouse=True)
+@@ -51,25 +50,43 @@
+     faulthandler.cancel_dump_traceback_later()
+ 
+ 
+-@pytest.fixture(autouse=True)
+-def gui_thread_gc():
+-    """Mirror production: cycles are collected on the main thread, never inside a worker thread.
++def skip_without_wayland_seat() -> None:
++    """Keyboard focus and the clipboard need an input seat. A headless compositor (e.g. ``weston --backend=headless``)
++    has none, so those tests cannot say anything there; skip with the reason rather than fail."""
++    try:
++        from PySide6.QtGui import QGuiApplication, QInputDevice
++    except ImportError:
++        return
++    if QGuiApplication.platformName() == "wayland" and not any(d.type() == QInputDevice.DeviceType.Keyboard for d in QInputDevice.devices()):
++        pytest.skip("compositor Wayland tanpa seat (tidak ada keyboard): fokus dan clipboard tidak dapat diuji")
++
++
++@pytest.fixture(autouse=True, scope="session")
++def _main_thread_gc_for_gui_tests(request):
++    """GUI tests run with the same GC policy as the application (see sorot/gc_guard.py).
++
++    Without it a worker thread (extension discovery, ...) could run an automatic collection that traverses PySide
++    wrapper objects while the GUI thread deletes them: a rare, timing-dependent segfault that was seen on Wayland.
++    Created lazily so non-GUI test runs never need a QApplication."""
++    state: dict = {}
++
++    def ensure() -> None:
++        if "guard" in state:
++            return
++        qapp = request.getfixturevalue("qapp")
++        from sorot.gc_guard import MainThreadGC
+ 
+-    Declared autouse and without a qtbot dependency so it is set up first and torn down *last*,
+-    i.e. after pytest-qt has closed the test's widgets.
+-    """
+-    was_enabled = gc.isenabled()
+-    gc.disable()
++        state["guard"] = MainThreadGC(qapp)
++
++    request.session._ensure_main_thread_gc = ensure  # type: ignore[attr-defined]
+     yield
+-    try:
+-        from PySide6.QtCore import QCoreApplication, QEvent
++    guard = state.get("guard")
++    if guard is not None:
++        guard.stop()
+ 
+-        app = QCoreApplication.instance()
+-        if app is not None:
+-            app.sendPostedEvents(None, QEvent.Type.DeferredDelete.value)
+-            app.processEvents()
+-    except ImportError:
+-        pass
+-    gc.collect()
+-    if was_enabled:
+-        gc.enable()
++
++@pytest.fixture(autouse=True)
++def _install_main_thread_gc(request):
++    if request.node.get_closest_marker("gui") is not None:
++        request.session._ensure_main_thread_gc()  # type: ignore[attr-defined]
++    yield
+diff -ruN orig/sorot-0.7.0/tests/test_ai_service.py new/sorot-0.7.1/tests/test_ai_service.py
+--- orig/sorot-0.7.0/tests/test_ai_service.py	2026-11-01 15:47:17.814277245 +0700
++++ new/sorot-0.7.1/tests/test_ai_service.py	2026-11-01 15:47:21.479211705 +0700
+@@ -229,3 +229,19 @@
+     assert "uji singkat" in ai.test_connection(make_config(provider))
+     body = json.loads(provider.requests[-1]["body"])
+     assert body["messages"] == [{"role": "user", "content": "ping"}]
++
++
++# ---- regressions found by fuzzing (0.7.0)
++@pytest.mark.parametrize("url", ["http://[", "https://[::1", "http://[abc]x"])
++def test_malformed_base_urls_raise_a_friendly_config_error(url):
++    """urlparse raises a bare ValueError for these; the settings dialog validates on the UI thread and only catches AIError."""
++    with pytest.raises(AIError) as info:
++        ai.normalize_base_url(url)
++    assert info.value.kind is AIErrorKind.CONFIG
++
++
++@pytest.mark.parametrize("payload", [{"choices": {"a": 1}}, {"choices": {"0": {}}}, {"choices": [{"message": {"content": None}}]}])
++def test_unexpected_response_shapes_are_reported_as_invalid_response(payload):
++    with pytest.raises(AIError) as info:
++        ai.parse_chat_response(json.dumps(payload).encode())
++    assert info.value.kind is AIErrorKind.INVALID_RESPONSE
+diff -ruN orig/sorot-0.7.0/tests/test_config.py new/sorot-0.7.1/tests/test_config.py
+--- orig/sorot-0.7.0/tests/test_config.py	2026-11-01 15:47:17.814469352 +0700
++++ new/sorot-0.7.1/tests/test_config.py	2026-11-01 15:47:21.479512870 +0700
+@@ -160,3 +160,47 @@
+ def test_legacy_import_keeps_pixel_speed_semantics():
+     config, _ = migrate_legacy_values({"scroll_speed": 40})
+     assert config.speed_mode == "pps" and config.scroll_speed == 40
++
++
++# ---- regression (0.7.0): 1e999 / Infinity / huge integers raised OverflowError and crashed every start-up
++import pytest  # noqa: E402
++
++_HOSTILE_NUMBERS = ["1e999", "-1e999", "Infinity", "-Infinity", "NaN", "1" + "0" * 400]
++
++
++@pytest.mark.parametrize("literal", _HOSTILE_NUMBERS)
++def test_non_finite_and_huge_numbers_fall_back_to_defaults(literal):
++    data = json.loads(f'{{"font_size": {literal}, "margin": {literal}, "overlay_x": {literal}, "start_delay": {literal}}}')
++    config = AppConfig.from_dict(data)
++    defaults = AppConfig()
++    assert (config.font_size, config.margin, config.start_delay) == (defaults.font_size, defaults.margin, defaults.start_delay)
++    assert config.overlay_x is None or isinstance(config.overlay_x, int)
++
++
++@pytest.mark.parametrize("literal", ["1e999", "Infinity", "1" + "0" * 400])
++def test_a_hostile_config_file_does_not_stop_start_up(tmp_path, literal):
++    path = tmp_path / "config.json"
++    path.write_text(f'{{"schema_version": {SCHEMA_VERSION}, "font_size": {literal}, "wpm": {literal}}}', encoding="utf-8")
++    result = ConfigStore(path).load()
++    assert isinstance(result.config, AppConfig)
++
++
++def test_load_quarantines_a_config_that_raises_while_being_interpreted(tmp_path, monkeypatch):
++    """Defence in depth: whatever from_dict might still choke on, the app starts with defaults and keeps the old file."""
++    path = tmp_path / "config.json"
++    path.write_text(json.dumps({"schema_version": SCHEMA_VERSION, "font_size": 40}), encoding="utf-8")
++
++    def boom(_data):
++        raise RuntimeError("tak terduga")
++
++    monkeypatch.setattr(AppConfig, "from_dict", staticmethod(boom))
++    result = ConfigStore(path).load()
++    assert result.config == AppConfig() and any("tidak valid" in n for n in result.notices)
++    assert not path.exists() and list(tmp_path.glob("config.json.corrupt-*")), "berkas lama harus dikarantina, bukan hilang"
++
++
++def test_restore_backup_with_unusable_content_reports_false_instead_of_crashing(tmp_path, monkeypatch):
++    store = ConfigStore(tmp_path / "config.json")
++    store.backup_path.write_text('{"font_size": 40}', encoding="utf-8")
++    monkeypatch.setattr(AppConfig, "from_dict", staticmethod(lambda _d: (_ for _ in ()).throw(RuntimeError("x"))))
++    assert store.restore_backup() is False
+diff -ruN orig/sorot-0.7.0/tests/test_gc_guard.py new/sorot-0.7.1/tests/test_gc_guard.py
+--- orig/sorot-0.7.0/tests/test_gc_guard.py	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/tests/test_gc_guard.py	2026-11-01 15:47:21.481026845 +0700
+@@ -0,0 +1,119 @@
++"""Automatic GC must never run on a worker thread (rare PySide segfault; see sorot/gc_guard.py)."""
++from __future__ import annotations
++
++import gc
++import threading
++import weakref
++
++import pytest
++
++pytest.importorskip("PySide6")
++pytest.importorskip("pytestqt")
++
++pytestmark = pytest.mark.gui
++
++from sorot.gc_guard import MainThreadGC  # noqa: E402
++
++
++class Cyclic:
++    def __init__(self) -> None:
++        self.me = self
++
++
++@pytest.fixture()
++def guard(qapp):
++    instance = MainThreadGC(qapp, interval_ms=10)
++    yield instance
++    instance.stop()
++
++
++def test_automatic_collection_is_off_while_the_guard_is_installed(guard):
++    assert not gc.isenabled()
++
++
++def test_a_worker_thread_creating_garbage_triggers_no_automatic_collection(guard, qtbot):
++    before = sum(stat["collections"] for stat in gc.get_stats())
++    gc.set_threshold(10, 1, 1)  # would collect constantly if automatic GC were on
++    try:
++        def churn() -> None:
++            for _ in range(20000):
++                Cyclic()
++
++        worker = threading.Thread(target=churn)
++        worker.start()
++        worker.join()
++    finally:
++        gc.set_threshold(700, 10, 10)
++    assert sum(stat["collections"] for stat in gc.get_stats()) == before, "a worker thread ran a collection"
++
++
++def test_the_timer_collects_cyclic_garbage_on_the_main_thread(guard, qtbot):
++    seen_threads: list[int] = []
++    original = gc.collect
++
++    def spy(*args):
++        seen_threads.append(threading.get_ident())
++        return original(*args)
++
++    obj = Cyclic()
++    ref = weakref.ref(obj)
++    del obj
++    gc.collect = spy  # type: ignore[assignment]
++    try:
++        qtbot.waitUntil(lambda: ref() is None, timeout=2000)
++    finally:
++        gc.collect = original  # type: ignore[assignment]
++    assert seen_threads and set(seen_threads) == {threading.main_thread().ident}
++
++
++def test_collect_called_from_another_thread_is_refused_and_counted(guard):
++    results: list[int] = []
++    worker = threading.Thread(target=lambda: results.append(guard.collect()))
++    worker.start()
++    worker.join()
++    assert results == [0] and guard.collections_on_other_threads == 1
++
++
++def test_stop_hands_collection_back_to_python(qapp):
++    session_policy = gc.isenabled()  # the test session itself runs with the guard's policy (GC off)
++    gc.enable()
++    try:
++        instance = MainThreadGC(qapp, interval_ms=10)
++        assert not gc.isenabled()
++        instance.stop()
++        assert gc.isenabled()
++    finally:
++        if not session_policy:
++            gc.disable()
++
++
++def test_stop_leaves_gc_off_if_it_was_already_off(qapp):
++    gc.disable()
++    instance = MainThreadGC(qapp, interval_ms=10)
++    instance.stop()
++    assert not gc.isenabled()
++
++
++def test_the_real_application_start_up_installs_the_guard(tmp_path):
++    """app.main must put the guard in place before the event loop runs (checked in a subprocess with a no-op event loop)."""
++    import os
++    import subprocess
++    import sys
++    from pathlib import Path
++
++    script = (
++        "import gc, sys\n"
++        "from PySide6.QtWidgets import QApplication\n"
++        "from sorot.gc_guard import MainThreadGC\n"
++        "QApplication.exec = lambda self: print('GC_ENABLED=%s GUARDS=%d' % (gc.isenabled(), len(self.findChildren(MainThreadGC)))) or 0\n"
++        "from sorot import app\n"
++        "raise SystemExit(app.main(['--allow-multiple']))\n"
++    )
++    home = tmp_path / "appdata"  # the autouse isolated_home fixture already owns tmp_path/home
++    home.mkdir()
++    env = {**os.environ, "HOME": str(home), "XDG_CONFIG_HOME": str(home / "c"), "XDG_DATA_HOME": str(home / "d"),
++           "XDG_STATE_HOME": str(home / "s"), "QT_QPA_PLATFORM": "offscreen"}
++    src = Path(__file__).resolve().parents[1] / "src"
++    run = subprocess.run([sys.executable, "-I", "-c", f"import sys; sys.path.insert(0, {str(src)!r})\n" + script],
++                         capture_output=True, text=True, env=env, timeout=60)
++    assert "GC_ENABLED=False GUARDS=1" in run.stdout, run.stdout + run.stderr
+diff -ruN orig/sorot-0.7.0/tests/test_gui_integrations.py new/sorot-0.7.1/tests/test_gui_integrations.py
+--- orig/sorot-0.7.0/tests/test_gui_integrations.py	2026-11-01 15:47:17.815339843 +0700
++++ new/sorot-0.7.1/tests/test_gui_integrations.py	2026-11-01 15:47:21.480049755 +0700
+@@ -13,6 +13,7 @@
+ pytest.importorskip("PySide6")
+ pytest.importorskip("pytestqt")
+ 
++from conftest import skip_without_wayland_seat  # noqa: E402
+ from fake_rclone import install_fake_rclone  # noqa: E402
+ from fake_server import FakeProvider, chat_reply  # noqa: E402
+ from PySide6.QtCore import QTimer  # noqa: E402
+@@ -366,6 +367,7 @@
+ 
+ # --------------------------------------------------------------------- support
+ def test_support_dialog_copies_and_opens_only_on_click(qtbot, monkeypatch):
++    skip_without_wayland_seat()
+     from PySide6.QtGui import QDesktopServices, QGuiApplication
+ 
+     from sorot.ui.dialogs import SupportDialog
+@@ -386,6 +388,7 @@
+ 
+ 
+ def test_about_dialog_contact_is_copied_and_mailed_only_on_click(qtbot, monkeypatch):
++    skip_without_wayland_seat()
+     from PySide6.QtGui import QDesktopServices, QGuiApplication
+ 
+     from sorot.ui.dialogs import AboutDialog
+diff -ruN orig/sorot-0.7.0/tests/test_gui_overlay.py new/sorot-0.7.1/tests/test_gui_overlay.py
+--- orig/sorot-0.7.0/tests/test_gui_overlay.py	2026-11-01 15:47:17.815443525 +0700
++++ new/sorot-0.7.1/tests/test_gui_overlay.py	2026-11-01 15:47:21.480111826 +0700
+@@ -229,6 +229,49 @@
+     assert o.text_view.graphicsEffect() is None and o.countdown_label.graphicsEffect() is None
+ 
+ 
++def _hflip(image):
++    """Horizontal mirror of a QImage: ``flipped`` exists from Qt 6.9, ``mirrored`` (deprecated later) before that."""
++    from PySide6.QtCore import Qt
++
++    return image.flipped(Qt.Orientation.Horizontal) if hasattr(image, "flipped") else image.mirrored(True, False)
++
++
++def _lightness_error(a, b) -> float:
++    total = sum(abs(a.pixelColor(x, y).lightness() - b.pixelColor(x, y).lightness()) for y in range(a.height()) for x in range(a.width()))
++    return total / (a.width() * a.height())
++
++
++def test_mirror_effect_really_paints_a_pixel_exact_horizontal_flip(qtbot):
++    """Regression (0.7.0): FlipEffect.draw unpacked a tuple that PySide6 never returns, so the first paint raised TypeError."""
++    from PySide6.QtWidgets import QLabel
++
++    from sorot.ui import appearance
++
++    label = QLabel("ABCDEFG")
++    label.setStyleSheet("background: white; color: black; font-size: 36px;")
++    label.resize(300, 80)
++    qtbot.addWidget(label)
++    label.show()
++    plain = label.grab().toImage()
++    appearance.set_mirrored(label, True)
++    flipped = label.grab().toImage()  # raised TypeError in 0.7.0
++    assert flipped.size() == plain.size()
++    assert _lightness_error(_hflip(plain), flipped) == 0
++    assert _lightness_error(plain, flipped) > 1, "the picture must actually have changed"
++    appearance.set_mirrored(label, False)
++    assert _lightness_error(plain, label.grab().toImage()) == 0, "removing the effect restores the original"
++
++
++def test_overlay_text_is_really_mirrored_when_mirror_mode_is_on(qtbot):
++    o = make_overlay(qtbot, "Teks cermin untuk beam-splitter")
++    o.show()
++    qtbot.waitExposed(o)
++    plain = o.text_view.grab().toImage()
++    o.set_appearance(mirror=True)
++    mirrored = o.text_view.grab().toImage()
++    assert _lightness_error(_hflip(plain), mirrored) < 1.0
++
++
+ def test_line_spacing_makes_the_document_taller_and_keeps_the_timeline_valid(qtbot):
+     o = make_overlay(qtbot)
+     o.set_appearance(line_spacing=100)
+@@ -274,3 +317,13 @@
+     assert o.countdown_label.text() == "2"
+     o.hide_countdown()
+     assert not o.countdown_label.isVisible() and o.countdown_label.text() == ""
++
++
++def test_countdown_digit_sits_on_a_backdrop_in_the_overlay_colour(qtbot):
++    """Regression (0.7.0): the digit was drawn straight over the script text and collided with the letters."""
++    o = make_overlay(qtbot)
++    o.set_appearance(background_color="#102030", text_color="#FFFFFF")
++    sheet = o.countdown_label.styleSheet()
++    assert "rgba(16, 32, 48, 235)" in sheet and "transparent" not in sheet
++    o.show_countdown(3)
++    assert o.countdown_label.geometry() == o.text_view.geometry() and o.countdown_label.isVisible()
+diff -ruN orig/sorot-0.7.0/tests/test_gui_theme.py new/sorot-0.7.1/tests/test_gui_theme.py
+--- orig/sorot-0.7.0/tests/test_gui_theme.py	1970-01-01 07:00:00.000000000 +0700
++++ new/sorot-0.7.1/tests/test_gui_theme.py	2026-11-01 15:47:21.480904754 +0700
+@@ -0,0 +1,90 @@
++"""Theme assets: the checkbox tick must not depend on an optional Qt image plugin."""
++from __future__ import annotations
++
++import os
++import shutil
++import subprocess
++import sys
++from pathlib import Path
++
++import pytest
++
++pytest.importorskip("PySide6")
++
++pytestmark = pytest.mark.gui
++
++ROOT = Path(__file__).resolve().parents[1]
++ASSETS = ROOT / "src" / "sorot" / "ui" / "assets"
++
++_PROBE = """
++import re, sys
++from PySide6.QtCore import QCoreApplication
++from PySide6.QtGui import QImageReader
++from PySide6.QtWidgets import QApplication, QCheckBox
++sys.path.insert(0, sys.argv[2])
++QCoreApplication.setLibraryPaths([sys.argv[1]])
++app = QApplication([])
++from sorot.ui import theme
++assert b"svg" not in QImageReader.supportedImageFormats(), "the SVG plugin should be absent in this probe"
++palette = theme.LIGHT if sys.argv[3] == "light" else theme.DARK
++
++
++def render(sheet):
++    app.setStyleSheet(sheet)
++    box = QCheckBox()
++    box.setChecked(True)
++    box.resize(30, 30)
++    box.show()
++    app.processEvents()
++    image = box.grab().toImage()
++    box.close()
++    return image
++
++
++full = theme.build_stylesheet(palette)
++assert "image: url(" in full
++bare = re.sub(r"image: url\\([^)]*\\);", "", full)
++with_tick, without_tick = render(full), render(bare)
++print(sum(1 for y in range(30) for x in range(30) if with_tick.pixel(x, y) != without_tick.pixel(x, y)))
++"""
++
++
++def _plugins_without_svg(tmp_path: Path) -> Path:
++    import PySide6
++
++    source = Path(PySide6.__file__).parent / "Qt" / "plugins"
++    if not (source / "imageformats").is_dir() or not (source / "platforms").is_dir():
++        pytest.skip("PySide6 de distro memakai tata letak plugin lain; pengujian tanpa plugin SVG dilewati")
++    target = tmp_path / "plugins"
++    (target / "imageformats").mkdir(parents=True)
++    for plugin in (source / "imageformats").iterdir():
++        if "svg" not in plugin.name.lower():
++            shutil.copy2(plugin, target / "imageformats" / plugin.name)
++    shutil.copytree(source / "platforms", target / "platforms")
++    return target
++
++
++@pytest.mark.parametrize("tone", ["dark", "light"])
++def test_checked_box_shows_its_tick_even_without_the_qt_svg_plugin(tmp_path, tone):
++    """Regression (0.7.0): the tick was an SVG; without libqsvg it vanished and a checked box looked like a plain filled square."""
++    plugins = _plugins_without_svg(tmp_path)
++    env = {**os.environ, "QT_QPA_PLATFORM": "offscreen"}
++    run = subprocess.run([sys.executable, "-I", "-c", _PROBE, str(plugins), str(ROOT / "src"), tone], capture_output=True, text=True, env=env, timeout=60)
++    assert run.returncode == 0, run.stderr
++    tick_pixels = int(run.stdout.strip().splitlines()[-1])
++    # Pixels that differ between the full style sheet and the same sheet without its ``image:`` rule are the tick itself.
++    assert tick_pixels > 10, f"tanda centang tidak tergambar ({tick_pixels} piksel)"
++
++
++def test_theme_icons_are_png_and_have_hidpi_variants():
++    from PySide6.QtGui import QImage
++
++    from sorot.ui import theme
++
++    for palette in (theme.DARK, theme.LIGHT):
++        path = Path(theme._check_icon(palette))
++        assert path.suffix == ".png" and path.is_file()
++        one, two = QImage(str(path)), QImage(str(path.with_name(path.stem + "@2x.png")))
++        assert not one.isNull() and not two.isNull()
++        assert (two.width(), two.height()) == (one.width() * 2, one.height() * 2)
++    assert 'url("' in theme.build_stylesheet(theme.DARK) and ".svg" not in theme.build_stylesheet(theme.DARK)
+diff -ruN orig/sorot-0.7.0/tests/test_gui_window.py new/sorot-0.7.1/tests/test_gui_window.py
+--- orig/sorot-0.7.0/tests/test_gui_window.py	2026-11-01 15:47:17.987354536 +0700
++++ new/sorot-0.7.1/tests/test_gui_window.py	2026-11-01 15:47:21.480170129 +0700
+@@ -14,6 +14,7 @@
+ pytest.importorskip("PySide6")
+ pytest.importorskip("pytestqt")
+ 
++from conftest import skip_without_wayland_seat  # noqa: E402
+ from PySide6.QtCore import QRect, Qt, QTimer  # noqa: E402
+ from PySide6.QtTest import QTest  # noqa: E402
+ from PySide6.QtWidgets import QApplication, QFileDialog, QMessageBox, QPushButton  # noqa: E402
+@@ -29,7 +30,8 @@
+ 
+ def make_window(qtbot, **kwargs) -> MainWindow:
+     window = MainWindow(ConfigStore(), DraftStore(), ScriptLibrary(), **kwargs)
+-    qtbot.addWidget(window)
++    # A window with typed text asks "discard changes?" on close; unanswered, that modal dialog hangs teardown.
++    qtbot.addWidget(window, before_close_func=lambda w: w.editor.document().setModified(False))
+     window.show()
+     qtbot.waitExposed(window)
+     return window
+@@ -39,6 +41,14 @@
+     window.editor.insertPlainText(text)  # unlike setPlainText this marks the document modified
+ 
+ 
++def choose_profile(window: MainWindow, name: str) -> None:
++    """Pick a profile like a user does: change the combo, then the ``activated`` signal fires the handler."""
++    index = window.profile_combo.findData(name)
++    assert index > 0, f"profil {name!r} tidak ada"
++    window.profile_combo.setCurrentIndex(index)
++    window.profile_combo.activated.emit(index)
++
++
+ def click_dialog_button(label: str, delay: int = 60) -> None:
+     """Press a button on whichever modal dialog appears next."""
+ 
+@@ -114,6 +124,18 @@
+ def test_user_move_and_resize_are_remembered(qtbot):
+     window = make_window(qtbot)
+     window.show_overlay()
++    from PySide6.QtGui import QGuiApplication
++
++    if QGuiApplication.platformName() == "wayland":
++        # A Wayland client cannot place or even read its own position: only the size is remembered and the
++        # position preset is left alone (the Tampilan page says so under "Jendela overlay").
++        before = window.config.position
++        window.overlay.setGeometry(QRect(70, 80, 640, 210))
++        qtbot.waitUntil(lambda: window.config.overlay_width == 640, timeout=3000)
++        assert (window.config.overlay_width, window.config.overlay_height) == (640, 210)
++        assert window.config.position == before and window.config.overlay_x is None
++        window.close()
++        return
+     window.overlay.setGeometry(QRect(70, 80, 640, 210))
+     qtbot.waitUntil(lambda: window.config.position == "manual", timeout=3000)
+     assert (window.config.overlay_x, window.config.overlay_y) == (70, 80)
+@@ -348,6 +370,7 @@
+ 
+ 
+ def test_default_keyboard_shortcuts_work_with_editor_focused(qtbot):
++    skip_without_wayland_seat()
+     window = make_window(qtbot)
+     window.editor.setFocus()
+     qtbot.waitUntil(window.editor.hasFocus, timeout=2000)
+@@ -364,6 +387,7 @@
+ 
+ 
+ def test_custom_shortcut_is_applied_and_persisted(qtbot):
++    skip_without_wayland_seat()
+     window = make_window(qtbot)
+     window.config.shortcuts["hide_overlay"] = "Ctrl+Shift+H"
+     window._apply_shortcuts()
+@@ -506,8 +530,7 @@
+     w = make_window(qtbot)
+     index = w.profile_combo.findData("Rig cermin")
+     assert index > 0
+-    w.profile_combo.setCurrentIndex(index)
+-    w._on_profile_chosen(index)
++    choose_profile(w, "Rig cermin")
+     assert w.config.mirror is True and w.config.profile == "Rig cermin" and w.config.start_delay == 3
+     assert w.mirror_check.isChecked() and w.delay_spin.value() == 3 and w.font_spin.value() == 48
+     assert w.overlay.text_view.graphicsEffect() is not None
+@@ -519,13 +542,15 @@
+     w.width_spin.setValue(900)
+     w.aot_check.setChecked(False)
+     w.wpm_spin.setValue(111)
+-    w._on_profile_chosen(w.profile_combo.findData("Kontras tinggi"))
++    before = (w.config.text_color, w.config.background_color)
++    choose_profile(w, "Kontras tinggi")
++    assert (w.config.text_color, w.config.background_color) != before, "the profile must really have been applied"
+     assert (w.config.overlay_width, w.config.always_on_top, w.config.wpm) == (900, False, 111)
+ 
+ 
+ def test_editing_a_setting_moves_the_combo_to_custom_and_back(qtbot):
+     w = make_window(qtbot)
+-    w._on_profile_chosen(w.profile_combo.findData("Kertas terang"))
++    choose_profile(w, "Kertas terang")
+     assert w.profile_combo.currentData() == "Kertas terang"
+     size = w.font_spin.value()  # font_size is listed by the profile, so changing it must leave the profile
+     w.font_spin.setValue(size + 2)
+@@ -595,3 +620,30 @@
+     assert w.countdown_timer.isActive()
+     w.hide_overlay()
+     assert not w.countdown_timer.isActive() and not w.overlay.countdown_label.isVisible()
++
++
++def test_no_page_scrolls_sideways_at_the_default_window_size(qtbot):
++    """Regression (0.7.0): the Tampilan page needed ~1000 px, so the default 1100 px window opened with a horizontal scrollbar."""
++    from PySide6.QtWidgets import QScrollArea
++
++    w = make_window(qtbot)
++    w.resize(w.config.window_width, w.config.window_height)
++    for index in range(w.pages.count()):
++        w.pages.setCurrentIndex(index)
++        qtbot.wait(30)
++        page = w.pages.currentWidget()
++        areas = [page] if isinstance(page, QScrollArea) else page.findChildren(QScrollArea)
++        for area in areas:
++            assert area.horizontalScrollBar().maximum() == 0, f"halaman {index} ({w.nav_buttons[index].text()}) bergulir ke samping"
++
++
++def test_the_requested_qt_platform_is_really_the_one_in_use(qtbot):
++    """Guards the CI job that sets SOROT_TEST_QPA=xcb: without this it could silently run on offscreen."""
++    import os
++
++    from PySide6.QtGui import QGuiApplication
++
++    wanted = os.environ.get("SOROT_TEST_QPA")
++    if not wanted:
++        pytest.skip("SOROT_TEST_QPA tidak diatur")
++    assert QGuiApplication.platformName() == wanted
+diff -ruN orig/sorot-0.7.0/tests/test_packaging.py new/sorot-0.7.1/tests/test_packaging.py
+--- orig/sorot-0.7.0/tests/test_packaging.py	2026-11-01 15:47:17.815692385 +0700
++++ new/sorot-0.7.1/tests/test_packaging.py	2026-11-01 15:47:21.480959827 +0700
+@@ -67,8 +67,9 @@
+     ("README.md", f"sorot_{VER}_all.deb", f"sorot_{OLDER}_all.deb", "README.md"),
+     ("packaging/sorot.1", '"@DATE@" "@VERSION@"', '"2026-10-26" "0.6.0"', "sorot.1"),
+     ("packaging/arch/PKGBUILD.in", "pkgver=@VERSION@", f"pkgver={VER}", "PKGBUILD.in"),
+-    ("pyproject.toml", '"sorot.ui" = ["assets/*.svg"]', '"sorot.ui" = []', "package-data"),
+-    ("CHANGELOG.md", "### Ditambahkan", "### Ditambahkan\n- TODO: nanti", "TODO"),
++    ("pyproject.toml", '"sorot.ui" = ["assets/*.png"]', '"sorot.ui" = []', "package-data"),
++    # Anchored on the top entry's own heading, which always exists (a section name like "### Ditambahkan" may not).
++    ("CHANGELOG.md", f"## [{VER} Beta] — {DATE}\n", f"## [{VER} Beta] — {DATE}\n\n- TODO: nanti\n", "TODO"),
+ ])
+ def test_each_kind_of_drift_is_caught(tmp_path, rel, old, new, expect):
+     release = _load_release()
+@@ -88,8 +89,8 @@
+ def test_an_unlisted_asset_type_is_caught(tmp_path):
+     release = _load_release()
+     tree = _copy_tree(tmp_path)
+-    (tree / "src/sorot/ui/assets/ikon.png").write_bytes(b"\x89PNG")
+-    assert any("ikon.png" in problem for problem in release.check(tree))
++    (tree / "src/sorot/ui/assets/ikon.bmp").write_bytes(b"BM")
++    assert any("ikon.bmp" in problem for problem in release.check(tree))
+ 
+ 
+ def test_bump_updates_every_mechanical_place_and_check_demands_the_changelog(tmp_path):
+@@ -223,7 +224,9 @@
+     for path in (tmp_path / "pkg").rglob("*"):
+         if path.is_file():
+             assert path.stat().st_mode & 0o777 == 0o644, f"{path}: izin tidak sesuai"
+-    assert {p.name for p in tmp_path.iterdir()} == {"pkg"}, "tidak boleh menulis di luar DESTDIR"
++    # ``home`` is the conftest's isolated HOME; the script must neither add siblings nor write into that HOME.
++    assert {p.name for p in tmp_path.iterdir()} - {"home"} == {"pkg"}, "tidak boleh menulis di luar DESTDIR"
++    assert not any((tmp_path / "home").rglob("*")), "tidak boleh menulis ke HOME"
+ 
+ 
+ def test_install_files_honours_a_custom_prefix_and_rejects_bad_arguments(tmp_path):
+@@ -257,7 +260,7 @@
+         names = archive.namelist()
+         entry = archive.read(next(n for n in names if n.endswith("entry_points.txt"))).decode()
+         metadata = archive.read(next(n for n in names if n.endswith("METADATA"))).decode()
+-    assert "sorot/ui/assets/check-dark.svg" in names and "sorot/ui/assets/check-light.svg" in names
++    assert {f"sorot/ui/assets/check-{tone}{scale}.png" for tone in ("dark", "light") for scale in ("", "@2x")} <= set(names)
+     assert "sorot/core/upgrade.py" in names
+     assert "sorot = sorot.app:main" in entry
+     assert CONTACT in metadata and "License: MIT" in metadata
+@@ -285,7 +288,7 @@
+     assert f"Version: {sorot.__version__}" in control and f"Maintainer: Muhammad Andreatama <{CONTACT}>" in control
+     assert ".invalid" not in control
+     listing = subprocess.run(["dpkg-deb", "-c", str(deb_a)], capture_output=True, text=True, check=True).stdout
+-    for needed in ("usr/lib/sorot/sorot/core/upgrade.py", "usr/lib/sorot/sorot/ui/assets/check-dark.svg", "usr/bin/sorot",
++    for needed in ("usr/lib/sorot/sorot/core/upgrade.py", "usr/lib/sorot/sorot/ui/assets/check-dark.png", "usr/lib/sorot/sorot/ui/assets/check-light@2x.png", "usr/bin/sorot",
+                    "usr/share/doc/sorot/copyright", "usr/share/doc/sorot/changelog.gz", "usr/share/man/man1/sorot.1.gz",
+                    "usr/share/doc/sorot/docs/UPGRADING.md"):
+         assert needed in listing, needed
+diff -ruN orig/sorot-0.7.0/tests/test_profiles.py new/sorot-0.7.1/tests/test_profiles.py
+--- orig/sorot-0.7.0/tests/test_profiles.py	2026-11-01 15:47:17.816007873 +0700
++++ new/sorot-0.7.1/tests/test_profiles.py	2026-11-01 15:47:21.480351350 +0700
+@@ -254,3 +254,21 @@
+     huge = '{"sorot_profile": 1, "name": "x", "values": {"font_size": 30}, "x": "' + "a" * profiles.MAX_PROFILE_BYTES + '"}'
+     with pytest.raises(ProfileError, match="terlalu besar"):
+         profiles.loads(huge)
++
++
++@pytest.mark.parametrize("literal", ["1e999", "Infinity", "-Infinity", "NaN", "1" + "0" * 400])
++def test_profile_with_non_finite_numbers_loads_as_defaults_or_is_rejected_cleanly(literal):
++    """Regression (0.7.0): the validator raised OverflowError, which neither the CLI nor the GUI import dialog catches."""
++    text = f'{{"sorot_profile": 1, "name": "Aneh", "values": {{"font_size": {literal}, "start_delay": {literal}}}}}'
++    try:
++        profile = profiles.loads(text)
++    except ProfileError:
++        return
++    assert 12 <= profile.values.get("font_size", 40) <= 120
++
++
++def test_cli_import_of_a_hostile_profile_never_crashes(tmp_path, capsys):
++    path = tmp_path / "jahat.json"
++    path.write_text('{"sorot_profile": 1, "name": "Jahat", "values": {"font_size": 1e999, "margin": Infinity}}', encoding="utf-8")
++    code = main(["--import-profile", str(path)])
++    assert code in (0, 1, 2)  # a clean exit code either way, no traceback
