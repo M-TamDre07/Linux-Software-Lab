@@ -1,7 +1,7 @@
 """Background task helpers for long-running desktop operations."""
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from PySide6.QtCore import QObject, QRunnable, Signal, Slot
 
