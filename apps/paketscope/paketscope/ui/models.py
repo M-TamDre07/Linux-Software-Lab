@@ -1,7 +1,13 @@
 """Qt table models for the installed-application inventory."""
 from __future__ import annotations
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QObject, QSortFilterProxyModel, Qt
+from PySide6.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    QObject,
+    QSortFilterProxyModel,
+    Qt,
+)
 
 from ..domain import InstalledApplication
 from .theme import COLUMNS
