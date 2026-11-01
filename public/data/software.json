@@ -51,7 +51,7 @@
       ],
       "detailUrl": "/software/paketscope.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
-      "releaseUrl": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb",
+      "releaseUrl": ""
       "icon": "package",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
