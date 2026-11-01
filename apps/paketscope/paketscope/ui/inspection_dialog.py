@@ -2,17 +2,29 @@
 from __future__ import annotations
 
 import json
-from typing import Callable
+from collections.abc import Callable
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
-    QDialog, QFileDialog, QHBoxLayout, QLabel, QMessageBox, QPushButton,
-    QPlainTextEdit, QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout,
+    QDialog,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QVBoxLayout,
     QWidget,
 )
 
 from ..code_inspector import (
-    CodeFileAnalysis, CodeInspectionReport, inspect_code_path, read_inspected_source,
+    CodeFileAnalysis,
+    CodeInspectionReport,
+    inspect_code_path,
+    read_inspected_source,
 )
 from ..system_inspector import (
     collect_system_snapshot,
