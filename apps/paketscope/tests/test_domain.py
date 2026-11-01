@@ -1,4 +1,4 @@
-from paketscope.domain import parse_dpkg_output, parse_flatpak_output, InventorySnapshot
+from paketscope.domain import InventorySnapshot, parse_dpkg_output, parse_flatpak_output
 
 
 def test_parse_dpkg_only_keeps_installed_rows():
