@@ -5,16 +5,16 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-10-25"
+    "updatedAt": "2026-11-01"
   },
   "software": [
     {
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "3.0.0.dev4",
-      "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
-      "description": "PaketScope 3 sedang diuji sebagai aplikasi desktop native berbasis Qt. Pengguna dapat memeriksa jenis, deskripsi fungsi, metadata, dan asal yang diketahui untuk paket APT/Flatpak; asal APT hanya menunjukkan repositori lokal yang saat ini menyediakan versi yang sama, bukan bukti historis instalasi. Perubahan paket APT memerlukan tinjauan dan autentikasi, sementara Flatpak masih read-only. System & Code Lab menyediakan snapshot Linux, viewer source lokal, dan petunjuk analisis statis. Sumber inventaris tambahan dapat dikembangkan melalui kontrak provider eksplisit; plugin pihak ketiga tidak dimuat otomatis.",
+      "version": "3.0.0.dev5",
+      "summary": "Inventaris software Linux native dengan detail paket, operasi APT terjaga, ekspor terenkripsi, dan System & Code Lab; pratinjau dev5 untuk Debian 13.",
+      "description": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan aplikasi desktop native berbasis Qt. Inventaris APT/dpkg dan Flatpak, detail metadata dan sumber, operasi APT dengan simulasi serta otorisasi, ekspor CSV, cadangan terenkripsi, System & Code Lab, dan Code Inspector. Flatpak tetap read-only. Pengujian tercatat dilakukan pada Ubuntu 24.04; belum ada instalasi nyata di Debian 13 atau pengujian interaksi GUI/Polkit pada desktop nyata. Kompatibilitas yang dituju terbatas pada Debian 13 dan belum boleh dianggap tervalidasi penuh.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
@@ -51,12 +51,12 @@
       ],
       "detailUrl": "/software/paketscope.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
-      "releaseUrl": "",
+      "releaseUrl": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb",
       "icon": "package",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-24"
+      "updatedAt": "2026-11-01"
     },
     {
       "id": "sorot",
