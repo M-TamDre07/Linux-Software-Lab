@@ -50,6 +50,7 @@ class ApplicationDetails:
     priority: str = ""
     essential: str = ""
     architecture: str = ""
+    branch: str = ""
     installation: str = ""
     launchers: tuple[DesktopLauncher, ...] = ()
     runtime: str = ""
@@ -358,6 +359,7 @@ def _flatpak_details(application: InstalledApplication) -> ApplicationDetails:
         ),
         description=application.description,
         architecture=architecture,
+        branch=branch,
         installation=application.installation,
         runtime=_flatpak_value(app_id, "--show-runtime"),
         commit=commit,
