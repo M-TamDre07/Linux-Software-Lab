@@ -17,6 +17,7 @@ def test_normal_values_are_not_modified():
 
 import os
 import stat
+
 import pytest
 
 
