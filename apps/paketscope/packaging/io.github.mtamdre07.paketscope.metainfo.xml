@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.mtamdre07.paketscope</id>
+  <launchable type="desktop-id">paketscope.desktop</launchable>
+  <name>PaketScope</name>
+  <summary>Inspect and manage installed Linux applications</summary>
+  <developer id="io.github.mtamdre07">
+    <name>Muhammad Andreatama</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>PaketScope gives you a searchable view of applications installed on a Debian-family desktop, from APT/dpkg and Flatpak.</p>
+    <p>Package changes go through APT itself: every install, remove, or purge is simulated first, shown to you for confirmation, and re-simulated before it runs. It never runs a bulk upgrade or autoremove.</p>
+    <p>This is a development preview (3.0.0~dev4). It is currently validated for Debian 13 only.</p>
+  </description>
+  <categories>
+    <category>System</category>
+    <category>PackageManager</category>
+  </categories>
+  <url type="homepage">https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope</url>
+  <url type="bugtracker">https://github.com/M-TamDre07/Linux-Software-Lab/issues</url>
+  <url type="vcs-browser">https://github.com/M-TamDre07/Linux-Software-Lab</url>
+  <releases>
+    <release version="3.0.0~dev5" date="2026-11-01" type="development">
+      <description>
+        <p>Adds AppStream metadata and the developer profile shown by software centers. Exposes the Flatpak branch in details; no other behaviour change.</p>
+      </description>
+    </release>
+    <release version="3.0.0~dev4" date="2026-10-24" type="development">
+      <description>
+        <p>Development preview: APT/dpkg and Flatpak inventory, confirmed APT install, remove, and purge.</p>
+      </description>
+    </release>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>
