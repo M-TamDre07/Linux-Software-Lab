@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from PySide6.QtCore import QObject, QRunnable, QSize, Qt, QThreadPool, QUrl, Signal, Slot
+    from PySide6.QtCore import QObject, QRunnable, QSize, Qt, QThreadPool, QTimer, QUrl, Signal, Slot
     from PySide6.QtGui import QDesktopServices, QIcon
     from PySide6.QtWidgets import (
         QApplication,
@@ -155,6 +155,13 @@ class MainWindow(QMainWindow):
         )
         if self.app_list.count():
             self.app_list.setCurrentRow(0)
+
+        # Refresh metadata only; package installation and OS upgrades remain explicit user actions.
+        QTimer.singleShot(1500, self._refresh_catalog_automatically)
+        self.auto_refresh_timer = QTimer(self)
+        self.auto_refresh_timer.setInterval(15 * 60 * 1000)
+        self.auto_refresh_timer.timeout.connect(self._refresh_catalog_automatically)
+        self.auto_refresh_timer.start()
 
     def _build_ui(self) -> None:
         root = QWidget()
@@ -560,6 +567,29 @@ class MainWindow(QMainWindow):
         self._set_busy(False, "Operasi gagal. Tidak ada klaim keberhasilan yang dibuat.")
         if callback:
             callback(error)
+
+    def _refresh_catalog_automatically(self) -> None:
+        """Refresh only signed-off catalogue metadata; never install or upgrade packages."""
+        if self._busy:
+            return
+
+        def succeeded(snapshot: CatalogSnapshot) -> None:
+            self.snapshot = snapshot
+            # Keep the selected application when its catalogue entry still exists.
+            self._populate_list()
+            self._set_status(
+                f"Metadata diperiksa otomatis · {snapshot.updated_at} · "
+                f"{len(snapshot.applications)} aplikasi · {snapshot.data_source}"
+            )
+
+        self._run_task(
+            "Pemeriksaan metadata otomatis",
+            self.service.refresh,
+            succeeded,
+            lambda _error: self._set_status(
+                "Pemeriksaan metadata otomatis gagal; snapshot lokal terakhir tetap digunakan."
+            ),
+        )
 
     def _refresh_catalog(self) -> None:
         def succeeded(snapshot: CatalogSnapshot) -> None:
