@@ -147,6 +147,10 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("trustedManifestUrl", renderer)
         self.assertIn("boundedDistance", search)
         self.assertIn("SYNONYMS", search)
+        self.assertIn("exportFilteredCatalog", renderer)
+        self.assertIn("copyCurrentFilters", renderer)
+        self.assertIn("csvValue", renderer)
+        self.assertIn("application/json;charset=utf-8", renderer)
         self.assertIn("menggunakan data statis website", renderer)
         self.assertIn("Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.", renderer)
 
