@@ -19,4 +19,137 @@
 │   ├── software/
 │   │   ├── index.html            # Direktori software lengkap
 │   │   └── <slug>.html           # Halaman detail tiap aplikasi
-ⶻ�q�^
+│   ├── robots.txt
+│   ├── sitemap.xml
+│   └── google505d5a75f881baa2.html
+├── apps/
+│   ├── README.md                 # Pedoman folder per aplikasi
+│   ├── paketscope/               # Source desktop native; bukan direktori website
+│   ├── software-center/          # Launcher GUI + CLI preview, berbagi core katalog dan installer
+│   └── sorot/         # Teleprompter desktop; source, paket, dan arsip rilis per versi
+├── scripts/                      # Validator katalog dan pemeriksaan website
+├── templates/application/         # Kontrak scaffold lintas aplikasi, tanpa runtime palsu
+├── tests/                        # Tes regresi metadata, link, dan sitemap
+├── docs/                         # Arsitektur, struktur software, rilis, deployment
+├── .github/workflows/            # Pemeriksaan otomatis
+└── vercel.json                   # Konfigurasi output dan header keamanan
+~~~
+
+## Identitas dan pencarian
+
+- **Nama utama:** LISO LAB
+- **Nama lengkap / alias:** Linux Software Lab
+- **Keterangan:** LISO adalah singkatan dari Linux Software Lab, bukan proyek atau repositori baru.
+- **Domain dan repository:** tetap menggunakan alamat yang sudah ada.
+- **SEO:** metadata halaman, structured data, judul, dan deskripsi mencantumkan LISO LAB serta Linux Software Lab secara natural. Ini membantu mesin pencari memahami kedua nama, tetapi tidak menjamin posisi atau waktu pengindeksan.
+- **Logo:** ikon penguin LISO LAB tersedia di `public/assets/images/linux-software-lab.svg`; gunakan satu aset bersama agar favicon dan identitas website konsisten.
+
+## Menjalankan website secara lokal
+
+~~~bash
+python3 -m http.server 8000 --directory public
+~~~
+
+Buka http://localhost:8000 untuk halaman utama, http://localhost:8000/software/ untuk direktori pencarian, dan http://localhost:8000/launcher/ untuk portal Linux Software Lab Center.
+
+## Pemeriksaan sebelum merge
+
+Jalankan perintah berikut dari root repository:
+
+~~~bash
+python scripts/validate_catalog.py
+python scripts/check_site_links.py
+python scripts/check_docs_links.py
+python scripts/validate_app_manifest.py
+node --check public/assets/js/catalog-contract.js
+node --check public/assets/js/site.js
+node --test tests/test_catalog_contract.cjs
+python -m json.tool public/data/software.json > /dev/null
+python -m json.tool public/data/software.schema.json > /dev/null
+python -m json.tool vercel.json > /dev/null
+python -m unittest discover -s tests -v
+~~~
+
+GitHub Actions mengulang pemeriksaan katalog, tautan HTML/aset, canonical URL, sitemap, sintaks JavaScript, JSON, dan tes regresi pada perubahan terkait website. Kontrak runtime `public/assets/js/catalog-contract.js` memvalidasi data mirror dan JSON fallback sebelum katalog dirender. Audit lintas layanan baca-saja dapat dijalankan dengan `python scripts/check_live_integrations.py`; perintah ini mengakses endpoint publik produksi tetapi tidak mengubah database atau deployment. Workflow `Live integration integrity` juga berjalan terjadwal dan bisa dijalankan manual.
+
+## Menambahkan software
+
+1. Tambahkan metadata lengkap ke public/data/software.json.
+2. Buat public/software/<slug>.html untuk halaman detail.
+3. Simpan ikon dan ilustrasi di public/assets/images/.
+4. Perbarui public/sitemap.xml dengan URL canonical halaman baru.
+5. Jalankan seluruh pemeriksaan di atas sebelum membuka pull request.
+
+Gunakan status planned, testing, released, atau archived secara jujur. Status released wajib memiliki releaseUrl HTTPS yang valid. Jangan menautkan unduhan yang belum tersedia atau menyajikan concept art sebagai screenshot aplikasi rilis. Lihat docs/ADDING_SOFTWARE.md dan docs/SOFTWARE_DIRECTORY_LAYOUT.md.
+
+## Deployment Vercel
+
+Hubungkan proyek Vercel ke repository GitHub M-TamDre07/Linux-Software-Lab dengan Root Directory tetap di root repository. vercel.json menetapkan public sebagai output website yang diterbitkan, sehingga source aplikasi, dokumentasi, tes, dan aset lama tidak ikut disajikan sebagai file situs.
+
+PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website terpisah untuk diimpor ke Vercel. Untuk proyek yang sudah terhubung, jangan membuat proyek duplikat hanya karena daftar Import menghilang atau gagal dimuat. Lihat docs/VERCEL_DEPLOYMENT.md.
+
+## Aset, SEO, dan integrasi sumber paket
+
+- [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
+- [Integrasi katalog Supabase](docs/SUPABASE_INTEGRATION.md)
+- [Arsitektur App Publishing Factory](docs/APP_PUBLISHING_FACTORY.md) menjelaskan batas keamanan dan tahapan otomasi penerbitan aplikasi.
+- [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.
+- [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
+- [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
+- [Template aplikasi dan generator](templates/README.md) menyediakan tata letak proyek konsisten; jalankan `python scripts/scaffold_app.py --slug sample-tool --name "Sample Tool" --description "Tujuan aplikasi."` untuk membuat scaffold tanpa mengubah katalog.
+- [Standar pesan error](docs/ERROR_HANDLING_STANDARD.md) menetapkan pesan aman dan mudah dipahami, fallback katalog, dan pemisahan pesan pengguna dari detail teknis.
+- [Kebijakan teknologi dan runtime](docs/TECH_STACK_AND_RUNTIME_POLICY.md) menjelaskan alasan stack statis, aturan framework, deteksi OS lokal, dan quality gates.
+- [Standar SEO dan crawlability](docs/SEO_MAINTENANCE.md) menjelaskan canonical, sitemap, metadata, konten, Core Web Vitals, dan pemeriksaan Search Console tanpa menjanjikan peringkat.
+- Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil. Lihat [standar maintenance website](docs/WEBSITE_MAINTENANCE.md) untuk kontrak navigasi, layout, aksesibilitas, dan checklist pemeriksaan.
+
+## Prinsip
+
+- Utamakan kebutuhan pengguna, bukan jumlah fitur.
+- Cari secara lokal di browser; jangan mengirim kata kunci pencarian ke API eksternal.
+- Jangan menambahkan analytics atau telemetry tersembunyi.
+- Jangan mengklaim kompatibilitas sebelum diuji.
+- Jangan menampilkan rilis atau tautan unduhan palsu.
+- Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
+
+## Sorot 0.7.3 Beta
+
+Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.7.3 Beta`](apps/sorot/releases/0.7.3/TEST-REPORT.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot 0.7.3 masih beta. Laporan QA mencatat 586 tes lulus pada Python 3.11 dan 3.13, tes GUI X11 virtual, serta Weston Wayland headless pada Ubuntu 24.04.5 container; pengujian desktop fisik GNOME/KDE, instalasi bersih Debian 13, integrasi Discover/repository hosting, AI/cloud nyata, dan audit aksesibilitas pembaca layar belum disahkan. Arsip versi lama tidak ditimpa oleh versi baru.
+
+## LISO LAB — Linux Software Lab Center (pratinjau launcher)
+
+Portal web launcher tersedia di [linux-software-lab.vercel.app/launcher/](https://linux-software-lab.vercel.app/launcher/) dan dapat diakses dari menu utama website. Halaman ini merangkum status, ekosistem GitHub–website–launcher, cara mencoba source, dan roadmap tanpa mengiklankan installer yang belum ada.
+
+Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya menyediakan pengalaman klik untuk pemula dan alur terminal yang cepat untuk pengguna profesional, dengan satu core metadata, deteksi distro/arsitektur, pemilihan artefak, dan verifikasi. Untuk saat ini hanya adapter instalasi .deb berbasis APT yang diaktifkan; RPM, Arch, Flatpak, AppImage, paket launcher native, serta metadata rilis bertanda tangan belum tersedia. Jangan jalankan launcher dengan sudo. Lihat panduan pengembangan apps/software-center/README.md, [dokumen integrasi ekosistem](docs/APP_CONTAINER_AND_INTEGRATIONS.md), dan arsitektur docs/LAUNCHER_AND_DISTRIBUTION_ARCHITECTURE.md.
+
+## PaketScope 3 (pratinjau pengembangan)
+
+Source aplikasi desktop native ada di `apps/paketscope/`. Versi source saat ini adalah `3.0.0.dev5` dan sudah terintegrasi di `main`. CI memvalidasi tes Python serta paket Debian di lingkungan Debian 13, tetapi ini tetap pratinjau pengembangan, bukan rilis stabil. Paket belum menjadi rilis publik bertanda tangan, belum melalui pengujian desktop menyeluruh, dan belum diaudit secara independen. Jangan menganggapnya siap untuk penggunaan produksi.
+
+Arsitektur memisahkan UI di `paketscope/ui/`, layanan aplikasi di `services.py`, model dan parser di `domain.py`, serta adaptor OS untuk APT/dpkg dan Flatpak. Tindakan perubahan APT dibatasi pada satu paket dengan simulasi dan konfirmasi eksplisit; inventaris Flatpak masih read-only. Detail pengembangan dan batas keamanan ada di `apps/paketscope/docs/DEVELOPING.md`, `apps/paketscope/docs/PAKETSCOPE_V3_ARCHITECTURE.md`, dan `apps/paketscope/docs/SECURITY.md`.
+
+### Menjalankan dari source
+
+```bash
+cd apps/paketscope
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e '.[test]'
+python -m pytest
+python -m paketscope
+```
+
+Untuk menguji pemasangan atau penghapusan paket, gunakan mesin virtual Debian 13 dengan snapshot yang bisa dipulihkan. Jangan menguji transaksi paket pada sistem utama sampai pengujian desktop dan proses pemulihan selesai ditinjau.
+
+## Kredit dan dukungan
+
+Website dirancang dan dikembangkan oleh Muhammad Andreatama. Dukungan sukarela: https://saweria.co/tamaandrea
+
+
+## Kontribusi dan atribusi
+
+Pencipta awal dan maintainer proyek: **Muhammad Andreatama**. Sebelum mengerjakan perubahan untuk repositori resmi, hubungi maintainer dan tunggu persetujuan. Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk proses pengajuan, etika atribusi, dan batas kebijakan ini terhadap hak yang diberikan GPL-3.0.
+
+
+## Documentation
+
+- [Pre-Vercel readiness gate](docs/PRE_VERCEL_READINESS.md) — current verified status, auth blockers, and the checks required before deployment.
