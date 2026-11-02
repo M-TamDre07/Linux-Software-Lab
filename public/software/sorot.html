@@ -68,11 +68,12 @@
     <div class="sorot-distro-picker">
       <label for="sorotDistro">Distribusi Linux yang digunakan</label>
       <select id="sorotDistro" name="sorotDistro">
+        <option value="" selected disabled>— Pilih distro Linux secara manual —</option>
         <option value="debian-family">Debian / Ubuntu dan turunannya</option>
         <option value="arch">Arch Linux</option>
         <option value="fedora">Fedora / RHEL dan turunannya</option>
         <option value="opensuse">openSUSE / SUSE</option>
-        <option value="other-linux" selected>Linux lain / distro belum diketahui</option>
+        <option value="other-linux">Linux lain / distro belum diketahui</option>
         <option value="non-linux">Windows / macOS / non-Linux</option>
       </select>
       <p id="sorotDetectedPlatform" class="sorot-detected-note">Pendeteksian browser hanya memberi petunjuk sistem operasi, bukan distro Linux yang tepat.</p>
