@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -173,6 +174,68 @@ def _build_public_index() -> dict[str, Any]:
     return generated
 
 
+def _build_manifest_mirrors(index_data: dict[str, Any]) -> dict[Path, str]:
+    """Copy every referenced canonical release manifest into the offline launcher bundle."""
+    products = index_data.get("products")
+    if not isinstance(products, list):
+        raise IndexSyncError("Distribution index needs a products array")
+
+    product_pattern = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    version_pattern = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+(?:[.+-][0-9A-Za-z.-]+)?$")
+    mirrors: dict[Path, str] = {}
+
+    for product in products:
+        if not isinstance(product, dict):
+            raise IndexSyncError("Every distribution product must be an object")
+        product_id = product.get("id")
+        if not isinstance(product_id, str) or not product_pattern.fullmatch(product_id):
+            raise IndexSyncError(f"Unsafe product ID in distribution index: {product_id!r}")
+        references = product.get("manifests", [])
+        if not isinstance(references, list):
+            raise IndexSyncError(f"{product_id}: manifests must be an array")
+
+        for reference in references:
+            if not isinstance(reference, dict):
+                raise IndexSyncError(f"{product_id}: every manifest reference must be an object")
+            version = reference.get("version")
+            if not isinstance(version, str) or not version_pattern.fullmatch(version):
+                raise IndexSyncError(f"{product_id}: unsafe release version {version!r}")
+            expected_url = f"{RAW_ROOT}/apps/{product_id}/releases/{version}/release.json"
+            if reference.get("url") != expected_url:
+                raise IndexSyncError(
+                    f"{product_id} {version}: manifest URL is outside its canonical release directory"
+                )
+
+            canonical = ROOT / "apps" / product_id / "releases" / version / "release.json"
+            try:
+                canonical.resolve().relative_to((ROOT / "apps").resolve())
+            except ValueError as exc:
+                raise IndexSyncError(f"{product_id} {version}: unsafe canonical manifest path") from exc
+
+            manifest = _load(canonical)
+            if manifest.get("schema_version") != 1:
+                raise IndexSyncError(f"{product_id} {version}: unsupported manifest schema")
+            if str(manifest.get("product", "")).casefold() != product_id.casefold():
+                raise IndexSyncError(f"{product_id} {version}: manifest names a different product")
+            if manifest.get("version") != version:
+                raise IndexSyncError(f"{product_id} {version}: manifest version mismatch")
+            if manifest.get("status") not in ALLOWED_STATUSES:
+                raise IndexSyncError(f"{product_id} {version}: invalid release status")
+            if manifest.get("channel") not in ALLOWED_CHANNELS:
+                raise IndexSyncError(f"{product_id} {version}: invalid release channel")
+            artifacts = manifest.get("artifacts")
+            if not isinstance(artifacts, list) or not artifacts:
+                raise IndexSyncError(f"{product_id} {version}: manifest has no artifacts")
+
+            mirror = (
+                ROOT / "apps" / "software-center" / "lsl_center" / "data"
+                / "manifests" / product_id / version / "release.json"
+            )
+            mirrors[mirror] = canonical.read_text(encoding="utf-8")
+
+    return mirrors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if checked-in generated metadata is stale")
@@ -181,7 +244,9 @@ def main() -> int:
     if args.check and args.write:
         parser.error("choose either --check or --write")
     try:
-        expected_index = json.dumps(_build_public_index(), ensure_ascii=False, indent=2) + "\n"
+        index_data = _build_public_index()
+        expected_index = json.dumps(index_data, ensure_ascii=False, indent=2) + "\n"
+        expected_manifests = _build_manifest_mirrors(index_data)
         release_source = _load(RELEASE_INDEX_PATH)
         latest = release_source["versions"][-1]
         version_label = _format_version_label(latest)
@@ -197,16 +262,18 @@ def main() -> int:
             BUNDLED_INDEX_PATH: expected_index,
             PUBLIC_CATALOG_PATH: expected_catalog,
             BUNDLED_CATALOG_PATH: expected_catalog,
+            **expected_manifests,
         }
     except (IndexSyncError, OSError, KeyError, IndexError, TypeError) as exc:
         print(f"Distribution index sync failed: {exc}", file=sys.stderr)
         return 1
     if args.write:
         for path, content in expected_files.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
         print(
-            "Generated website/launcher distribution indexes and Sorot display-version labels "
-            "from apps/sorot/releases/index.json."
+            "Generated website/launcher indexes, catalogues, and offline manifest mirrors "
+            "from canonical release metadata."
         )
         return 0
     for path, expected in expected_files.items():
@@ -214,8 +281,8 @@ def main() -> int:
             print(f"{path.relative_to(ROOT)} is stale; run python scripts/sync_distribution_index.py --write.", file=sys.stderr)
             return 1
     print(
-        "Website and Software Center distribution indexes/catalogue version labels "
-        "match the Sorot release index."
+        "Website/launcher indexes, catalogue version labels, and offline release manifests "
+        "match canonical release metadata."
     )
     return 0
 
