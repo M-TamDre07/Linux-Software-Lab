@@ -74,7 +74,7 @@
 
   function parseQuery(value) {
     const source = String(value ?? "");
-    const parts = source.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    const parts = source.match(/-?[^\\s"]+:"[^"]*"|"[^"]*"|[^\\s]+/g) || [];
     return parts.map(part => {
       let token = part;
       const negative = token.startsWith("-");
