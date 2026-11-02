@@ -6,8 +6,14 @@ Status rilis: **testing** (bukan stable). Dukungan: **Debian 13, terbatas**. Arc
 
 - Lingkungan build: Ubuntu 24.04 x86_64, Python 3.12, PySide6 6.12.0, pytest 9.2. **Bukan Debian 13, bukan Arch Linux, bukan Fedora, bukan sesi desktop nyata.**
 - PaketScope mengimplementasikan operasi paket hanya untuk APT/dpkg. Di Arch dan Fedora, inventori dan aksi paket akan melaporkan alat yang tidak tersedia.
-- Tidak ada instalasi nyata di Debian 13, sehingga dependensi nyata (`python3-pyside6.qtwidgets`, `pkexec`, `apt`) belum terbukti.
+- Validasi instalasi paket `.deb` dilakukan oleh GitHub Actions pada container Debian 13 (Trixie) terisolasi: paket dibangun, diperiksa, dipasang lewat APT dengan resolusi dependensi, modul Python berhasil diimpor, lalu paket di-purge. Ini membuktikan alur packaging pada image CI tersebut, bukan pengujian desktop fisik.
 - Discover belum diuji menampilkan aplikasi dari repositori (memerlukan metadata DEP-11 dari `appstream-generator` di server).
+
+## Bukti CI Debian 13 — 2 November 2026
+
+Workflow PaketScope build menjalankan job **Build, install, and purge on Debian 13** dan berakhir sukses pada commit integrasi. Log menunjukkan paket `3.0.0~dev5-1` dibangun dengan debhelper, metadata paket dibaca, APT memasang dependensi pada Debian 13/Trixie, status dpkg menjadi `install ok installed`, dan modul `paketscope` versi `3.0.0.dev5` dapat diimpor dari `/usr/lib/python3/dist-packages`. Job kemudian menjalankan purge dan menyimpan artefak CI pengembangan.
+
+Matriks tes sumber pada Python 3.10, 3.11, 3.12, dan 3.13 juga lulus pada workflow yang sama. Validasi ini tidak membuktikan interaksi Polkit yang memerlukan pengguna, GNOME/KDE desktop nyata, aksesibilitas, Discover/DEP-11, repositori APT produksi, atau tanda tangan kunci rilis milik pengelola.
 
 ## Yang dijalankan dan hasilnya
 
@@ -42,7 +48,7 @@ Status rilis: **testing** (bukan stable). Dukungan: **Debian 13, terbatas**. Arc
 
 ## Syarat sebelum status bisa menjadi "stable"
 
-1. Instal, jalankan, perbarui, dan copot di Debian 13 bersih (container atau VM), dengan dependensi nyata.
+1. Ulangi instal, jalankan, perbarui, dan copot pada Debian 13 bersih di VM/mesin pengguna, serta verifikasi hasilnya di luar image CI.
 2. Tes GUI dijalankan di Qt asli dengan interaksi (pemilihan paket, pratinjau APT, konfirmasi).
 3. `mypy` dan `ruff` bersih, atau setiap temuan tersisa dicatat dengan alasan.
 4. Repositori di-hosting dan kunci rilis dikelola pemilik, bukan kunci uji.
