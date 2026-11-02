@@ -13,7 +13,8 @@
       "kind": "debian-package",
       "format": "deb",
       "architecture": "all",
-      "sha256": "d338008fb4dd414eadbf4e4a373b9d30f373465e26181cd163655a7aff8b4546"
+      "sha256": "d338008fb4dd414eadbf4e4a373b9d30f373465e26181cd163655a7aff8b4546",
+      "minimum_os": "Debian 13"
     },
     {
       "file": "sorot-0.6.0.tar.gz",
