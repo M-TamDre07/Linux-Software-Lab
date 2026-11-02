@@ -41,15 +41,24 @@ DATA_DIR = APP_ROOT / "lsl_center" / "data"
 
 def debian_profile() -> SystemProfile:
     return SystemProfile(
-        distro_id="ubuntu",
-        pretty_name="Ubuntu 24.04 LTS",
-        version_id="24.04",
+        distro_id="debian",
+        pretty_name="Debian GNU/Linux 13 (Trixie)",
+        version_id="13",
         family="debian-family",
         architecture="x86_64",
         package_manager="apt-get",
         package_manager_path="/usr/bin/apt-get",
         pkexec_path="/usr/bin/pkexec",
         flatpak_path=None,
+    )
+
+
+def ubuntu_profile() -> SystemProfile:
+    return replace(
+        debian_profile(),
+        distro_id="ubuntu",
+        pretty_name="Ubuntu 24.04 LTS",
+        version_id="24.04",
     )
 
 
@@ -68,9 +77,12 @@ def arch_profile() -> SystemProfile:
 
 
 def bundled_manifest_for_url(url: str, *_args: object, **_kwargs: object) -> bytes:
-    """Return the local immutable manifest matching the version in a trusted test URL."""
-    version = url.rstrip("/").rsplit("/", 2)[-2]
-    manifest_path = DATA_DIR / "manifests" / "sorot" / version / "release.json"
+    """Return the local immutable manifest matching product/version in a trusted test URL."""
+    parts = url.rstrip("/").split("/")
+    marker = parts.index("apps")
+    product_id = parts[marker + 1]
+    version = parts[marker + 3]
+    manifest_path = DATA_DIR / "manifests" / product_id / version / "release.json"
     return manifest_path.read_bytes()
 
 
@@ -243,7 +255,14 @@ class CatalogTests(unittest.TestCase):
             {(artifact.version, artifact.format) for artifact in sorot.artifacts},
             expected_artifacts,
         )
-        self.assertEqual(paketscope.artifacts, ())
+        paketscope_manifest = json.loads(
+            (REPO_ROOT / "apps" / "paketscope" / "releases" / "3.0.0.dev5" / "release.json")
+            .read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            {(artifact.version, artifact.format) for artifact in paketscope.artifacts},
+            {(paketscope_manifest["version"], artifact["format"]) for artifact in paketscope_manifest["artifacts"]},
+        )
         self.assertTrue(any(
             target.distribution_id == "arch" and target.version == release_index["planned_targets"][0]["version"]
             for target in sorot.planned_targets
@@ -282,9 +301,15 @@ class CatalogTests(unittest.TestCase):
                 (DATA_DIR / "assets" / f"{app_id}-icon.svg").read_bytes(),
                 (REPO_ROOT / "public" / "assets" / "images" / f"{app_id}-icon.svg").read_bytes(),
             )
-        bundled_manifest = DATA_DIR / "manifests" / "sorot" / "0.5.0" / "release.json"
-        release_manifest = REPO_ROOT / "apps" / "sorot" / "releases" / "0.5.0" / "release.json"
-        self.assertEqual(bundled_manifest.read_bytes(), release_manifest.read_bytes())
+        manifest_pairs = (
+            ("sorot", "0.5.0"),
+            ("sorot", "0.7.3"),
+            ("paketscope", "3.0.0.dev5"),
+        )
+        for product_id, version in manifest_pairs:
+            bundled_manifest = DATA_DIR / "manifests" / product_id / version / "release.json"
+            release_manifest = REPO_ROOT / "apps" / product_id / "releases" / version / "release.json"
+            self.assertEqual(bundled_manifest.read_bytes(), release_manifest.read_bytes())
 
     def test_invalid_catalog_duplicate_id_is_rejected(self) -> None:
         catalog = json.loads((DATA_DIR / "catalog.json").read_text(encoding="utf-8"))
@@ -431,9 +456,15 @@ class SelectionTests(unittest.TestCase):
             select_artifact(self.sorot, arch_profile(), requested_format="deb")
         )
 
-    def test_paketscope_is_not_advertised_as_installable_without_artifact(self) -> None:
-        self.assertIsNone(select_artifact(self.paketscope, debian_profile(), install_only=True))
-        self.assertIsNone(select_artifact(self.paketscope, debian_profile()))
+    def test_paketscope_debian13_selects_its_testing_deb(self) -> None:
+        artifact = select_artifact(self.paketscope, debian_profile(), install_only=True)
+        self.assertIsNotNone(artifact)
+        assert artifact is not None
+        self.assertEqual((artifact.version, artifact.format), ("3.0.0.dev5", "deb"))
+        self.assertEqual(artifact.minimum_os, "Debian 13")
+
+    def test_paketscope_deb_is_not_compatible_with_ubuntu_2404(self) -> None:
+        self.assertIsNone(select_artifact(self.paketscope, ubuntu_profile(), install_only=True))
 
     def test_sorot_arch_target_is_data_driven_and_not_an_installable_package(self) -> None:
         sorot = self.snapshot.find("sorot")
@@ -643,7 +674,9 @@ class CliTests(unittest.TestCase):
         with redirect_stdout(output):
             code = main(["info", "paketscope"], service=self.service, profile=debian_profile())
         self.assertEqual(code, 0)
-        self.assertIn("Belum ada paket/arsip rilis", output.getvalue())
+        self.assertIn("3.0.0.dev5 .deb", output.getvalue())
+        self.assertIn("testing", output.getvalue())
+        self.assertIn("Debian 13", output.getvalue())
         self.assertIn(
             "https://linux-software-lab.vercel.app/software/paketscope.html",
             output.getvalue(),
