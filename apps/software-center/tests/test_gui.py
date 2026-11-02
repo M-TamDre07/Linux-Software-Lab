@@ -71,6 +71,25 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertTrue(window.manifest_button.isEnabled())
         window.close()
 
+    def test_desktop_search_uses_typo_tolerance_and_synonyms(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("arch-family"),
+        )
+        window.search.setText("telepromter")
+        self.assertEqual(window.app_list.count(), 1)
+        self.assertEqual(
+            window.app_list.item(0).data(Qt.ItemDataRole.UserRole),
+            "sorot",
+        )
+        window.search.setText("PaketScpoe")
+        self.assertEqual(window.app_list.count(), 1)
+        self.assertEqual(
+            window.app_list.item(0).data(Qt.ItemDataRole.UserRole),
+            "paketscope",
+        )
+        window.close()
+
     def test_paketscope_debian13_catalogue_shows_testing_install_action(self) -> None:
         window = MainWindow(
             service=CatalogService(data_dir=DATA_DIR),
