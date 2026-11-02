@@ -104,10 +104,14 @@
   };
 
   const detectedOS = detectOS();
-  distroSelect.value = detectedOS.id;
+  // A browser can identify a broad OS family, but cannot reliably distinguish
+  // Debian from Ubuntu, Arch, Fedora, or their derivatives. Never preselect a
+  // native package target based on the user-agent.
+  if (detectedOS.id === 'non-linux') distroSelect.value = 'non-linux';
+  else distroSelect.value = '';
   detected.textContent = detectedOS.label === 'Linux'
-    ? 'Browser mengenali Linux, tetapi tidak mengungkap distro secara andal. Pilih distro secara manual; pilihan browser tidak dianggap bukti kompatibilitas.'
-    : 'Petunjuk browser: ' + detectedOS.label + '. Pemilih ini hanya mengatur metadata yang ditampilkan, bukan memasang paket secara otomatis.';
+    ? 'Browser mengenali Linux, tetapi tidak dapat memastikan distro. Pilih distro secara manual agar paket native yang ditampilkan tidak keliru.'
+    : 'Petunjuk browser: ' + detectedOS.label + '. Pilihan ini hanya mengatur metadata unduhan; website tidak memasang paket secara otomatis.';
 
   let registry = null;
 
