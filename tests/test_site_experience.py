@@ -161,6 +161,8 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("Paket pengujian tersedia", source)
         self.assertIn("Status testing", source)
         self.assertIn("Unduh PaketScope .deb", source)
+        self.assertIn("container CI Debian 13", source)
+        self.assertIn("GUI/Polkit", source)
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
         app_version = next(line for line in manifest.splitlines() if line.startswith("version = ")).split('"')[1]
         self.assertIn(app_version, source)
