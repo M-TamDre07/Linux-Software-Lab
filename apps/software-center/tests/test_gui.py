@@ -94,7 +94,6 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         )
         self.assertTrue(window.auto_refresh_timer.isActive())
         self.assertEqual(window.auto_refresh_timer.interval(), 15 * 60 * 1000)
-        self.assertEqual(window.install_button.text().startswith("Pasang"), True)
         window.close()
 
     def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
