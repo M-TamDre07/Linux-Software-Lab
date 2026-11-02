@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from difflib import SequenceMatcher
-from typing import Iterable
+from collections.abc import Iterable
 
 from .models import Application
 
