@@ -478,6 +478,11 @@ class CatalogService:
         self.cache_dir = cache_dir or default_cache_dir()
         self._cache_issue: str | None = None
 
+    @property
+    def auto_refresh_enabled(self) -> bool:
+        """Only the production bundled/cache service refreshes from the network automatically."""
+        return self._explicit_data_dir is None
+
     def _cached_snapshot_dir(self) -> Path | None:
         pointer_path = self.cache_dir / "active.json"
         if not pointer_path.is_file():
