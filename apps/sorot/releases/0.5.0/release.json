@@ -10,7 +10,8 @@
       "kind": "debian-package",
       "format": "deb",
       "architecture": "all",
-      "sha256": "3a9a95a5646f30b6f071cedfea17915c7fc290c338702ba1547566217416f357"
+      "sha256": "3a9a95a5646f30b6f071cedfea17915c7fc290c338702ba1547566217416f357",
+      "minimum_os": "Debian 13"
     },
     {
       "file": "sorot-0.5.0.tar.gz",

@@ -9,7 +9,17 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from PySide6.QtCore import QObject, QRunnable, QSize, Qt, QThreadPool, QUrl, Signal, Slot
+    from PySide6.QtCore import (
+        QObject,
+        QRunnable,
+        QSize,
+        Qt,
+        QThreadPool,
+        QTimer,
+        QUrl,
+        Signal,
+        Slot,
+    )
     from PySide6.QtGui import QDesktopServices, QIcon
     from PySide6.QtWidgets import (
         QApplication,
@@ -50,6 +60,7 @@ from .models import (
     InstallResult,
     SystemProfile,
 )
+from .search import search_applications
 from .selection import select_artifact, source_artifacts
 
 STYLE = """
@@ -156,6 +167,14 @@ class MainWindow(QMainWindow):
         if self.app_list.count():
             self.app_list.setCurrentRow(0)
 
+        # Refresh metadata only; fixture/custom-data services stay offline and deterministic.
+        self.auto_refresh_timer = QTimer(self)
+        self.auto_refresh_timer.setInterval(15 * 60 * 1000)
+        self.auto_refresh_timer.timeout.connect(self._refresh_catalog_automatically)
+        if self.service.auto_refresh_enabled:
+            QTimer.singleShot(1500, self._refresh_catalog_automatically)
+            self.auto_refresh_timer.start()
+
     def _build_ui(self) -> None:
         root = QWidget()
         root.setObjectName("rootWidget")
@@ -217,7 +236,7 @@ class MainWindow(QMainWindow):
         self.count_label = QLabel(f"{len(self.snapshot.applications)} aplikasi")
         self.count_label.setObjectName("muted")
         self.search = QLineEdit()
-        self.search.setPlaceholderText("Cari nama, kategori, atau fitur…")
+        self.search.setPlaceholderText("Cari nama, typo, fitur, tag… (tag:, nama:, -istilah)")
         self.search.textChanged.connect(self._filter_list)
         self.app_list = QListWidget()
         self.app_list.setWordWrap(True)
@@ -356,13 +375,7 @@ class MainWindow(QMainWindow):
         current_id = self.current_application.id if self.current_application else None
         self.app_list.blockSignals(True)
         self.app_list.clear()
-        query = self.search.text().strip().casefold()
-        for app in self.snapshot.applications:
-            haystack = " ".join(
-                (app.name, app.summary, app.category, *app.tags, *app.keywords)
-            ).casefold()
-            if query and query not in haystack:
-                continue
+        for app in search_applications(self.snapshot.applications, self.search.text()):
             local_state = (
                 "TERDETEKSI LOKAL" if executable_for(app.id) else "BELUM TERDETEKSI"
             )
@@ -436,10 +449,15 @@ class MainWindow(QMainWindow):
         ]
         if compatible:
             newest = compatible[-1]
+            minimum_os_note = (
+                f" Persyaratan OS: {newest.minimum_os}."
+                if newest.minimum_os else ""
+            )
             notice = (
                 f"Format cocok: .{newest.format} · versi {newest.version} · "
                 f"{newest.release_status.upper()}. "
                 "Kompatibilitas package manager belum berarti semua distro/versi OS telah diuji."
+                + minimum_os_note
             )
             if newest.release_status == "testing":
                 notice += (
@@ -560,6 +578,29 @@ class MainWindow(QMainWindow):
         self._set_busy(False, "Operasi gagal. Tidak ada klaim keberhasilan yang dibuat.")
         if callback:
             callback(error)
+
+    def _refresh_catalog_automatically(self) -> None:
+        """Refresh only signed-off catalogue metadata; never install or upgrade packages."""
+        if self._busy:
+            return
+
+        def succeeded(snapshot: CatalogSnapshot) -> None:
+            self.snapshot = snapshot
+            # Keep the selected application when its catalogue entry still exists.
+            self._populate_list()
+            self._set_status(
+                f"Metadata diperiksa otomatis · {snapshot.updated_at} · "
+                f"{len(snapshot.applications)} aplikasi · {snapshot.data_source}"
+            )
+
+        self._run_task(
+            "Pemeriksaan metadata otomatis",
+            self.service.refresh,
+            succeeded,
+            lambda _error: self._set_status(
+                "Pemeriksaan metadata otomatis gagal; snapshot lokal terakhir tetap digunakan."
+            ),
+        )
 
     def _refresh_catalog(self) -> None:
         def succeeded(snapshot: CatalogSnapshot) -> None:

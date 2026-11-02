@@ -4,7 +4,12 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from .commands import CommandTimedOut, CommandUnavailable, run_command
-from .domain import InventorySnapshot, InstalledApplication, parse_dpkg_output, parse_flatpak_output
+from .domain import (
+    InstalledApplication,
+    InventorySnapshot,
+    parse_dpkg_output,
+    parse_flatpak_output,
+)
 from .providers import InventoryProvider, ProviderResult
 
 

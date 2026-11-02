@@ -7,8 +7,8 @@ import platform
 import shutil
 import stat
 import subprocess
-from itertools import islice
 from datetime import datetime, timezone
+from itertools import islice
 from pathlib import Path
 from typing import Any
 

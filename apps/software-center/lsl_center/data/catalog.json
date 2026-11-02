@@ -5,16 +5,16 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-10-25"
+    "updatedAt": "2026-11-02"
   },
   "software": [
     {
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "3.0.0.dev4",
+      "version": "3.0.0.dev5",
       "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
-      "description": "PaketScope 3 sedang diuji sebagai aplikasi desktop native berbasis Qt. Pengguna dapat memeriksa jenis, deskripsi fungsi, metadata, dan asal yang diketahui untuk paket APT/Flatpak; asal APT hanya menunjukkan repositori lokal yang saat ini menyediakan versi yang sama, bukan bukti historis instalasi. Perubahan paket APT memerlukan tinjauan dan autentikasi, sementara Flatpak masih read-only. System & Code Lab menyediakan snapshot Linux, viewer source lokal, dan petunjuk analisis statis. Sumber inventaris tambahan dapat dikembangkan melalui kontrak provider eksplisit; plugin pihak ketiga tidak dimuat otomatis.",
+      "description": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan/testing untuk Debian 13. GitHub Actions berhasil membangun, memasang melalui APT, mengimpor modul terpasang, dan me-purge paket pada container Debian 13/Trixie. Interaksi GUI/Polkit di desktop nyata, Discover, serta tanda tangan rilis produksi belum diverifikasi. Aplikasi menyediakan inventaris APT/dpkg dan Flatpak read-only, detail asal paket dengan batas bukti historis, perubahan APT yang memerlukan simulasi dan autentikasi, System & Code Lab read-only, serta ekspor dan backup terenkripsi.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
@@ -56,28 +56,31 @@
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-24"
+      "updatedAt": "2026-11-02"
     },
     {
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "0.7.0 Beta",
-      "summary": "Teleprompter desktop untuk membaca naskah saat presentasi dan rekaman, dengan overlay, kontrol pemutaran, pengelolaan naskah, dan sistem ekstensi.",
-      "description": "Sorot adalah aplikasi teleprompter desktop untuk Linux. Versi 0.5.0 Beta menyediakan editor naskah, overlay yang dapat diatur, kontrol pemutaran dan jeda, mode durasi, penyimpanan naskah/draf, serta sistem ekstensi untuk tema, preset, tugas, dan fungsi tambahan. Integrasi AI dan penyimpanan cloud bersifat opsional dan belum diverifikasi dengan layanan nyata dalam laporan pengujian. Sorot masih beta: uji compositor Wayland/X11, pemasangan bersih di Debian 13, dan aksesibilitas pembaca layar belum lengkap.",
+      "version": "0.7.3 Beta",
+      "summary": "Teleprompter desktop Linux dengan overlay, mode cermin, kontrol pemutaran, pengelolaan naskah, pemulihan data, dan sistem ekstensi.",
+      "description": "Sorot 0.7.3 Beta memperbaiki dialog dukungan dan metadata AppStream serta menambahkan bahan verifikasi dan panduan pembaruan repositori APT bertanda tangan. Pengujian tercatat: 586 tes pada Python 3.11 dan 3.13, GUI X11 virtual, dan Weston headless. Paket .deb dibatasi ke Debian 13; instalasi bersih Debian 13, Discover/repo hosting nyata, serta compositor GNOME/KDE pada desktop fisik belum diverifikasi. Arch belum memiliki paket .pkg.tar.zst yang tervalidasi. Status tetap testing, bukan stable.",
       "category": "Produktivitas",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Linux desktop (uji tercatat: Ubuntu 24.04; Debian 13 belum diverifikasi untuk paket ini)"
+        "Debian 13 (paket .deb testing; instalasi bersih belum diverifikasi)",
+        "Linux desktop (X11 virtual dan Wayland headless diuji; desktop nyata belum diverifikasi)"
       ],
       "tags": [
         "Python",
         "PySide6",
         "Teleprompter",
         "Overlay",
-        "Naskah",
-        "Ekstensi"
+        "Mirror mode",
+        "X11",
+        "Wayland",
+        "Extensions"
       ],
       "keywords": [
         "teleprompter linux",
@@ -88,12 +91,14 @@
         "overlay teks"
       ],
       "features": [
-        "Editor naskah dengan buka/simpan dan undo",
-        "Overlay teleprompter dengan kontrol pemutaran, jeda, dan pengaturan kecepatan",
-        "Mode durasi dan penanda jeda pada naskah",
-        "Draf, snapshot, serta penyimpanan pengaturan lokal",
-        "Ekstensi deklaratif dan ekstensi kode dengan persetujuan eksplisit",
-        "Integrasi AI dan cloud opsional; layanan nyata belum diverifikasi dalam laporan tes"
+        "Editor naskah dan pengelolaan dokumen teleprompter",
+        "Overlay dengan kontrol pemutaran, jeda, kecepatan, dan hitung mundur",
+        "Mode cermin dengan tes regresi pada Qt",
+        "Validasi konfigurasi, profil, dan input ekstensi",
+        "Penyimpanan dan pemulihan cadangan dengan jalur rollback",
+        "Metadata AppStream serta arsip dan checksum per versi",
+        "Panduan pembaruan APT bertanda tangan; hosting dan kunci produksi tetap dikelola maintainer",
+        "Pengujian GUI X11 virtual dan Wayland headless; compositor desktop nyata masih perlu diuji"
       ],
       "detailUrl": "/software/sorot.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
@@ -102,7 +107,7 @@
       "iconImage": "/assets/images/sorot-icon.svg",
       "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
-      "updatedAt": "2026-10-25"
+      "updatedAt": "2026-11-02"
     }
   ]
 }

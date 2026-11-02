@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.7.1",
+  "channel": "beta",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.1/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.1/TEST-REPORT.md",
+  "architecture_note": "Diuji pada Ubuntu 24.04.5 x86_64 dalam container. Debian 13 bersih, Arch Linux, dan desktop nyata dengan compositor GNOME/KDE belum diverifikasi. Status tetap testing.",
+  "artifacts": [
+    {
+      "file": "sorot_0.7.1_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "f36ed9a8971dbe1cef10fca2f4647314f2e5feaa42d342a9d722b29552b3f792",
+      "minimum_os": "Debian 13"
+    },
+    {
+      "file": "sorot-0.7.1.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "d21e9105f9189bca7bcc8cc9ec06df9ced5e8b39aed9095c092f65f119d3c91a"
+    },
+    {
+      "file": "sorot-0.7.1.zip",
+      "kind": "source-archive",
+      "format": "zip",
+      "architecture": "all",
+      "sha256": "20f8c5e9c8f6160164470017e82e8412434ce0e7dca5e84a17481b2bde2c5bcf"
+    },
+    {
+      "file": "sorot-0.7.1-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "c750eee4657401a9d5cfb157775719be9349a86da0cbd623c1deaaac69861603"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

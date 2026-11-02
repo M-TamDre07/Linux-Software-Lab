@@ -5,7 +5,6 @@ from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QFileDialog, QInputDialog, QLineEdit, QMessageBox
 
 
-
 class DataActionsMixin:
     """UI handlers for exporting inventory and restoring backups."""
 

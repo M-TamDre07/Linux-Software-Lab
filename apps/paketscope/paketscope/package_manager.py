@@ -10,7 +10,6 @@ from dataclasses import dataclass
 
 from .commands import CommandResult, CommandTimedOut, CommandUnavailable, run_command
 
-
 APT_PACKAGE_RE = re.compile(r"^[a-z0-9][a-z0-9+.-]*(?::[a-z0-9][a-z0-9-]*)?$")
 SEARCH_QUERY_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _+.-]{0,79}$")
 ACTIONS = frozenset({"install", "remove", "purge"})

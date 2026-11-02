@@ -55,6 +55,14 @@ const statusButtons = $$('.filter-btn[data-filter]');
 const categorySelect = $('#categoryFilter');
 const platformSelect = $('#platformFilter');
 const sortSelect = $('#sortFilter');
+const compatibilitySelect = $('#compatibilityFilter');
+const architectureSelect = $('#architectureFilter');
+const refreshCatalogButton = $('#catalogRefresh');
+const compatibilityStatus = $('#catalogCompatibilityStatus');
+const exportCsvButton = $('#catalogExportCsv');
+const exportJsonButton = $('#catalogExportJson');
+const copyFiltersButton = $('#catalogCopyFilters');
+const exportStatus = $('#catalogExportStatus');
 const loadMoreButton = $('#loadMore');
 const paginationSummary = $('#paginationSummary');
 const clearButton = $('#clearFilters');
@@ -71,6 +79,10 @@ let software = [];
 let activeStatus = 'all';
 let activeCategory = 'all';
 let activePlatform = 'all';
+let activeCompatibility = 'all';
+let activeArchitecture = 'all';
+let compatibilityIndex = null;
+const compatibilityByApp = new Map();
 let query = '';
 let sortMode = 'relevance';
 let visibleLimit = pageSize;
@@ -124,6 +136,9 @@ const makeSearchIndex = app => {
   app._categorySearch = normalise(app.category);
   app._tagSearch = normalise([...(app.tags || []), ...(app.keywords || [])].join(' '));
   app._updatedTime = Date.parse(app.updatedAt || '') || 0;
+  app._searchIndex = window.LSL_CATALOG_SEARCH
+    ? window.LSL_CATALOG_SEARCH.createIndex(app)
+    : null;
   return app;
 };
 
@@ -131,9 +146,14 @@ const fillOptions = (select, values, placeholder) => {
   if (!select) return;
   const previous = select.value || 'all';
   const options = ['<option value="all">' + escapeHTML(placeholder) + '</option>'];
-  values.forEach(value => options.push('<option value="' + escapeHTML(value) + '">' + escapeHTML(value) + '</option>'));
+  values.forEach(item => {
+    const value = typeof item === 'string' ? item : item.value;
+    const label = typeof item === 'string' ? item : item.label;
+    options.push('<option value="' + escapeHTML(value) + '">' + escapeHTML(label) + '</option>');
+  });
   select.innerHTML = options.join('');
-  select.value = values.includes(previous) ? previous : 'all';
+  const available = values.map(item => typeof item === 'string' ? item : item.value);
+  select.value = available.includes(previous) ? previous : 'all';
 };
 
 const currentURLState = () => {
@@ -144,6 +164,8 @@ const currentURLState = () => {
     status: params.get('status') || 'all',
     category: params.get('category') || 'all',
     platform: params.get('platform') || 'all',
+    distro: params.get('distro') || 'all',
+    arch: params.get('arch') || 'all',
     sort: params.get('sort') || 'relevance'
   };
 };
@@ -155,9 +177,13 @@ const applyURLState = () => {
   activeStatus = ['all', 'released', 'testing', 'planned', 'archived'].includes(state.status) ? state.status : 'all';
   activeCategory = [...categorySelect?.options || []].some(option => option.value === state.category) ? state.category : 'all';
   activePlatform = [...platformSelect?.options || []].some(option => option.value === state.platform) ? state.platform : 'all';
+  activeCompatibility = [...compatibilitySelect?.options || []].some(option => option.value === state.distro) ? state.distro : 'all';
+  activeArchitecture = ['all', 'x86_64', 'aarch64', 'armv7l', 'i686'].includes(state.arch) ? state.arch : 'all';
   sortMode = ['relevance', 'name', 'name-desc', 'updated', 'status'].includes(state.sort) ? state.sort : 'relevance';
   if (categorySelect) categorySelect.value = activeCategory;
   if (platformSelect) platformSelect.value = activePlatform;
+  if (compatibilitySelect) compatibilitySelect.value = activeCompatibility;
+  if (architectureSelect) architectureSelect.value = activeArchitecture;
   if (sortSelect) sortSelect.value = sortMode;
   statusButtons.forEach(button => {
     const selected = button.dataset.filter === activeStatus;
@@ -171,7 +197,8 @@ const updateURL = () => {
   const url = new URL(window.location.href);
   const pairs = [
     ['q', query], ['status', activeStatus], ['category', activeCategory],
-    ['platform', activePlatform], ['sort', sortMode]
+    ['platform', activePlatform], ['distro', activeCompatibility],
+    ['arch', activeArchitecture], ['sort', sortMode]
   ];
   pairs.forEach(([key, value]) => {
     if (value && value !== 'all' && value !== 'relevance') url.searchParams.set(key, value);
@@ -180,13 +207,57 @@ const updateURL = () => {
   window.history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + url.hash);
 };
 
+const architectureMatches = (artifactArchitecture, requestedArchitecture) => {
+  if (!requestedArchitecture || requestedArchitecture === 'all'
+    || ['all', 'any', 'noarch'].includes(String(artifactArchitecture).toLowerCase())) return true;
+  const aliases = {
+    x86_64: ['x86_64', 'amd64', 'x64'],
+    aarch64: ['aarch64', 'arm64'],
+    armv7l: ['armv7l', 'armv7', 'armhf'],
+    i686: ['i686', 'i386', 'x86']
+  };
+  const wanted = aliases[requestedArchitecture] || [requestedArchitecture];
+  return wanted.includes(String(artifactArchitecture).toLowerCase());
+};
+
+const getCompatibilitySummary = app => {
+  const entries = compatibilityByApp.get(app.id) || [];
+  if (!entries.length) return 'Paket native belum tersedia untuk target yang tervalidasi.';
+  const labels = [...new Set(entries.map(item => item.label))];
+  const latest = entries[0];
+  return 'Paket native: ' + labels.join(', ') + ' · .' + latest.format + ' · ' + latest.version + ' (' + latest.status + ')';
+};
+
 const getFilteredRows = () => {
-  const tokens = normalise(query).split(/\s+/).filter(Boolean);
   const rows = software.filter(app => {
     if (activeStatus !== 'all' && app.status !== activeStatus) return false;
     if (activeCategory !== 'all' && app.category !== activeCategory) return false;
     if (activePlatform !== 'all' && !(app.platforms || []).includes(activePlatform)) return false;
-    return tokens.every(token => app._searchText.includes(token));
+
+    if (activeCompatibility !== 'all' || activeArchitecture !== 'all') {
+      const entries = compatibilityByApp.get(app.id) || [];
+      const compatible = entries.some(item =>
+        (activeCompatibility === 'all' || item.distribution_id === activeCompatibility)
+        && architectureMatches(item.architecture, activeArchitecture)
+      );
+      if (!compatible) return false;
+    }
+
+    if (query) {
+      const engine = window.LSL_CATALOG_SEARCH;
+      if (engine && app._searchIndex) {
+        const result = engine.search(app._searchIndex, query);
+        if (!result.matches) return false;
+        app._searchScore = result.score;
+      } else {
+        const tokens = normalise(query).split(/\s+/).filter(Boolean);
+        if (!tokens.every(token => app._searchText.includes(token))) return false;
+        app._searchScore = tokens.length;
+      }
+    } else {
+      app._searchScore = 0;
+    }
+    return true;
   });
 
   rows.sort((a, b) => {
@@ -194,19 +265,7 @@ const getFilteredRows = () => {
     if (sortMode === 'name-desc') return b._nameSearch.localeCompare(a._nameSearch, 'id');
     if (sortMode === 'updated') return b._updatedTime - a._updatedTime || a._nameSearch.localeCompare(b._nameSearch, 'id');
     if (sortMode === 'status') return (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9) || a._nameSearch.localeCompare(b._nameSearch, 'id');
-    const rank = app => {
-      if (!tokens.length) return 0;
-      let score = 0;
-      if (app._nameSearch.includes(normalise(query))) score += 100;
-      tokens.forEach(token => {
-        if (app._nameSearch.includes(token)) score += 20;
-        if (app._summarySearch.includes(token)) score += 5;
-        if (app._categorySearch.includes(token)) score += 4;
-        if (app._tagSearch.includes(token)) score += 2;
-      });
-      return score;
-    };
-    return rank(b) - rank(a) || a._nameSearch.localeCompare(b._nameSearch, 'id');
+    return (b._searchScore || 0) - (a._searchScore || 0) || a._nameSearch.localeCompare(b._nameSearch, 'id');
   });
   return rows;
 };
@@ -239,6 +298,7 @@ const cardMarkup = (app, index) => {
     '<span class="software-category">' + escapeHTML(app.category || 'Software') + '</span></div>' +
     '<h3>' + escapeHTML(app.name) + '</h3><p class="summary">' + escapeHTML(app.summary) + '</p>' +
     '<div class="tag-list">' + tags + '</div>' +
+    '<p class="compatibility-note">' + escapeHTML(getCompatibilitySummary(app)) + '</p>' +
     '<div class="card-bottom"><small>' + escapeHTML((app.platforms || ['Linux']).join(' · ')) + '</small>' + projectLink + '</div>' +
     (externalLinks ? '<div class="card-extra-links">' + externalLinks + '</div>' : '') +
     '</div></article>';
@@ -265,6 +325,8 @@ const render = () => {
     loadMoreButton.hidden = shown.length >= rows.length;
     loadMoreButton.textContent = 'Muat ' + Math.min(pageSize, rows.length - shown.length) + ' berikutnya';
   }
+  if (exportCsvButton) exportCsvButton.disabled = rows.length === 0;
+  if (exportJsonButton) exportJsonButton.disabled = rows.length === 0;
   $$('.software-preview img', grid).forEach(image => {
     image.addEventListener('error', () => {
       if (image.dataset.fallbackUsed) return;
@@ -273,6 +335,106 @@ const render = () => {
     }, { once: true });
   });
 };
+
+const exportRows = () => getFilteredRows().map(app => {
+  const record = Object.fromEntries(
+    Object.entries(app).filter(([key]) => !key.startsWith('_'))
+  );
+  return {
+    ...record,
+    compatibilityTargets: compatibilityByApp.get(app.id) || []
+  };
+});
+
+const csvValue = value => {
+  let text = Array.isArray(value) ? value.join(' | ')
+    : value && typeof value === 'object' ? JSON.stringify(value)
+      : String(value ?? '');
+  // Prevent spreadsheet formula execution when opening exported data in Excel/Calc.
+  if (/^[\\s\\u0000-\\u001f]*[=+@-]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+};
+
+const downloadCatalogFile = (filename, body, mimeType) => {
+  const blob = new Blob([body], { type: mimeType });
+  const objectURL = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectURL;
+  link.download = filename;
+  link.hidden = true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
+};
+
+const exportFilteredCatalog = format => {
+  const rows = exportRows();
+  if (!rows.length) {
+    if (exportStatus) exportStatus.textContent = 'Tidak ada hasil untuk diekspor.';
+    return;
+  }
+  const date = new Date().toISOString().slice(0, 10);
+  const filters = {
+    query,
+    status: activeStatus,
+    category: activeCategory,
+    platform: activePlatform,
+    distro: activeCompatibility,
+    architecture: activeArchitecture,
+    sort: sortMode
+  };
+
+  if (format === 'json') {
+    const payload = {
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      catalogue: 'Linux Software Lab',
+      catalogueUpdatedAt: software.map(app => app.updatedAt || '').filter(Boolean).sort().pop() || null,
+      filters,
+      total: rows.length,
+      software: rows
+    };
+    downloadCatalogFile(
+      'liso-catalog-' + date + '.json',
+      JSON.stringify(payload, null, 2) + '\\n',
+      'application/json;charset=utf-8'
+    );
+  } else {
+    const columns = [
+      ['id', 'ID'], ['name', 'Nama'], ['version', 'Versi'],
+      ['status', 'Status'], ['category', 'Kategori'], ['type', 'Jenis'],
+      ['platforms', 'Platform'], ['tags', 'Tag'], ['keywords', 'Kata kunci'],
+      ['features', 'Fitur'], ['summary', 'Ringkasan'],
+      ['compatibilityTargets', 'Target kompatibilitas']
+    ];
+    const csv = [
+      columns.map(([, label]) => csvValue(label)).join(','),
+      ...rows.map(row => columns.map(([key]) => csvValue(row[key])).join(','))
+    ].join('\\r\\n');
+    downloadCatalogFile(
+      'liso-catalog-' + date + '.csv',
+      '\\ufeff' + csv + '\\r\\n',
+      'text/csv;charset=utf-8'
+    );
+  }
+  if (exportStatus) exportStatus.textContent = rows.length + ' aplikasi berhasil disiapkan untuk ekspor ' + format.toUpperCase() + '.';
+};
+
+const copyCurrentFilters = async () => {
+  updateURL();
+  if (!navigator.clipboard?.writeText) {
+    if (exportStatus) exportStatus.textContent = 'Clipboard tidak tersedia. URL filter tetap tersimpan di bilah alamat.';
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    if (exportStatus) exportStatus.textContent = 'Tautan pencarian dan filter berhasil disalin.';
+  } catch (_) {
+    if (exportStatus) exportStatus.textContent = 'Browser menolak akses clipboard. Salin URL langsung dari bilah alamat.';
+  }
+};
+
 
 const refresh = (writeURL = true) => {
   render();
@@ -284,11 +446,15 @@ const resetFilters = () => {
   activeStatus = 'all';
   activeCategory = 'all';
   activePlatform = 'all';
+  activeCompatibility = 'all';
+  activeArchitecture = 'all';
   sortMode = 'relevance';
   visibleLimit = pageSize;
   if (searchInput) searchInput.value = '';
   if (categorySelect) categorySelect.value = 'all';
   if (platformSelect) platformSelect.value = 'all';
+  if (compatibilitySelect) compatibilitySelect.value = 'all';
+  if (architectureSelect) architectureSelect.value = 'all';
   if (sortSelect) sortSelect.value = 'relevance';
   statusButtons.forEach(button => {
     const selected = button.dataset.filter === 'all';
@@ -323,6 +489,16 @@ platformSelect?.addEventListener('change', () => {
   visibleLimit = pageSize;
   refresh();
 });
+compatibilitySelect?.addEventListener('change', () => {
+  activeCompatibility = compatibilitySelect.value;
+  visibleLimit = pageSize;
+  refresh();
+});
+architectureSelect?.addEventListener('change', () => {
+  activeArchitecture = architectureSelect.value;
+  visibleLimit = pageSize;
+  refresh();
+});
 sortSelect?.addEventListener('change', () => {
   sortMode = sortSelect.value;
   visibleLimit = pageSize;
@@ -332,6 +508,9 @@ clearButton?.addEventListener('click', () => {
   resetFilters();
   searchInput?.focus();
 });
+exportCsvButton?.addEventListener('click', () => exportFilteredCatalog('csv'));
+exportJsonButton?.addEventListener('click', () => exportFilteredCatalog('json'));
+copyFiltersButton?.addEventListener('click', () => { void copyCurrentFilters(); });
 loadMoreButton?.addEventListener('click', () => {
   visibleLimit += pageSize;
   refresh(false);
@@ -379,13 +558,18 @@ const fillCatalogControls = () => {
   const platforms = [...new Set(software.flatMap(app => app.platforms || []).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'id'));
   fillOptions(categorySelect, categories, 'Semua kategori');
   fillOptions(platformSelect, platforms, 'Semua platform');
+  const distributions = (compatibilityIndex?.distributions || [])
+    .filter(item => !['non-linux', 'other-linux'].includes(item.id))
+    .map(item => ({ value: item.id, label: item.label }));
+  fillOptions(compatibilitySelect, distributions, 'Semua distro / target');
+  fillOptions(architectureSelect, ['x86_64', 'aarch64', 'armv7l', 'i686'], 'Semua arsitektur');
 };
 
 const year = $('#year');
 if (year) year.textContent = String(new Date().getFullYear());
 
 const fetchStaticCatalog = async () => {
-  const response = await fetch('/data/software.json', { headers: { Accept: 'application/json' } });
+  const response = await fetch('/data/software.json', { headers: { Accept: 'application/json' }, cache: 'no-store', credentials: 'omit', redirect: 'error' });
   if (!response.ok) throw new Error('Katalog statis tidak dapat dimuat (HTTP ' + response.status + ').');
   return response.json();
 };
@@ -400,6 +584,9 @@ const fetchSupabaseCatalog = async () => {
     order: 'sort_order.asc,name.asc'
   }).toString();
   const response = await fetch(endpoint.toString(), {
+    cache: 'no-store',
+    credentials: 'omit',
+    redirect: 'error',
     headers: {
       apikey: config.publishableKey,
       Authorization: 'Bearer ' + config.publishableKey,
@@ -455,44 +642,210 @@ const validateCatalogPayload = payload => {
   return payload;
 };
 
+const trustedManifestUrl = (productId, version, value) => {
+  try {
+    const url = new URL(value);
+    const expected = '/M-TamDre07/Linux-Software-Lab/main/apps/' + productId + '/releases/' + version + '/release.json';
+    return url.protocol === 'https:' && url.hostname === 'raw.githubusercontent.com'
+      && url.pathname === expected && !url.search && !url.hash;
+  } catch (_) {
+    return false;
+  }
+};
+
+const fetchCompatibilityRegistry = async () => {
+  const response = await fetch('/data/distribution-index.json', {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+    credentials: 'omit',
+    redirect: 'error'
+  });
+  if (!response.ok) throw new Error('Indeks kompatibilitas tidak tersedia.');
+  const index = await response.json();
+  if (!index || index.schema_version !== 1 || !Array.isArray(index.distributions)
+    || !Array.isArray(index.products)) {
+    throw new Error('Struktur indeks kompatibilitas tidak valid.');
+  }
+
+  const formatFamilies = {
+    deb: ['debian-family'],
+    rpm: ['fedora-family', 'suse-family'],
+    'pkg.tar.zst': ['arch-family']
+  };
+  const compatibility = new Map();
+
+  await Promise.all(index.products.map(async product => {
+    const references = Array.isArray(product.manifests) ? product.manifests : [];
+    const latest = references[references.length - 1];
+    const targets = [];
+    if (!latest || !trustedManifestUrl(product.id, latest.version, latest.url)) {
+      compatibility.set(product.id, targets);
+      return;
+    }
+    try {
+      const manifestResponse = await fetch(latest.url, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+        credentials: 'omit',
+        redirect: 'error'
+      });
+      if (!manifestResponse.ok) throw new Error('Manifest rilis tidak tersedia.');
+      const manifest = await manifestResponse.json();
+      const knownNames = [product.id, software.find(app => app.id === product.id)?.name].filter(Boolean);
+      if (!manifest || manifest.version !== latest.version
+        || !knownNames.some(name => String(manifest.product || '').toLowerCase() === name.toLowerCase())
+        || !['testing', 'released'].includes(manifest.status)
+        || !Array.isArray(manifest.artifacts)) {
+        throw new Error('Manifest rilis tidak lolos pemeriksaan dasar.');
+      }
+
+      for (const artifact of manifest.artifacts) {
+        if (!artifact || !['deb', 'rpm', 'pkg.tar.zst'].includes(artifact.format)
+          || !/^[a-f0-9]{64}$/.test(String(artifact.sha256 || ''))
+          || !['all', 'any', 'noarch', 'x86_64', 'amd64', 'aarch64', 'arm64', 'armv7l'].includes(artifact.architecture || 'all')) continue;
+        for (const distro of index.distributions) {
+          if (distro.package_format !== artifact.format) continue;
+          const minimum = String(artifact.minimum_os || '').trim().toLowerCase();
+          if (minimum) {
+            if (minimum === 'debian 13' && distro.id !== 'debian-13') continue;
+            if (minimum !== 'debian 13') continue;
+          } else if (!(formatFamilies[artifact.format] || []).includes(distro.family)) {
+            continue;
+          }
+          targets.push({
+            distribution_id: distro.id,
+            label: distro.label,
+            architecture: artifact.architecture || 'all',
+            format: artifact.format,
+            version: manifest.version,
+            status: manifest.status
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('[Linux Software Lab] Manifest kompatibilitas diabaikan:', product.id, error);
+    }
+    compatibility.set(product.id, targets);
+  }));
+
+  return { index, compatibility };
+};
+
 if (grid) {
+  let catalogRefreshInFlight = false;
+  let lastCatalogRefreshAt = 0;
+  let lastCatalogAttemptAt = 0;
+
   const loadCatalog = async () => {
     try {
       const data = validateCatalogPayload(await fetchSupabaseCatalog());
       setCatalogSourceStatus('Sumber katalog: mirror Supabase tersedia dan lolos validasi.', 'success');
       return data;
     } catch (_) {
-      // Never render the raw upstream response. Use only a locally committed and validated fallback.
-      console.warn('[Linux Software Lab] Catalogue mirror unavailable or invalid; trying the committed static JSON fallback.');
+      console.warn('[Linux Software Lab] Mirror katalog tidak tersedia atau invalid; mencoba fallback JSON yang tervalidasi.');
       try {
         const data = validateCatalogPayload(await fetchStaticCatalog());
-        setCatalogSourceStatus('Mirror katalog tidak tersedia atau datanya tidak valid; menggunakan data statis website. Data mungkin tertinggal sampai sinkronisasi pulih.', 'warning');
+        setCatalogSourceStatus('Mirror Supabase tidak tersedia; menggunakan data statis website. Sinkronisasi akan diperiksa kembali.', 'warning');
         return data;
       } catch (_) {
-        setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
         throw new Error('Katalog tidak tersedia atau tidak valid pada sumber online maupun fallback lokal.');
       }
     }
   };
-  loadCatalog()
-    .then(data => {
-      if (!data || data.schemaVersion !== 2 || !Array.isArray(data.software)) {
-        throw new Error('Struktur katalog tidak sesuai dengan versi skema yang didukung.');
+
+  const applyCatalogData = data => {
+    if (!data || data.schemaVersion !== 2 || !Array.isArray(data.software)) {
+      throw new Error('Struktur katalog tidak sesuai dengan versi skema yang didukung.');
+    }
+    pageSize = Number.isInteger(data.catalog?.pageSize) && data.catalog.pageSize > 0
+      ? Math.min(100, data.catalog.pageSize) : 12;
+    software = data.software.map(app => makeSearchIndex({ ...app }));
+    if (exportCsvButton) exportCsvButton.disabled = false;
+    if (exportJsonButton) exportJsonButton.disabled = false;
+    fillCatalogControls();
+    updateCatalogOverview();
+    catalogLoaded = true;
+    applyURLState();
+    refresh(false);
+  };
+
+  const refreshCatalog = async (silent = false) => {
+    if (catalogRefreshInFlight) return;
+    catalogRefreshInFlight = true;
+    lastCatalogAttemptAt = Date.now();
+    if (refreshCatalogButton) {
+      refreshCatalogButton.disabled = true;
+      refreshCatalogButton.textContent = 'Memeriksa…';
+    }
+    if (!silent) setCatalogSourceStatus('Memeriksa metadata katalog dan manifest rilis…', 'info');
+
+    try {
+      const [catalogResult, registryResult] = await Promise.allSettled([
+        loadCatalog(),
+        fetchCompatibilityRegistry()
+      ]);
+      if (catalogResult.status !== 'fulfilled') throw catalogResult.reason;
+      const data = catalogResult.value;
+      const registryAvailable = registryResult.status === 'fulfilled';
+
+      if (registryAvailable) {
+        const registry = registryResult.value;
+        compatibilityIndex = registry.index;
+        compatibilityByApp.clear();
+        for (const [id, targets] of registry.compatibility.entries()) compatibilityByApp.set(id, targets);
+        if (compatibilityStatus) {
+          compatibilityStatus.textContent = 'Kompatibilitas dibaca dari manifest, distro, dan arsitektur; bukan jaminan dependensi atau uji pada semua perangkat.';
+        }
+      } else {
+        console.warn('[Linux Software Lab] Compatibility index unavailable; catalogue remains usable without package-compatibility claims.', registryResult.reason);
+        if (!compatibilityIndex) compatibilityByApp.clear();
+        if (compatibilityStatus) {
+          compatibilityStatus.textContent = 'Data kompatibilitas sementara tidak tersedia. Informasi paket tidak ditampilkan sebagai kompatibel sampai manifest dapat diverifikasi.';
+        }
       }
-      pageSize = Number.isInteger(data.catalog?.pageSize) && data.catalog.pageSize > 0 ? Math.min(100, data.catalog.pageSize) : 12;
-      software = data.software.map(app => makeSearchIndex({ ...app }));
-      fillCatalogControls();
-      updateCatalogOverview();
-      catalogLoaded = true;
-      applyURLState();
-      refresh(false);
-    })
-    .catch(() => {
-      setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
-      grid.innerHTML = '<div class="empty-state" role="alert"><strong>Katalog belum dapat dimuat.</strong><span>Periksa koneksi internet, lalu muat ulang halaman. Tidak ada perubahan data yang dilakukan.</span></div>';
-      if (resultCount) resultCount.textContent = 'Katalog tidak tersedia';
-      if (paginationSummary) paginationSummary.textContent = '';
-      if (loadMoreButton) loadMoreButton.hidden = true;
-    });
+
+      applyCatalogData(data);
+      lastCatalogRefreshAt = Date.now();
+      if (!silent) {
+        const updatedAt = data.catalog?.updatedAt || 'tanggal tidak tercatat';
+        const source = registryAvailable
+          ? 'Katalog diperbarui · metadata ' + updatedAt + ' · kompatibilitas manifest tervalidasi.'
+          : 'Katalog diperbarui · data kompatibilitas belum tersedia; klaim paket disembunyikan.';
+        setCatalogSourceStatus(source, registryAvailable ? 'success' : 'warning');
+      }
+    } catch (error) {
+      if (!catalogLoaded) {
+        setCatalogSourceStatus('Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.', 'error');
+        grid.innerHTML = '<div class="empty-state" role="alert"><strong>Katalog belum dapat dimuat.</strong><span>Periksa koneksi internet, lalu muat ulang halaman. Tidak ada perubahan data yang dilakukan.</span></div>';
+        if (resultCount) resultCount.textContent = 'Katalog tidak tersedia';
+        if (paginationSummary) paginationSummary.textContent = '';
+        if (loadMoreButton) loadMoreButton.hidden = true;
+      } else {
+        setCatalogSourceStatus('Pembaruan gagal; katalog terakhir yang valid tetap digunakan. Coba periksa lagi nanti.', 'warning');
+        console.warn('[Linux Software Lab] Metadata refresh failed; retaining the last valid catalogue.', error);
+      }
+    } finally {
+      catalogRefreshInFlight = false;
+      if (refreshCatalogButton) {
+        refreshCatalogButton.disabled = false;
+        refreshCatalogButton.textContent = 'Perbarui katalog';
+      }
+    }
+  };
+
+  refreshCatalogButton?.addEventListener('click', () => { void refreshCatalog(false); });
+  void refreshCatalog(false);
+
+  window.setInterval(() => {
+    if (!document.hidden && Date.now() - Math.max(lastCatalogRefreshAt, lastCatalogAttemptAt) >= 5 * 60 * 1000) {
+      void refreshCatalog(true);
+    }
+  }, 60 * 1000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && Date.now() - Math.max(lastCatalogRefreshAt, lastCatalogAttemptAt) >= 60 * 1000) {
+      void refreshCatalog(true);
+    }
+  });
 }
 })();

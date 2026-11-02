@@ -15,7 +15,7 @@ Pendekatan ini disengaja untuk migrasi dari Windows: pengguna pemula mendapat an
 - Offline-first catalogue for PaketScope and Sorot; bundled metadata is checked against the website's distribution index and version manifests by regression tests.
 - Local distribution detection using /etc/os-release, including Debian/Ubuntu, Arch derivatives, Fedora/RHEL, and openSUSE/SUSE family hints.
 - CPU architecture normalization such as x86_64/amd64 and aarch64/arm64.
-- A shared artifact-selection policy for the GUI and CLI. Sorot's real 0.5.0 Beta .deb, .tar.gz, and .zip artifacts are listed; PaketScope is not falsely marked installable because it has no public release artifact in the catalogue.
+- A shared artifact-selection policy for the GUI and CLI. Sorot 0.7.3 Beta and PaketScope 3.0.0.dev5 are indexed with per-version manifests, checksums, architecture, and OS requirements. Their .deb artifacts are eligible only on Debian 13; neither is advertised as compatible with Ubuntu 24.04.
 - Download verification against the shared GitHub distribution index, the per-version release.json and SHA256SUMS, and the selected artifact SHA-256.
 - A Debian installation adapter that first simulates APT, rejects transactions indicating removals, uses --no-remove and --no-install-recommends, and then invokes APT through Polkit only after explicit user confirmation.
 - A GUI catalogue that follows the established Linux Software Lab contrast, spacing, status, and product-list patterns. Searching, source links, metadata refresh, and source archive downloads are supported.
@@ -53,17 +53,39 @@ lsl doctor
 
 `lsl ecosystem` reports the canonical GitHub, website and launcher portal links, the active local catalogue source, detected system profile, reviewed local integration IDs, and enabled installation adapters. `--json` provides the same local facts for scripts and support diagnostics. This command deliberately performs no network health probe and does not make changes to the system. `lsl --version` prints the installed launcher version.
 
+Search the local catalogue using the same query engine as the desktop GUI:
+
+~~~bash
+lsl search "telepromter"
+lsl search --json tag:apt
+lsl search --json "nama:PaketScope" -tag:flatpak
+~~~
+
+Supported search inputs include Indonesian/English synonyms, common typing mistakes, quoted phrases, field filters, and negative terms. JSON output includes version/status, website/source links, and native artifacts compatible with the detected system profile.
+
 Refresh the user's local metadata cache from the official repository:
 
 ~~~bash
 lsl refresh
 ~~~
 
-The refresh command prompts for the exact confirmation word REFRESH before downloading. Both documents must validate before the cache files replace the previous copy. When the network is unavailable, the bundled catalog continues to work.
+The refresh command prompts for the exact confirmation word REFRESH before downloading. Both documents and every referenced release manifest must validate before the cache snapshot is activated. When the network is unavailable or a manifest is invalid, the previous verified snapshot or bundled catalogue remains available.
+
+The desktop GUI also checks catalogue metadata on launch and every 15 minutes while it is open. This is metadata refresh only: it does not install a new application build, change APT packages, or upgrade the operating system. Users still start package operations manually, review the APT simulation, and confirm the privileged transaction.
+
+Search the local catalogue with the same query language in the desktop GUI and CLI:
+
+~~~bash
+lsl search "telepromter"
+lsl search --json tag:apt
+lsl search --json "nama:PaketScope" -tag:flatpak
+~~~
+
+Search supports typo tolerance, Indonesian/English synonyms, quoted phrases, field filters, and negative terms. JSON results include the detected system profile's compatible artifacts, minimum OS, architecture, checksum, and source links. The GUI refreshes metadata on launch and every 15 minutes while open; this never installs packages automatically.
 
 ## Install behavior and limitations
 
-The launcher never substitutes another distro's package. At present, the only native install path is a listed .deb artifact on the Debian/Ubuntu family, with APT, pkexec, and Polkit available. The app is marked Beta/testing; the GUI and CLI warn that SHA-256 verifies bytes against metadata, **not the publisher's cryptographic signature**. The package manager simulation and a separate confirmation are required before the privileged operation.
+The launcher never substitutes another distro's package. The current PaketScope 3.0.0.dev5 and Sorot 0.7.1–0.7.3 builds have .deb artifacts whose manifests require Debian 13 specifically; Ubuntu 24.04 and other Debian-family derivatives are not considered compatible with those artifacts. Compatibility is evaluated from the manifest's distribution and minimum-OS metadata, CPU architecture, and installed package-manager tools. The app status remains Beta/testing; SHA-256 verifies bytes against release metadata, **not the publisher's cryptographic signature**. The package manager simulation and a separate confirmation are required before the privileged operation.
 
 Do not run the entire launcher with sudo. Start it as a normal user so the system can request package-manager authorization at the installation boundary.
 
@@ -71,10 +93,10 @@ The current source archive does not contain a publisher-signed release manifest.
 
 ### Current artifact availability
 
-- Sorot 0.5.0 Beta: .deb, .tar.gz, and .zip are in the versioned archive.
-- Sorot for Arch Linux / 0.6.0: planned only; no .pkg.tar.zst or official PKGBUILD is declared as available.
-- PaketScope: source-mode project, not a public packaged release in this catalogue.
-- Fedora/RHEL, SUSE, Flatpak, AppImage: no installer adapter is enabled in this MVP.
+- Sorot 0.7.3 Beta/testing: Debian 13 .deb, source tar.gz, ZIP, and Python wheel are indexed. Earlier versions remain archived.
+- PaketScope 3.0.0.dev5 testing: Debian 13 .deb, source tar.gz, Python wheel, and a source patch are indexed. The patch is source material, never an installable package.
+- Arch Linux remains planned for Sorot; no validated .pkg.tar.zst is published. PaketScope Arch/Fedora package recipes are experimental and unsupported.
+- Fedora/RHEL, SUSE, Flatpak, AppImage: no native installation adapter is enabled in this MVP.
 
 The app catalogue never treats a planned format as a download. Each family adapter must be implemented and tested before the product card can show installation as available.
 

@@ -126,22 +126,43 @@ class WebsiteExperienceTests(unittest.TestCase):
     def test_catalogue_has_operable_search_and_filters(self) -> None:
         source, _ = self.parse_page("software/index.html")
         for identifier in (
-            "softwareSearch", "statusFilters", "categoryFilter",
-            "platformFilter", "sortFilter", "clearFilters", "loadMore", "catalogSourceStatus",
+            "softwareSearch", "statusFilters", "categoryFilter", "platformFilter",
+            "compatibilityFilter", "architectureFilter", "sortFilter", "clearFilters",
+            "catalogRefresh", "catalogCompatibilityStatus", "catalogExportCsv", "catalogExportJson",
+            "catalogCopyFilters", "catalogExportStatus", "loadMore", "catalogSourceStatus",
         ):
             with self.subTest(control=identifier):
                 self.assertIn(f'id="{identifier}"', source)
         self.assertIn('aria-live="polite"', source)
         self.assertIn('aria-pressed="true"', source)
         self.assertIn('id="catalogSourceStatus" class="catalog-source-status" role="status"', source)
-        self.assertLess(source.index('src="/assets/js/catalog-contract.js"'), source.index('src="/assets/js/site.js"'))
-        self.assertIn("menggunakan data statis website", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
-        self.assertIn("Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.", (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8"))
+        self.assertLess(source.index('src="/assets/js/catalog-contract.js"'), source.index('src="/assets/js/catalog-search.js"'))
+        self.assertLess(source.index('src="/assets/js/catalog-search.js"'), source.index('src="/assets/js/site.js"'))
+        renderer = (PUBLIC / "assets" / "js" / "site.js").read_text(encoding="utf-8")
+        search = (PUBLIC / "assets" / "js" / "catalog-search.js").read_text(encoding="utf-8")
+        self.assertIn("LSL_CATALOG_SEARCH", renderer)
+        self.assertIn("fetchCompatibilityRegistry", renderer)
+        self.assertIn("minimum_os", renderer)
+        self.assertIn("5 * 60 * 1000", renderer)
+        self.assertIn("trustedManifestUrl", renderer)
+        self.assertIn("boundedDistance", search)
+        self.assertIn("SYNONYMS", search)
+        self.assertIn("exportFilteredCatalog", renderer)
+        self.assertIn("copyCurrentFilters", renderer)
+        self.assertIn("csvValue", renderer)
+        self.assertIn("application/json;charset=utf-8", renderer)
+        self.assertIn("menggunakan data statis website", renderer)
+        self.assertIn("Katalog tidak dapat dimuat. Periksa koneksi lalu muat ulang halaman.", renderer)
+
 
     def test_paketscope_page_is_explicit_about_installation_state(self) -> None:
         source, _ = self.parse_page("software/paketscope.html")
         self.assertIn('id="install-status"', source)
-        self.assertIn("Belum tersedia untuk instalasi publik", source)
+        self.assertIn("Paket pengujian tersedia", source)
+        self.assertIn("Status testing", source)
+        self.assertIn("Unduh PaketScope .deb", source)
+        self.assertIn("container CI Debian 13", source)
+        self.assertIn("GUI/Polkit", source)
         manifest = (ROOT / "apps" / "paketscope" / "pyproject.toml").read_text(encoding="utf-8")
         app_version = next(line for line in manifest.splitlines() if line.startswith("version = ")).split('"')[1]
         self.assertIn(app_version, source)

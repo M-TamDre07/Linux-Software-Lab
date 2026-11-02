@@ -41,10 +41,11 @@ class Artifact:
     url: str
     manifest_url: str
     checksums_url: str
+    minimum_os: str = ""
 
     @property
     def is_source_archive(self) -> bool:
-        return self.kind == "source-archive"
+        return self.kind in {"source-archive", "source-patch"}
 
     @property
     def is_native_package(self) -> bool:

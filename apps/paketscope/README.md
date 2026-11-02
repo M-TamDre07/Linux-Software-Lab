@@ -2,7 +2,7 @@
 
 PaketScope is a local-first desktop inventory for Debian-family Linux systems. The current v3 development build discovers installed APT/dpkg and Flatpak applications, searches the local APT index, and supports explicitly confirmed APT install, remove, and purge operations. Update checks and exports remain available; Flatpak inventory is visible but is not yet mutable from the app.
 
-> Development preview: this branch is not yet a signed or packaged release. Run it from source and review the code before use.
+> Development preview: version 3.0.0.dev5 includes an unsigned Debian .deb, source archive, and Python wheel for limited testing. Verify SHA-256 values and read the release test report before use; this is not a stable or publisher-signed release.
 
 ## Native architecture
 

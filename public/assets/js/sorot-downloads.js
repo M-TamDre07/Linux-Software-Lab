@@ -21,7 +21,7 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[char]));
   const versionPattern = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
-  const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+  const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+~-]*$/;
   const hashPattern = /^[a-f0-9]{64}$/;
   const formats = new Set(['deb', 'rpm', 'pkg.tar.zst', 'flatpak', 'flatpakref', 'AppImage', 'tar.gz', 'zip', 'whl']);
   const kinds = new Set(['native-package', 'debian-package', 'rpm-package', 'arch-package', 'flatpak-bundle', 'flatpak-ref', 'appimage', 'source-archive', 'python-wheel']);
@@ -60,7 +60,13 @@
       id: 'debian-family', family: 'debian-family',
       label: 'Debian / Ubuntu dan turunannya', packageFormat: 'deb',
       packageManager: 'apt', sourceFormats: ['tar.gz', 'zip'],
-      note: 'Paket .deb hanya ditampilkan bila tercatat dalam manifest rilis yang tervalidasi.'
+      note: 'Paket .deb hanya ditampilkan bila tercatat dalam manifest rilis yang cocok dengan distro dan versi OS.'
+    },
+    'debian-13': {
+      id: 'debian-13', family: 'debian-family',
+      label: 'Debian 13 (Trixie)', packageFormat: 'deb',
+      packageManager: 'apt', sourceFormats: ['tar.gz', 'zip'],
+      note: 'Target spesifik Debian 13. Status paket mengikuti manifest rilis dan tetap dapat berstatus testing.'
     },
     arch: {
       id: 'arch', family: 'arch-family',
@@ -104,10 +110,13 @@
   };
 
   const detectedOS = detectOS();
-  distroSelect.value = detectedOS.id;
+  // Browsers cannot reliably distinguish individual Linux distributions.
+  // Never preselect a native package target based only on user-agent metadata.
+  if (detectedOS.id === 'non-linux') distroSelect.value = 'non-linux';
+  else distroSelect.value = '';
   detected.textContent = detectedOS.label === 'Linux'
-    ? 'Browser mengenali Linux, tetapi tidak mengungkap distro secara andal. Pilih distro secara manual; pilihan browser tidak dianggap bukti kompatibilitas.'
-    : 'Petunjuk browser: ' + detectedOS.label + '. Pemilih ini hanya mengatur metadata yang ditampilkan, bukan memasang paket secara otomatis.';
+    ? 'Browser mengenali Linux, tetapi tidak dapat memastikan distro. Pilih distro secara manual; paket native hanya muncul jika manifest menyatakan targetnya cocok.'
+    : 'Petunjuk browser: ' + detectedOS.label + '. Pilihan ini hanya mengatur metadata unduhan; website tidak memasang paket secara otomatis.';
 
   let registry = null;
 
@@ -164,6 +173,7 @@
       return {
         file: item.file, kind: item.kind, format: item.format,
         architecture: item.architecture || 'all',
+        minimumOS: typeof item.minimum_os === 'string' ? item.minimum_os : '',
         sha256: item.sha256, url: resolvedURL
       };
     });
@@ -247,12 +257,21 @@
     };
   };
 
+  const artifactMatchesDistro = (artifact, distro) => {
+    const minimum = String(artifact.minimumOS || '').trim().toLowerCase();
+    if (!minimum) return true;
+    if (minimum === 'debian 13') return distro.id === 'debian-13';
+    return false;
+  };
+
   const getDistro = () => {
     const raw = registry && registry.distributions.find(item => item.id === distroSelect.value);
     const distro = raw || fallbackDistributions[distroSelect.value] || fallbackDistributions['other-linux'];
     const hasPackage = distro.packageFormat && registry && registry.versions.some(release =>
       release.status !== 'archived' &&
-      release.artifacts.some(artifact => artifact.format === distro.packageFormat)
+      release.artifacts.some(artifact =>
+        artifact.format === distro.packageFormat && artifactMatchesDistro(artifact, distro)
+      )
     );
     const plannedTarget = registry && registry.plannedTargets.find(target => target.distribution_id === distro.id);
     let availability;
@@ -299,6 +318,7 @@
     const source = artifact.kind === 'source-archive' && distro.sourceFormats.includes(artifact.format);
     const pythonWheel = artifact.kind === 'python-wheel' && distro.id !== 'non-linux';
     const native = distro.status === 'available' && artifact.format === distro.packageFormat &&
+      artifactMatchesDistro(artifact, distro) &&
       !['source-archive', 'python-wheel'].includes(artifact.kind);
     if (!source && !native && !pythonWheel) return '';
     const primary = native ? ' is-primary' : '';
@@ -320,7 +340,11 @@
     ].filter(Boolean).join('');
     const visibleArtifacts = release.artifacts.map(item => artifactMarkup(item, distro)).filter(Boolean).join('');
     const native = distro.status === 'available'
-      ? release.artifacts.find(item => item.format === distro.packageFormat && item.kind !== 'source-archive')
+      ? release.artifacts.find(item =>
+          item.format === distro.packageFormat
+          && artifactMatchesDistro(item, distro)
+          && !['source-archive', 'python-wheel'].includes(item.kind)
+        )
       : null;
     const command = native ? installCommand(distro.packageManager, native.file) : '';
     const note = release.status === 'testing'

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -20,9 +21,9 @@ DATA_DIR = APP_ROOT / "lsl_center" / "data"
 def profile(family: str) -> SystemProfile:
     if family == "debian-family":
         return SystemProfile(
-            distro_id="ubuntu",
-            pretty_name="Ubuntu test fixture",
-            version_id="24.04",
+            distro_id="debian",
+            pretty_name="Debian 13 test fixture",
+            version_id="13",
             family=family,
             architecture="x86_64",
             package_manager="apt-get",
@@ -70,6 +71,52 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertTrue(window.website_button.isEnabled())
         self.assertTrue(window.manifest_button.isEnabled())
         window.close()
+
+    def test_desktop_search_uses_typo_tolerance_and_synonyms(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("arch-family"),
+        )
+        window.search.setText("telepromter")
+        self.assertEqual(window.app_list.count(), 1)
+        self.assertEqual(
+            window.app_list.item(0).data(Qt.ItemDataRole.UserRole),
+            "sorot",
+        )
+        window.search.setText("PaketScpoe")
+        self.assertEqual(window.app_list.count(), 1)
+        self.assertEqual(
+            window.app_list.item(0).data(Qt.ItemDataRole.UserRole),
+            "paketscope",
+        )
+        window.close()
+
+    def test_paketscope_debian13_catalogue_shows_testing_install_action(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("debian-family"),
+        )
+        paketscope_row = next(
+            index
+            for index in range(window.app_list.count())
+            if window.app_list.item(index).data(Qt.ItemDataRole.UserRole) == "paketscope"
+        )
+        window.app_list.setCurrentRow(paketscope_row)
+        self.assertTrue(window.install_button.isEnabled())
+        self.assertIn("TESTING", window.product_status.text())
+        self.assertIn("Debian 13", window.compatibility_label.text())
+        window.close()
+
+    def test_catalogue_metadata_refresh_timer_is_active_and_does_not_auto_install(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            window = MainWindow(
+                service=CatalogService(cache_dir=Path(temp) / "cache"),
+                profile=profile("debian-family"),
+            )
+            self.assertTrue(window.service.auto_refresh_enabled)
+            self.assertTrue(window.auto_refresh_timer.isActive())
+            self.assertEqual(window.auto_refresh_timer.interval(), 15 * 60 * 1000)
+            window.close()
 
     def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
         window = MainWindow(

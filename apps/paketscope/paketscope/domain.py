@@ -1,9 +1,9 @@
 """Pure data types and parsers used by the inventory collectors."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Iterable
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +38,7 @@ class InventorySnapshot:
         cls,
         applications: Iterable[InstalledApplication],
         diagnostics: Iterable[str] = (),
-    ) -> "InventorySnapshot":
+    ) -> InventorySnapshot:
         ordered = tuple(sorted(
             applications,
             key=lambda item: (item.name.casefold(), item.source.casefold(), item.identifier.casefold()),

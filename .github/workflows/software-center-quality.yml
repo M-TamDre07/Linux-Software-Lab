@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+      - name: Generate and verify offline release manifest mirrors
+        run: |
+          python scripts/sync_distribution_index.py --write
+          python scripts/sync_distribution_index.py --check
       - name: Install Qt runtime libraries
         run: |
           sudo apt-get update
@@ -58,6 +62,8 @@ jobs:
               "lsl_center/data/catalog.json",
               "lsl_center/data/distribution-index.json",
               "lsl_center/data/manifests/sorot/0.5.0/release.json",
+              "lsl_center/data/manifests/sorot/0.7.3/release.json",
+              "lsl_center/data/manifests/paketscope/3.0.0.dev5/release.json",
               "lsl_center/data/assets/center-icon.svg",
           }
           missing = sorted(required - names)

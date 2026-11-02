@@ -23,7 +23,7 @@
     },
     "version": {
       "type": "string",
-      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+      "pattern": "^[0-9]+\\\\.[0-9]+\\\\.[0-9]+(?:[.+-][0-9A-Za-z.-]+)?$"
     },
     "channel": {
       "enum": [
@@ -79,7 +79,7 @@
         "file": {
           "type": "string",
           "minLength": 1,
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+~-]*$"
         },
         "kind": {
           "enum": [
@@ -91,7 +91,8 @@
             "flatpak-ref",
             "appimage",
             "source-archive",
-            "python-wheel"
+            "python-wheel",
+            "source-patch"
           ]
         },
         "format": {
@@ -104,7 +105,8 @@
             "AppImage",
             "tar.gz",
             "zip",
-            "whl"
+            "whl",
+            "diff"
           ]
         },
         "architecture": {
@@ -363,6 +365,25 @@
             "required": [
               "architecture"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "source-patch"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "format": {
+                "const": "diff"
+              }
+            }
           }
         }
       ]
