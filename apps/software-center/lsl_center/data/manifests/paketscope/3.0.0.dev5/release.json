@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product": "PaketScope",
+  "version": "3.0.0.dev5",
+  "channel": "development",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/3.0.0.dev5/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/3.0.0.dev5/TEST-REPORT.md",
+  "architecture_note": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan. Didukung secara terbatas hanya untuk Debian 13. Paket Arch dan Fedora bersifat eksperimental dan tidak divalidasi. Status ini bukan 'stable'.",
+  "artifacts": [
+    {
+      "file": "paketscope_3.0.0~dev5-1_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "85c8ff238805ef75ee0f3d5717d4b9eb38217ac3222d90d59654ac66a5b14051",
+      "minimum_os": "Debian 13"
+    },
+    {
+      "file": "paketscope-3.0.0.dev5.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "8500e8ad51a3dc325043c568037c41d106440a5165cd4c1571b4222c7b0457b2"
+    },
+    {
+      "file": "paketscope-3.0.0.dev5-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "28b4d43273eafeda09b894b33aad97c78000dc1bf8b48c2ce27038d051be98c4"
+    },
+    {
+      "file": "paketscope-3.0.0.dev5-vs-main.patch",
+      "kind": "source-patch",
+      "format": "diff",
+      "architecture": "all",
+      "sha256": "7a22e3b00e6a9ea6380a448393f821217dce37299ae6ef8afe9f959c75225d42"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}
