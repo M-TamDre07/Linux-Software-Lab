@@ -53,6 +53,16 @@ lsl doctor
 
 `lsl ecosystem` reports the canonical GitHub, website and launcher portal links, the active local catalogue source, detected system profile, reviewed local integration IDs, and enabled installation adapters. `--json` provides the same local facts for scripts and support diagnostics. This command deliberately performs no network health probe and does not make changes to the system. `lsl --version` prints the installed launcher version.
 
+Search the local catalogue using the same query engine as the desktop GUI:
+
+~~~bash
+lsl search "telepromter"
+lsl search --json tag:apt
+lsl search --json "nama:PaketScope" -tag:flatpak
+~~~
+
+Supported search inputs include Indonesian/English synonyms, common typing mistakes, quoted phrases, field filters, and negative terms. JSON output includes version/status, website/source links, and native artifacts compatible with the detected system profile.
+
 Refresh the user's local metadata cache from the official repository:
 
 ~~~bash
