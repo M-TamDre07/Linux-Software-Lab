@@ -21,7 +21,7 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[char]));
   const versionPattern = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
-  const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+-]*$/;
+  const filePattern = /^[A-Za-z0-9][A-Za-z0-9._+~-]*$/;
   const hashPattern = /^[a-f0-9]{64}$/;
   const formats = new Set(['deb', 'rpm', 'pkg.tar.zst', 'flatpak', 'flatpakref', 'AppImage', 'tar.gz', 'zip', 'whl']);
   const kinds = new Set(['native-package', 'debian-package', 'rpm-package', 'arch-package', 'flatpak-bundle', 'flatpak-ref', 'appimage', 'source-archive', 'python-wheel']);
