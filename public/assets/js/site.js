@@ -629,7 +629,7 @@ if (grid) {
   const loadCatalog = async () => {
     try {
       const data = validateCatalogPayload(await fetchSupabaseCatalog());
-      setCatalogSourceStatus('Mirror Supabase tersedia dan lolos validasi.', 'success');
+      setCatalogSourceStatus('Sumber katalog: mirror Supabase tersedia dan lolos validasi.', 'success');
       return data;
     } catch (_) {
       console.warn('[Linux Software Lab] Mirror katalog tidak tersedia atau invalid; mencoba fallback JSON yang tervalidasi.');
