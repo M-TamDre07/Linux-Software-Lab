@@ -14,7 +14,7 @@
       "name": "PaketScope",
       "version": "3.0.0.dev5",
       "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
-      "description": "PaketScope 3 sedang diuji sebagai aplikasi desktop native berbasis Qt. Pengguna dapat memeriksa jenis, deskripsi fungsi, metadata, dan asal yang diketahui untuk paket APT/Flatpak; asal APT hanya menunjukkan repositori lokal yang saat ini menyediakan versi yang sama, bukan bukti historis instalasi. Perubahan paket APT memerlukan tinjauan dan autentikasi, sementara Flatpak masih read-only. System & Code Lab menyediakan snapshot Linux, viewer source lokal, dan petunjuk analisis statis. Sumber inventaris tambahan dapat dikembangkan melalui kontrak provider eksplisit; plugin pihak ketiga tidak dimuat otomatis.",
+      "description": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan/testing untuk Debian 13. GitHub Actions berhasil membangun, memasang melalui APT, mengimpor modul terpasang, dan me-purge paket pada container Debian 13/Trixie. Interaksi GUI/Polkit di desktop nyata, Discover, serta tanda tangan rilis produksi belum diverifikasi. Aplikasi menyediakan inventaris APT/dpkg dan Flatpak read-only, detail asal paket dengan batas bukti historis, perubahan APT yang memerlukan simulasi dan autentikasi, System & Code Lab read-only, serta ekspor dan backup terenkripsi.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
