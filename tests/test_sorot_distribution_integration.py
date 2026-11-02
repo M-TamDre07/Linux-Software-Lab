@@ -2,6 +2,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -167,6 +168,25 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
                 capture_output=True, text=True, check=False,
             )
             self.assertEqual(js_check.returncode, 0, js_check.stderr)
+
+    def test_all_indexed_release_manifests_are_mirrored_for_offline_launcher(self):
+        index = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
+        bundle_root = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "manifests"
+        for product in index["products"]:
+            for reference in product["manifests"]:
+                canonical = ROOT / "apps" / product["id"] / "releases" / reference["version"] / "release.json"
+                bundled = bundle_root / product["id"] / reference["version"] / "release.json"
+                self.assertTrue(canonical.is_file(), str(canonical))
+                self.assertTrue(bundled.is_file(), str(bundled))
+                self.assertEqual(canonical.read_bytes(), bundled.read_bytes())
+
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "sync_distribution_index.py"), "--check"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_product_catalogue_uses_the_shared_card_renderer_and_styles(self):
         catalogue = (PUBLIC / "software" / "index.html").read_text(encoding="utf-8")
