@@ -18,7 +18,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.7.2 Beta (testing) memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
+      "note": "Sorot 0.7.3 Beta (testing) memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
     },
     {
       "id": "debian-13",
@@ -42,7 +42,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.7.2 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO hanya metadata build eksperimental; jangan dianggap paket siap pasang. Target ini belum menjadi unduhan."
+      "note": "Sorot 0.7.3 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO adalah metadata build eksperimental, bukan paket siap pasang. Target ini belum menjadi unduhan."
     },
     {
       "id": "fedora",
