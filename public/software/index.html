@@ -64,6 +64,14 @@
 <div class="catalog-selects"><label class="select-field"><span>Kategori</span><select id="categoryFilter"><option value="all">Semua kategori</option></select></label><label class="select-field"><span>Platform</span><select id="platformFilter"><option value="all">Semua platform</option></select></label><label class="select-field"><span>Distro / kompatibilitas</span><select id="compatibilityFilter"><option value="all">Semua target</option></select></label><label class="select-field"><span>Arsitektur CPU</span><select id="architectureFilter"><option value="all">Semua arsitektur</option><option value="x86_64">x86_64 / AMD64</option><option value="aarch64">ARM64</option><option value="armv7l">ARMv7</option><option value="i686">x86 32-bit</option></select></label><label class="select-field"><span>Urutkan</span><select id="sortFilter"><option value="relevance">Paling relevan</option><option value="name">Nama A–Z</option><option value="name-desc">Nama Z–A</option><option value="updated">Terbaru diperbarui</option><option value="status">Status rilis</option></select></label></div>
 </div>
 <div class="catalog-meta"><span id="resultCount" aria-live="polite">Memuat katalog…</span><span id="catalogHealth">Metadata divalidasi sebelum ditampilkan</span><span id="catalogSourceStatus" class="catalog-source-status" role="status" aria-live="polite" aria-atomic="true">Menghubungkan sumber katalog…</span><span id="catalogCompatibilityStatus" role="status">Kompatibilitas akan dibaca dari manifest rilis.</span></div>
+<div class="catalog-output-actions" role="group" aria-label="Ekspor dan bagikan katalog">
+<div class="catalog-output-buttons">
+<button class="btn btn-secondary" id="catalogExportCsv" type="button" disabled>Ekspor CSV</button>
+<button class="btn btn-secondary" id="catalogExportJson" type="button" disabled>Ekspor JSON</button>
+<button class="btn btn-secondary" id="catalogCopyFilters" type="button">Salin tautan filter</button>
+</div>
+<span id="catalogExportStatus" role="status" aria-live="polite"></span>
+</div>
 <div class="software-grid" id="softwareGrid" aria-live="polite"><article class="software-card skeleton" aria-hidden="true"><div class="skeleton-icon"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></article><article class="software-card skeleton" aria-hidden="true"><div class="skeleton-icon"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></article></div>
 <div class="catalog-pagination"><span id="paginationSummary"></span><button class="btn btn-secondary" id="loadMore" type="button" hidden>Muat lebih banyak</button></div>
 </div></section>
