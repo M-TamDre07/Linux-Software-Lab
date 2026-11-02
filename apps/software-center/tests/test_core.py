@@ -360,7 +360,7 @@ class CatalogTests(unittest.TestCase):
                 hashlib.sha256((snapshot_dir / "distribution-index.json").read_bytes()).hexdigest(),
                 pointer["index_sha256"],
             )
-            manifest_key = "sorot:0.5.0"
+            manifest_key = "sorot/0.5.0"
             self.assertEqual(
                 hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
                 pointer["manifest_sha256s"][manifest_key],
