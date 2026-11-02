@@ -60,6 +60,7 @@ from .models import (
     InstallResult,
     SystemProfile,
 )
+from .search import search_applications
 from .selection import select_artifact, source_artifacts
 
 STYLE = """
@@ -234,7 +235,7 @@ class MainWindow(QMainWindow):
         self.count_label = QLabel(f"{len(self.snapshot.applications)} aplikasi")
         self.count_label.setObjectName("muted")
         self.search = QLineEdit()
-        self.search.setPlaceholderText("Cari nama, kategori, atau fitur…")
+        self.search.setPlaceholderText("Cari nama, typo, fitur, tag… (tag:, nama:, -istilah)")
         self.search.textChanged.connect(self._filter_list)
         self.app_list = QListWidget()
         self.app_list.setWordWrap(True)
@@ -373,13 +374,7 @@ class MainWindow(QMainWindow):
         current_id = self.current_application.id if self.current_application else None
         self.app_list.blockSignals(True)
         self.app_list.clear()
-        query = self.search.text().strip().casefold()
-        for app in self.snapshot.applications:
-            haystack = " ".join(
-                (app.name, app.summary, app.category, *app.tags, *app.keywords)
-            ).casefold()
-            if query and query not in haystack:
-                continue
+        for app in search_applications(self.snapshot.applications, self.search.text()):
             local_state = (
                 "TERDETEKSI LOKAL" if executable_for(app.id) else "BELUM TERDETEKSI"
             )
