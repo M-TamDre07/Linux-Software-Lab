@@ -11,15 +11,16 @@ import io
 import json
 import os
 import stat
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from .backup import MAX_BACKUP_BYTES, decrypt_backup, encrypt_backup
 from .collectors import collect_inventory
 from .domain import InstalledApplication, InventorySnapshot
 from .exporting import csv_safe_record, write_private_file
-from .updates import UpdateCheckResult, check_updates
 from .providers import InventoryProvider
+from .updates import UpdateCheckResult, check_updates
 
 
 class PaketScopeService:

@@ -10,3 +10,4 @@ override_dh_auto_install:
 	install -D -m 0755 packaging/paketscope-launcher debian/tmp/usr/bin/paketscope
 	install -D -m 0644 packaging/paketscope.desktop debian/tmp/usr/share/applications/paketscope.desktop
 	install -D -m 0644 paketscope/assets/paketscope.svg debian/tmp/usr/share/icons/hicolor/scalable/apps/paketscope.svg
+	install -D -m 0644 packaging/io.github.mtamdre07.paketscope.metainfo.xml debian/tmp/usr/share/metainfo/io.github.mtamdre07.paketscope.metainfo.xml

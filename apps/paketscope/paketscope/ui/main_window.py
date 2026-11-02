@@ -1,8 +1,8 @@
 """Main desktop window and event coordination."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from PySide6.QtCore import QModelIndex, Qt, QThreadPool, Slot
 from PySide6.QtGui import QIcon
@@ -22,16 +22,16 @@ from PySide6.QtWidgets import (
 )
 
 from .. import __version__
+from ..application_details import ApplicationDetails, inspect_application
 from ..domain import InstalledApplication, InventorySnapshot
 from ..services import PaketScopeService
-from ..application_details import ApplicationDetails, inspect_application
-from .models import InventoryModel, InventoryProxy
-from .workers import Worker
-from .data_actions import DataActionsMixin
-from .inventory_actions import InventoryActionsMixin
-from .package_actions import PackageManagementActionsMixin
-from .inspection_dialog import InspectionDialog
 from .application_details_dialog import ApplicationDetailsDialog
+from .data_actions import DataActionsMixin
+from .inspection_dialog import InspectionDialog
+from .inventory_actions import InventoryActionsMixin
+from .models import InventoryModel, InventoryProxy
+from .package_actions import PackageManagementActionsMixin
+from .workers import Worker
 
 
 class MainWindow(QMainWindow, PackageManagementActionsMixin, InventoryActionsMixin, DataActionsMixin):

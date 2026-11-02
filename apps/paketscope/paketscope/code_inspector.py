@@ -8,12 +8,12 @@ from __future__ import annotations
 import ast
 import hashlib
 import os
-from itertools import islice
 import re
 import stat
 import struct
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from itertools import islice
 from pathlib import Path
 
 MAX_FILES = 2500

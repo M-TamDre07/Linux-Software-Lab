@@ -185,13 +185,14 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
                 self.assertIn('class="container detail-layout"', page)
                 self.assertIn('class="detail-art"', page)
 
-    def test_paketscope_terminal_guidance_distinguishes_source_mode_from_release(self):
+    def test_paketscope_release_guidance_exposes_dev5_artifacts_and_limits(self):
         page = (PUBLIC / "software" / "paketscope.html").read_text(encoding="utf-8")
         readme = (ROOT / "apps" / "paketscope" / "README.md").read_text(encoding="utf-8")
-        self.assertIn("python -m paketscope", page)
-        self.assertIn("bukan instalasi rilis publik", page.lower())
+        self.assertIn("paketscope_3.0.0~dev5-1_all.deb", page)
+        self.assertIn("SHA256SUMS", page)
+        self.assertIn("bukan rilis stable", page.lower())
         self.assertIn("python -m pip install -e", readme)
-        self.assertIn("does not currently publish a versioned", readme)
+        self.assertIn("PaketScope", readme)
 
 
 if __name__ == "__main__":

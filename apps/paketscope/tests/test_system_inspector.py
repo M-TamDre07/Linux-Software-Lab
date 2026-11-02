@@ -2,11 +2,11 @@ import pytest
 
 from paketscope import admin_helper
 from paketscope.system_inspector import (
+    collect_system_snapshot,
     run_privileged_metadata_inspection,
     run_privileged_text_file_read,
     validate_admin_payload,
     validate_admin_text_request,
-    collect_system_snapshot,
 )
 
 

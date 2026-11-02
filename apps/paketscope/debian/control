@@ -2,6 +2,9 @@ Source: paketscope
 Section: utils
 Priority: optional
 Maintainer: Muhammad Andreatama <222196793+M-TamDre07@users.noreply.github.com>
+Homepage: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope
+Vcs-Git: https://github.com/M-TamDre07/Linux-Software-Lab.git
+Vcs-Browser: https://github.com/M-TamDre07/Linux-Software-Lab
 Build-Depends: debhelper-compat (= 13)
 Standards-Version: 4.7.0
 Rules-Requires-Root: no
