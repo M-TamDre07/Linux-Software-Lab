@@ -562,6 +562,7 @@ const fillCatalogControls = () => {
     .filter(item => !['non-linux', 'other-linux'].includes(item.id))
     .map(item => ({ value: item.id, label: item.label }));
   fillOptions(compatibilitySelect, distributions, 'Semua distro / target');
+  if (compatibilitySelect) compatibilitySelect.disabled = !compatibilityIndex;
   fillOptions(architectureSelect, ['x86_64', 'aarch64', 'armv7l', 'i686'], 'Semua arsitektur');
 };
 
@@ -798,7 +799,8 @@ if (grid) {
         }
       } else {
         console.warn('[Linux Software Lab] Compatibility index unavailable; catalogue remains usable without package-compatibility claims.', registryResult.reason);
-        if (!compatibilityIndex) compatibilityByApp.clear();
+        compatibilityIndex = null;
+        compatibilityByApp.clear();
         if (compatibilityStatus) {
           compatibilityStatus.textContent = 'Data kompatibilitas sementara tidak tersedia. Informasi paket tidak ditampilkan sebagai kompatibel sampai manifest dapat diverifikasi.';
         }

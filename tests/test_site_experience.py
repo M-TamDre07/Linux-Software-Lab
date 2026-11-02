@@ -119,7 +119,8 @@ class WebsiteExperienceTests(unittest.TestCase):
         self.assertIn("Development preview", launcher)
         self.assertIn("belum dipublikasikan", launcher.casefold())
         self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/software-center", launcher)
-        self.assertIn("https://github.com/M-TamDre07/Linux-Software-Lab/pull/22", launcher)
+        self.assertNotIn("https://github.com/M-TamDre07/Linux-Software-Lab/pull/22", launcher)
+        self.assertIn("Panduan pengembangan", launcher)
         self.assertIn("/assets/css/launcher.css", launcher)
         self.assertEqual(page.canonicals, ["https://linux-software-lab.vercel.app/launcher/"])
 

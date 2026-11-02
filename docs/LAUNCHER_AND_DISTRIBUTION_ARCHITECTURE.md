@@ -34,7 +34,7 @@ Use **native packages plus optional Flatpak delivery**, rather than pretending o
 
 Each application may support a different subset of formats. The catalogue must show only artifacts that actually exist, are checksummed, and have been tested for the claim being made. A blank or planned artifact must never generate an install button or terminal install command.
 
-For Sorot, the live state remains 0.5.0 Beta with `.deb`, `.tar.gz`, and `.zip`. Arch Linux for 0.6.0 is a planned target; it must remain labelled **planned** until an actual Arch artifact or reviewed build recipe and its test evidence have been added. PaketScope's source-mode command is not the same thing as a public package release.
+For Sorot, the current indexed release is 0.7.3 Beta (testing), with a Debian 13-targeted `.deb`, source archives, and a Python wheel. Arch remains a planned target until an actual `.pkg.tar.zst` artifact is built and passes Arch-specific tests. PaketScope's source-mode command is not the same thing as a public package release.
 
 ## Meaning of “container” in the product plan
 

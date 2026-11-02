@@ -26,7 +26,7 @@
 │   ├── README.md                 # Pedoman folder per aplikasi
 │   ├── paketscope/               # Source desktop native; bukan direktori website
 │   ├── software-center/          # Launcher GUI + CLI preview, berbagi core katalog dan installer
-│   └── sorot/         # Sorot 0.5.0 Beta; paket dan dokumentasi beta
+│   └── sorot/         # Teleprompter desktop; source, paket, dan arsip rilis per versi
 ├── scripts/                      # Validator katalog dan pemeriksaan website
 ├── templates/application/         # Kontrak scaffold lintas aplikasi, tanpa runtime palsu
 ├── tests/                        # Tes regresi metadata, link, dan sitemap
@@ -92,7 +92,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 
 - [Kredit aset dan kebijakan lisensi](docs/ASSET_CREDITS.md) mencatat aset visual asli dan aturan sebelum menambahkan aset pihak ketiga.
 - [Integrasi katalog Supabase](docs/SUPABASE_INTEGRATION.md)
-- [Arsitektur App Publishing Factory](docs/APP_PUBLISHING_FACTORY.md) menjelaskan batas keamanan dan tahapan otomasi penerbitan aplikasi. menjelaskan mirror baca-saja, sinkronisasi CI, dan batas keamanan.
+- [Arsitektur App Publishing Factory](docs/APP_PUBLISHING_FACTORY.md) menjelaskan batas keamanan dan tahapan otomasi penerbitan aplikasi.
 - [Dashboard admin](docs/ADMIN_DASHBOARD.md) menjelaskan login Supabase Auth, bootstrap admin pertama melalui dashboard tepercaya, batas baca-saja, dan model izin RLS.
 - [Rencana integrasi sumber paket](docs/PACKAGE_SOURCE_INTEGRATION.md) menetapkan identitas paket lintas distribusi, sumber resmi, pembaruan data, dan batas keamanan sebelum ingestion otomatis diaktifkan.
 - [Arsitektur kontainer aplikasi dan integrasi lokal](docs/APP_CONTAINER_AND_INTEGRATIONS.md) menjelaskan sumber data GitHub bersama, cache offline launcher, tautan website/source, serta pemisahan katalog remote dari aksi lokal yang direview.
@@ -100,7 +100,7 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - [Standar pesan error](docs/ERROR_HANDLING_STANDARD.md) menetapkan pesan aman dan mudah dipahami, fallback katalog, dan pemisahan pesan pengguna dari detail teknis.
 - [Kebijakan teknologi dan runtime](docs/TECH_STACK_AND_RUNTIME_POLICY.md) menjelaskan alasan stack statis, aturan framework, deteksi OS lokal, dan quality gates.
 - [Standar SEO dan crawlability](docs/SEO_MAINTENANCE.md) menjelaskan canonical, sitemap, metadata, konten, Core Web Vitals, dan pemeriksaan Search Console tanpa menjanjikan peringkat.
-- Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil.
+- Halaman publik menggunakan canonical URL, Open Graph/Twitter metadata, dan structured data yang sesuai. Pratinjau PaketScope tetap diberi label konsep; belum ada klaim rilis stabil. Lihat [standar maintenance website](docs/WEBSITE_MAINTENANCE.md) untuk kontrak navigasi, layout, aksesibilitas, dan checklist pemeriksaan.
 
 ## Prinsip
 
@@ -111,9 +111,9 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## Sorot 0.5.0 Beta
+## Sorot 0.7.3 Beta
 
-Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.5.0 Beta`](apps/sorot/releases/0.5.0/RELEASE-NOTES.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot masih beta; pengujian instalasi bersih Debian 13, compositor Wayland/X11 nyata, integrasi AI/cloud nyata, dan aksesibilitas pembaca layar masih perlu dilakukan. Arsip versi lama tidak ditimpa oleh versi baru.
+Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [`apps/sorot/`](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [`apps/sorot/releases/`](apps/sorot/releases/README.md), misalnya [`0.7.3 Beta`](apps/sorot/releases/0.7.3/TEST-REPORT.md). Setiap versi memiliki paket yang tersedia, arsip source, SHA256SUMS, manifest, serta catatan pengujian versi tersebut. Sorot 0.7.3 masih beta. Laporan QA mencatat 586 tes lulus pada Python 3.11 dan 3.13, tes GUI X11 virtual, serta Weston Wayland headless pada Ubuntu 24.04.5 container; pengujian desktop fisik GNOME/KDE, instalasi bersih Debian 13, integrasi Discover/repository hosting, AI/cloud nyata, dan audit aksesibilitas pembaca layar belum disahkan. Arsip versi lama tidak ditimpa oleh versi baru.
 
 ## LISO LAB — Linux Software Lab Center (pratinjau launcher)
 
@@ -123,7 +123,7 @@ Launcher grafis dan CLI pengembangan ada di apps/software-center/. Tujuannya men
 
 ## PaketScope 3 (pratinjau pengembangan)
 
-Source aplikasi desktop native ada di `apps/paketscope/`. Versi source saat ini adalah `3.0.0.dev2` dan sudah terintegrasi di `main`. CI memvalidasi tes Python serta paket Debian di lingkungan Debian 13, tetapi ini tetap pratinjau pengembangan, bukan rilis stabil. Paket belum menjadi rilis publik bertanda tangan, belum melalui pengujian desktop menyeluruh, dan belum diaudit secara independen. Jangan menganggapnya siap untuk penggunaan produksi.
+Source aplikasi desktop native ada di `apps/paketscope/`. Versi source saat ini adalah `3.0.0.dev5` dan sudah terintegrasi di `main`. CI memvalidasi tes Python serta paket Debian di lingkungan Debian 13, tetapi ini tetap pratinjau pengembangan, bukan rilis stabil. Paket belum menjadi rilis publik bertanda tangan, belum melalui pengujian desktop menyeluruh, dan belum diaudit secara independen. Jangan menganggapnya siap untuk penggunaan produksi.
 
 Arsitektur memisahkan UI di `paketscope/ui/`, layanan aplikasi di `services.py`, model dan parser di `domain.py`, serta adaptor OS untuk APT/dpkg dan Flatpak. Tindakan perubahan APT dibatasi pada satu paket dengan simulasi dan konfirmasi eksplisit; inventaris Flatpak masih read-only. Detail pengembangan dan batas keamanan ada di `apps/paketscope/docs/DEVELOPING.md`, `apps/paketscope/docs/PAKETSCOPE_V3_ARCHITECTURE.md`, dan `apps/paketscope/docs/SECURITY.md`.
 

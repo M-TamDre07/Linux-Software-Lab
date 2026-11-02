@@ -23,7 +23,7 @@ repository/
 │   │   ├── paketscope/
 │   │   ├── tests/
 │   │   └── docs/
-│   └── sorot/                          # Sorot 0.5.0 Beta distribution artifacts and docs
+│   └── sorot/                          # Sorot release artifacts and docs, stored per version
 │       └── README.md
 ├── scripts/                        # Website/catalog validators
 ├── tests/                          # Website regression tests
