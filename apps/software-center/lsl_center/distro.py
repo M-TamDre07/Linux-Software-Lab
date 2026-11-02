@@ -146,7 +146,8 @@ def artifact_compatibility(
             detected_major = profile.version_id.split(".", 1)[0].strip()
             if profile.distro_id != "debian" or detected_major != "13":
                 return False, (
-                    f"Paket mensyaratkan Debian 13; sistem ini terdeteksi {profile.pretty_name}."
+                    f"Paket Debian/Ubuntu ini mensyaratkan Debian 13; "
+                    f"sistem ini terdeteksi {profile.pretty_name}."
                 )
         else:
             return False, (
@@ -161,7 +162,7 @@ def artifact_compatibility(
             return False, "Perintah apt-get tidak ditemukan pada sistem ini."
         if not profile.pkexec_path:
             return False, "pkexec/Polkit tidak tersedia untuk meminta otorisasi instalasi."
-        return True, "Paket cocok dengan keluarga Debian/Ubuntu; status rilis tetap harus diperhatikan."
+        return True, f"Paket cocok dengan {artifact.minimum_os or 'keluarga Debian/Ubuntu'}; status rilis tetap harus diperhatikan."
     if artifact.kind == "rpm-package" or artifact.format == "rpm":
         if profile.family not in {"fedora-family", "suse-family"}:
             return False, "Paket .rpm tidak cocok dengan keluarga distribusi ini."
