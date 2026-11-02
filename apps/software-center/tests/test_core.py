@@ -32,6 +32,7 @@ from lsl_center.installer import (
 )
 from lsl_center.integrations import LOCAL_INTEGRATIONS, executable_for, integration_for
 from lsl_center.models import InstallPreview, SystemProfile
+from lsl_center.search import search_applications
 from lsl_center.selection import select_artifact, source_artifacts
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -433,6 +434,36 @@ class CatalogTests(unittest.TestCase):
             self.assertIsNotNone(fallback.find("sorot").icon_path)
 
 
+class SearchTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.snapshot = CatalogService(data_dir=DATA_DIR).load()
+
+    def test_search_corrects_typing_errors_and_expands_indonesian_synonyms(self) -> None:
+        results = search_applications(self.snapshot.applications, "PaketScpoe")
+        self.assertEqual([app.id for app in results], ["paketscope"])
+        self.assertEqual(
+            [app.id for app in search_applications(self.snapshot.applications, "telepromter")],
+            ["sorot"],
+        )
+        self.assertEqual(
+            [app.id for app in search_applications(self.snapshot.applications, "pembaruan")],
+            ["paketscope"],
+        )
+
+    def test_search_supports_fields_quotes_and_negative_terms(self) -> None:
+        self.assertEqual(
+            [app.id for app in search_applications(self.snapshot.applications, "nama:Sorot")],
+            ["sorot"],
+        )
+        self.assertEqual(
+            [app.id for app in search_applications(self.snapshot.applications, 'tag:"APT / dpkg"')],
+            ["paketscope"],
+        )
+        self.assertEqual(
+            search_applications(self.snapshot.applications, "teleprompter -tag:Teleprompter"),
+            (),
+        )
+
 class SelectionTests(unittest.TestCase):
     def setUp(self) -> None:
         self.snapshot = CatalogService(data_dir=DATA_DIR).load()
@@ -611,6 +642,19 @@ class CliTests(unittest.TestCase):
             sorot["source_url"],
             "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
         )
+
+    def test_search_command_returns_ranked_machine_readable_results(self) -> None:
+        output = StringIO()
+        with redirect_stdout(output):
+            code = main(
+                ["search", "--json", "telepromter"],
+                service=self.service,
+                profile=arch_profile(),
+            )
+        self.assertEqual(code, 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["query"], "telepromter")
+        self.assertEqual([row["id"] for row in payload["results"]], ["sorot"])
 
     def test_install_command_on_arch_fails_closed_without_network(self) -> None:
         output = StringIO()
