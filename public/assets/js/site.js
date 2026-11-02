@@ -59,6 +59,10 @@ const compatibilitySelect = $('#compatibilityFilter');
 const architectureSelect = $('#architectureFilter');
 const refreshCatalogButton = $('#catalogRefresh');
 const compatibilityStatus = $('#catalogCompatibilityStatus');
+const exportCsvButton = $('#catalogExportCsv');
+const exportJsonButton = $('#catalogExportJson');
+const copyFiltersButton = $('#catalogCopyFilters');
+const exportStatus = $('#catalogExportStatus');
 const loadMoreButton = $('#loadMore');
 const paginationSummary = $('#paginationSummary');
 const clearButton = $('#clearFilters');
@@ -321,6 +325,8 @@ const render = () => {
     loadMoreButton.hidden = shown.length >= rows.length;
     loadMoreButton.textContent = 'Muat ' + Math.min(pageSize, rows.length - shown.length) + ' berikutnya';
   }
+  if (exportCsvButton) exportCsvButton.disabled = rows.length === 0;
+  if (exportJsonButton) exportJsonButton.disabled = rows.length === 0;
   $$('.software-preview img', grid).forEach(image => {
     image.addEventListener('error', () => {
       if (image.dataset.fallbackUsed) return;
@@ -328,6 +334,105 @@ const render = () => {
       image.src = '/assets/images/linux-software-lab.svg';
     }, { once: true });
   });
+};
+
+const exportRows = () => getFilteredRows().map(app => {
+  const record = Object.fromEntries(
+    Object.entries(app).filter(([key]) => !key.startsWith('_'))
+  );
+  return {
+    ...record,
+    compatibilityTargets: compatibilityByApp.get(app.id) || []
+  };
+});
+
+const csvValue = value => {
+  let text = Array.isArray(value) ? value.join(' | ')
+    : value && typeof value === 'object' ? JSON.stringify(value)
+      : String(value ?? '');
+  // Prevent spreadsheet formula execution when opening exported data in Excel/Calc.
+  if (/^[\\s\\u0000-\\u001f]*[=+@-]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+};
+
+const downloadCatalogFile = (filename, body, mimeType) => {
+  const blob = new Blob([body], { type: mimeType });
+  const objectURL = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectURL;
+  link.download = filename;
+  link.hidden = true;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectURL), 1000);
+};
+
+const exportFilteredCatalog = format => {
+  const rows = exportRows();
+  if (!rows.length) {
+    if (exportStatus) exportStatus.textContent = 'Tidak ada hasil untuk diekspor.';
+    return;
+  }
+  const date = new Date().toISOString().slice(0, 10);
+  const filters = {
+    query,
+    status: activeStatus,
+    category: activeCategory,
+    platform: activePlatform,
+    distro: activeCompatibility,
+    architecture: activeArchitecture,
+    sort: sortMode
+  };
+
+  if (format === 'json') {
+    const payload = {
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      catalogue: 'Linux Software Lab',
+      catalogueUpdatedAt: software.map(app => app.updatedAt || '').filter(Boolean).sort().pop() || null,
+      filters,
+      total: rows.length,
+      software: rows
+    };
+    downloadCatalogFile(
+      'liso-catalog-' + date + '.json',
+      JSON.stringify(payload, null, 2) + '\\n',
+      'application/json;charset=utf-8'
+    );
+  } else {
+    const columns = [
+      ['id', 'ID'], ['name', 'Nama'], ['version', 'Versi'],
+      ['status', 'Status'], ['category', 'Kategori'], ['type', 'Jenis'],
+      ['platforms', 'Platform'], ['tags', 'Tag'], ['keywords', 'Kata kunci'],
+      ['features', 'Fitur'], ['summary', 'Ringkasan'],
+      ['compatibilityTargets', 'Target kompatibilitas']
+    ];
+    const csv = [
+      columns.map(([, label]) => csvValue(label)).join(','),
+      ...rows.map(row => columns.map(([key]) => csvValue(row[key])).join(','))
+    ].join('\\r\\n');
+    downloadCatalogFile(
+      'liso-catalog-' + date + '.csv',
+      '\\ufeff' + csv + '\\r\\n',
+      'text/csv;charset=utf-8'
+    );
+  }
+  if (exportStatus) exportStatus.textContent = rows.length + ' aplikasi berhasil disiapkan untuk ekspor ' + format.toUpperCase() + '.';
+};
+
+const copyCurrentFilters = async () => {
+  updateURL();
+  if (!navigator.clipboard?.writeText) {
+    if (exportStatus) exportStatus.textContent = 'Clipboard tidak tersedia. URL filter tetap tersimpan di bilah alamat.';
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    if (exportStatus) exportStatus.textContent = 'Tautan pencarian dan filter berhasil disalin.';
+  } catch (_) {
+    if (exportStatus) exportStatus.textContent = 'Browser menolak akses clipboard. Salin URL langsung dari bilah alamat.';
+  }
 };
 
 const refresh = (writeURL = true) => {
@@ -402,6 +507,9 @@ clearButton?.addEventListener('click', () => {
   resetFilters();
   searchInput?.focus();
 });
+exportCsvButton?.addEventListener('click', () => exportFilteredCatalog('csv'));
+exportJsonButton?.addEventListener('click', () => exportFilteredCatalog('json'));
+copyFiltersButton?.addEventListener('click', () => { void copyCurrentFilters(); });
 loadMoreButton?.addEventListener('click', () => {
   visibleLimit += pageSize;
   refresh(false);
