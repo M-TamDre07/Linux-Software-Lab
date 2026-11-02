@@ -128,7 +128,7 @@ jobs:
           # Keep an independent copy in the container filesystem for docker cp after tests.
           cp "$package" /tmp/paketscope_3.0.0~dev5_all.deb
           test "$(dpkg-deb -f "$package" Package)" = "paketscope"
-          test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev5"
+          test "$(dpkg-deb -f "$package" Version)" = "3.0.0~dev5-1"
           dpkg-deb --info "$package"
           dpkg-deb --contents "$package"
 
