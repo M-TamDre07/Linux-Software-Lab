@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "Sorot",
-  "updated_at": "2026-11-01",
+  "updated_at": "2026-11-02",
   "versions": [
     {
       "version": "0.5.0",
@@ -55,15 +55,26 @@
         "zip",
         "whl"
       ]
+    },
+    {
+      "version": "0.7.3",
+      "channel": "beta",
+      "status": "testing",
+      "formats": [
+        "deb",
+        "tar.gz",
+        "zip",
+        "whl"
+      ]
     }
   ],
   "planned_targets": [
     {
-      "version": "0.7.2",
+      "version": "0.7.3",
       "distribution": "Arch Linux",
       "status": "planned",
       "expected_format": "pkg.tar.zst",
-      "note": "Sorot 0.7.2 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO hanya metadata build eksperimental; jangan dianggap paket siap pasang."
+      "note": "Sorot 0.7.3 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO adalah metadata build eksperimental, bukan paket siap pasang."
     }
   ]
 }
