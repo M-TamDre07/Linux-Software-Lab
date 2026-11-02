@@ -447,7 +447,7 @@ class SearchTests(unittest.TestCase):
         )
         self.assertEqual(
             [app.id for app in search_applications(self.snapshot.applications, "pembaruan")],
-            ["paketscope"],
+            ["paketscope", "sorot"],
         )
 
     def test_search_supports_fields_quotes_and_negative_terms(self) -> None:
