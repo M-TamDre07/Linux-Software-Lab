@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.7.3",
+  "channel": "beta",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.3/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.7.3/TEST-REPORT.md",
+  "architecture_note": "Sorot 0.7.3 Beta diuji pada Ubuntu 24.04.5 x86_64 di container, X11 virtual, dan Weston headless. Paket .deb dibatasi ke Debian 13; instalasi bersih Debian 13, Discover/repo hosting nyata, Arch, serta compositor GNOME/KDE pada desktop fisik belum disahkan. Status tetap testing.",
+  "artifacts": [
+    {
+      "file": "sorot_0.7.3_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "minimum_os": "Debian 13",
+      "sha256": "82ec8c54a320adb38682a4785beac8e772bc1288674f72db6c4039b4ec1aa66d"
+    },
+    {
+      "file": "sorot-0.7.3.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "02c6586b839f28aa9d847c22539a5317596e5cbbaddb2af627f9d10796f96c4a"
+    },
+    {
+      "file": "sorot-0.7.3.zip",
+      "kind": "source-archive",
+      "format": "zip",
+      "architecture": "all",
+      "sha256": "b8cc10839d3c45f63735982e6f022568ab9b5b4fc34c7ee4391a675b6921c800"
+    },
+    {
+      "file": "sorot-0.7.3-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "c0927b37b65d84330f64dfab6dc412a5736bc346164dfede706dd3d7889b45d5"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}
