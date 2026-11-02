@@ -20,9 +20,9 @@ DATA_DIR = APP_ROOT / "lsl_center" / "data"
 def profile(family: str) -> SystemProfile:
     if family == "debian-family":
         return SystemProfile(
-            distro_id="ubuntu",
-            pretty_name="Ubuntu test fixture",
-            version_id="24.04",
+            distro_id="debian",
+            pretty_name="Debian 13 test fixture",
+            version_id="13",
             family=family,
             architecture="x86_64",
             package_manager="apt-get",
@@ -69,6 +69,22 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertTrue(window.source_button.isEnabled())
         self.assertTrue(window.website_button.isEnabled())
         self.assertTrue(window.manifest_button.isEnabled())
+        window.close()
+
+    def test_paketscope_debian13_catalogue_shows_testing_install_action(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("debian-family"),
+        )
+        paketscope_row = next(
+            index
+            for index in range(window.app_list.count())
+            if window.app_list.item(index).data(Qt.ItemDataRole.UserRole) == "paketscope"
+        )
+        window.app_list.setCurrentRow(paketscope_row)
+        self.assertTrue(window.install_button.isEnabled())
+        self.assertIn("TESTING", window.product_status.text())
+        self.assertIn("Debian 13", window.compatibility_label.text())
         window.close()
 
     def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
