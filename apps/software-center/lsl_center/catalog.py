@@ -32,11 +32,11 @@ FILE_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 ALLOWED_STATUSES = {"released", "testing", "planned", "archived"}
 ALLOWED_CHANNELS = {"stable", "beta", "alpha", "development"}
 ALLOWED_FORMATS = {
-    "deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip", "whl",
+    "deb", "rpm", "pkg.tar.zst", "flatpak", "flatpakref", "AppImage", "tar.gz", "zip", "whl", "diff",
 }
 ALLOWED_KINDS = {
     "native-package", "debian-package", "rpm-package", "arch-package",
-    "flatpak-bundle", "flatpak-ref", "appimage", "source-archive", "python-wheel",
+    "flatpak-bundle", "flatpak-ref", "appimage", "source-archive", "source-patch", "python-wheel",
 }
 ALLOWED_ARCHITECTURES = {
     "all", "any", "noarch", "x86_64", "amd64", "aarch64", "arm64", "armv7l",
@@ -49,6 +49,7 @@ PACKAGE_KIND_FORMATS = {
     "flatpak-ref": {"flatpakref"},
     "appimage": {"AppImage"},
     "source-archive": {"tar.gz", "zip"},
+    "source-patch": {"diff"},
     "native-package": {"deb", "rpm", "pkg.tar.zst"},
     "python-wheel": {"whl"},
 }
@@ -366,6 +367,11 @@ def validate_distribution_manifest(
             raise CatalogError(f"{filename}: signature_url must use HTTPS.")
         if artifact.get("install_scope") not in {None, "user", "system", "not-applicable"}:
             raise CatalogError(f"{filename}: unsupported install_scope.")
+        minimum_os = artifact.get("minimum_os")
+        if minimum_os is not None and (
+            not isinstance(minimum_os, str) or not minimum_os.strip() or len(minimum_os) > 128
+        ):
+            raise CatalogError(f"{filename}: minimum_os must be a non-empty string of at most 128 characters.")
 
 
 def _validate_artifact_url(url: Any, product_id: str, version: str, filename: str) -> str:
@@ -554,6 +560,7 @@ class CatalogService:
                     url=download_url,
                     manifest_url=manifest_url,
                     checksums_url=checksum_url,
+                    minimum_os=raw_artifact.get("minimum_os", ""),
                 )
                 product_artifacts.setdefault(product_id, []).append(artifact)
 
