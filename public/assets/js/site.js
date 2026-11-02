@@ -58,8 +58,6 @@ const sortSelect = $('#sortFilter');
 const compatibilitySelect = $('#compatibilityFilter');
 const architectureSelect = $('#architectureFilter');
 const refreshCatalogButton = $('#catalogRefresh');
-const exportCsvButton = $('#exportCatalogCsv');
-const exportJsonButton = $('#exportCatalogJson');
 const compatibilityStatus = $('#catalogCompatibilityStatus');
 const exportCsvButton = $('#catalogExportCsv');
 const exportJsonButton = $('#catalogExportJson');
@@ -438,79 +436,6 @@ const copyCurrentFilters = async () => {
 };
 
 
-const exportFields = [
-  ['id', 'ID'],
-  ['name', 'Nama'],
-  ['version', 'Versi'],
-  ['status', 'Status'],
-  ['category', 'Kategori'],
-  ['type', 'Jenis'],
-  ['platforms', 'Platform'],
-  ['tags', 'Tag'],
-  ['keywords', 'Kata kunci'],
-  ['features', 'Fitur'],
-  ['detailUrl', 'Halaman detail'],
-  ['sourceUrl', 'Sumber'],
-  ['releaseUrl', 'Rilis']
-];
-
-const exportRecords = () => getFilteredRows().map(app => Object.fromEntries(
-  exportFields.map(([field]) => [
-    field,
-    Array.isArray(app[field]) ? app[field].join(' | ') : String(app[field] ?? '')
-  ])
-));
-
-const downloadCatalogExport = (format) => {
-  if (!catalogLoaded) return;
-  const records = exportRecords();
-  if (!records.length) {
-    setCatalogSourceStatus('Tidak ada hasil untuk diekspor. Ubah pencarian atau filter.', 'warning');
-    return;
-  }
-  const timestamp = new Date().toISOString();
-  let content;
-  let mime;
-  let filename;
-  if (format === 'csv') {
-    const headers = exportFields.map(([, label]) => label);
-    const quote = value => '"' + String(value ?? '').replace(/"/g, '""') + '"';
-    const rows = records.map(record => exportFields.map(([field]) => quote(record[field])).join(','));
-    content = '\\uFEFF' + [headers.map(quote).join(','), ...rows].join('\\r\\n');
-    mime = 'text/csv;charset=utf-8';
-    filename = 'liso-lab-katalog-' + timestamp.slice(0, 10) + '.csv';
-  } else {
-    content = JSON.stringify({
-      schemaVersion: 1,
-      exportedAt: timestamp,
-      filters: {
-        query,
-        status: activeStatus,
-        category: activeCategory,
-        platform: activePlatform,
-        distribution: activeCompatibility,
-        architecture: activeArchitecture,
-        sort: sortMode
-      },
-      count: records.length,
-      software: records
-    }, null, 2) + '\\n';
-    mime = 'application/json;charset=utf-8';
-    filename = 'liso-lab-katalog-' + timestamp.slice(0, 10) + '.json';
-  }
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.hidden = true;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  setCatalogSourceStatus(records.length + ' entri diekspor sebagai ' + format.toUpperCase() + '.', 'success');
-};
-
 const refresh = (writeURL = true) => {
   render();
   if (writeURL) updateURL();
@@ -583,8 +508,6 @@ clearButton?.addEventListener('click', () => {
   resetFilters();
   searchInput?.focus();
 });
-exportCsvButton?.addEventListener('click', () => downloadCatalogExport('csv'));
-exportJsonButton?.addEventListener('click', () => downloadCatalogExport('json'));
 exportCsvButton?.addEventListener('click', () => exportFilteredCatalog('csv'));
 exportJsonButton?.addEventListener('click', () => exportFilteredCatalog('json'));
 copyFiltersButton?.addEventListener('click', () => { void copyCurrentFilters(); });
