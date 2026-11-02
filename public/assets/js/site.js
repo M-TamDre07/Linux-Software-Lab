@@ -734,6 +734,7 @@ const fetchCompatibilityRegistry = async () => {
 if (grid) {
   let catalogRefreshInFlight = false;
   let lastCatalogRefreshAt = 0;
+  let lastCatalogAttemptAt = 0;
 
   const loadCatalog = async () => {
     try {
@@ -771,6 +772,7 @@ if (grid) {
   const refreshCatalog = async (silent = false) => {
     if (catalogRefreshInFlight) return;
     catalogRefreshInFlight = true;
+    lastCatalogAttemptAt = Date.now();
     if (refreshCatalogButton) {
       refreshCatalogButton.disabled = true;
       refreshCatalogButton.textContent = 'Memeriksa…';
@@ -778,18 +780,38 @@ if (grid) {
     if (!silent) setCatalogSourceStatus('Memeriksa metadata katalog dan manifest rilis…', 'info');
 
     try {
-      const [data, registry] = await Promise.all([loadCatalog(), fetchCompatibilityRegistry()]);
-      compatibilityIndex = registry.index;
-      compatibilityByApp.clear();
-      for (const [id, targets] of registry.compatibility.entries()) compatibilityByApp.set(id, targets);
+      const [catalogResult, registryResult] = await Promise.allSettled([
+        loadCatalog(),
+        fetchCompatibilityRegistry()
+      ]);
+      if (catalogResult.status !== 'fulfilled') throw catalogResult.reason;
+      const data = catalogResult.value;
+      const registryAvailable = registryResult.status === 'fulfilled';
+
+      if (registryAvailable) {
+        const registry = registryResult.value;
+        compatibilityIndex = registry.index;
+        compatibilityByApp.clear();
+        for (const [id, targets] of registry.compatibility.entries()) compatibilityByApp.set(id, targets);
+        if (compatibilityStatus) {
+          compatibilityStatus.textContent = 'Kompatibilitas dibaca dari manifest, distro, dan arsitektur; bukan jaminan dependensi atau uji pada semua perangkat.';
+        }
+      } else {
+        console.warn('[Linux Software Lab] Compatibility index unavailable; catalogue remains usable without package-compatibility claims.', registryResult.reason);
+        if (!compatibilityIndex) compatibilityByApp.clear();
+        if (compatibilityStatus) {
+          compatibilityStatus.textContent = 'Data kompatibilitas sementara tidak tersedia. Informasi paket tidak ditampilkan sebagai kompatibel sampai manifest dapat diverifikasi.';
+        }
+      }
+
       applyCatalogData(data);
       lastCatalogRefreshAt = Date.now();
-      if (compatibilityStatus) {
-        compatibilityStatus.textContent = 'Kompatibilitas dibaca dari manifest, distro, dan arsitektur; bukan jaminan dependensi atau uji pada semua perangkat.';
-      }
       if (!silent) {
         const updatedAt = data.catalog?.updatedAt || 'tanggal tidak tercatat';
-        setCatalogSourceStatus('Katalog diperbarui · metadata ' + updatedAt + ' · pemeriksaan otomatis aktif.', 'success');
+        const source = registryAvailable
+          ? 'Katalog diperbarui · metadata ' + updatedAt + ' · kompatibilitas manifest tervalidasi.'
+          : 'Katalog diperbarui · data kompatibilitas belum tersedia; klaim paket disembunyikan.';
+        setCatalogSourceStatus(source, registryAvailable ? 'success' : 'warning');
       }
     } catch (error) {
       if (!catalogLoaded) {
@@ -815,13 +837,13 @@ if (grid) {
   void refreshCatalog(false);
 
   window.setInterval(() => {
-    if (!document.hidden && Date.now() - lastCatalogRefreshAt >= 5 * 60 * 1000) {
+    if (!document.hidden && Date.now() - Math.max(lastCatalogRefreshAt, lastCatalogAttemptAt) >= 5 * 60 * 1000) {
       void refreshCatalog(true);
     }
   }, 60 * 1000);
 
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden && Date.now() - lastCatalogRefreshAt >= 60 * 1000) {
+    if (!document.hidden && Date.now() - Math.max(lastCatalogRefreshAt, lastCatalogAttemptAt) >= 60 * 1000) {
       void refreshCatalog(true);
     }
   });
