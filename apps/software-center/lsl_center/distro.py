@@ -140,6 +140,18 @@ def artifact_compatibility(
             f"Paket membutuhkan arsitektur {artifact.architecture}; "
             f"sistem ini terdeteksi {profile.architecture}."
         )
+    if artifact.minimum_os:
+        requirement = artifact.minimum_os.strip().casefold()
+        if requirement == "debian 13":
+            detected_major = profile.version_id.split(".", 1)[0].strip()
+            if profile.distro_id != "debian" or detected_major != "13":
+                return False, (
+                    f"Paket mensyaratkan Debian 13; sistem ini terdeteksi {profile.pretty_name}."
+                )
+        else:
+            return False, (
+                f"Persyaratan OS {artifact.minimum_os!r} belum memiliki pemeriksa kompatibilitas."
+            )
     if artifact.is_source_archive:
         return False, "Arsip source bisa diunduh, tetapi bukan paket instalasi native."
     if artifact.kind == "debian-package" or artifact.format == "deb":
