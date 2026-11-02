@@ -9,7 +9,17 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from PySide6.QtCore import QObject, QRunnable, QSize, QThreadPool, QTimer, Qt, QUrl, Signal, Slot
+    from PySide6.QtCore import (
+        QObject,
+        QRunnable,
+        QSize,
+        Qt,
+        QThreadPool,
+        QTimer,
+        QUrl,
+        Signal,
+        Slot,
+    )
     from PySide6.QtGui import QDesktopServices, QIcon
     from PySide6.QtWidgets import (
         QApplication,
