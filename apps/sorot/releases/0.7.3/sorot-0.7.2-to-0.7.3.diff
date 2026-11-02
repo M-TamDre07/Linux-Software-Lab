@@ -1,0 +1,644 @@
+diff -ruN n2/sorot-0.7.2/CHANGELOG.md n3/sorot-0.7.3/CHANGELOG.md
+--- n2/sorot-0.7.2/CHANGELOG.md	2026-11-01 16:18:49.078985259 +0700
++++ n3/sorot-0.7.3/CHANGELOG.md	2026-11-02 14:19:17.205115375 +0700
+@@ -2,6 +2,22 @@
+ 
+ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/). Proyek ini masih beta; nomor versi belum menjamin kestabilan API internal.
+ 
++## [0.7.3 Beta] — 2026-11-02
++
++Rilis kredibilitas paket dan perbaikan tampilan. Tidak ada perubahan skema atau fitur aplikasi.
++
++### Diperbaiki
++- **Dialog "Dukung pengembangan" terpotong** (kartu GoPay terjepit, nomor dan tombol terpotong, terlihat pada KDE dengan font lebih besar). Tinggi minimum jendela dihitung tanpa memperhitungkan teks yang membungkus; kini dihitung dari `totalHeightForWidth`, dan baris pesan salin dicadangkan agar tata letak tidak berubah. Tes regresi dengan font diperbesar; gagal bila perbaikan dicabut.
++
++### Ditambahkan
++- **Metadata AppStream** (`sorot.metainfo.xml`): pengembang, lisensi MIT, deskripsi, kata kunci, tautan dukungan, dan riwayat rilis, dibaca Discover dan GNOME Software. Divalidasi dengan `appstreamcli`.
++- **Ikon PNG** 64/128/256 px di samping SVG.
++- **Verifikasi dan pembaruan:** `scripts/sign-release.sh` (tanda tangan `SHA256SUMS.asc`) dan `scripts/make-apt-repo.sh` (repositori apt bertanda tangan: `make apt-repo`) sehingga pembaruan dapat muncul di Discover dan `apt upgrade` tanpa menghapus versi lama. Kunci selalu milik pengelola; tidak ada yang diunggah. Diuji dengan apt sungguhan: repositori asli diterima, indeks yang dirusak dan kunci yang salah ditolak. Lihat [docs/VERIFY.md](docs/VERIFY.md).
++- `release.py check` kini juga memeriksa versi, tanggal, dan lisensi di metainfo.
++
++### Belum ada
++- Alamat situs/repositori publik (`Homepage`, tautan bugtracker, tangkapan layar AppStream) belum diisi karena belum ditentukan; lihat docs/VERIFY.md.
++
+ ## [0.7.2 Beta] — 2026-11-01
+ 
+ Rilis kestabilan dan integritas data. Tidak ada perubahan skema atau fitur.
+diff -ruN n2/sorot-0.7.2/Makefile n3/sorot-0.7.3/Makefile
+--- n2/sorot-0.7.2/Makefile	2026-11-01 16:18:49.069119795 +0700
++++ n3/sorot-0.7.3/Makefile	2026-11-02 14:19:17.202565403 +0700
+@@ -5,7 +5,7 @@
+ DIST ?= dist
+ 
+ .DEFAULT_GOAL := help
+-.PHONY: help dev lint typecheck test test-fast test-x11 test-wayland release-check wheel deb source arch dist install uninstall-user clean
++.PHONY: help dev lint typecheck test test-fast test-x11 test-wayland release-check sign apt-repo wheel deb source arch dist install uninstall-user clean
+ 
+ help:  ## tampilkan daftar target
+ 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
+@@ -50,6 +50,12 @@
+ dist: release-check  ## semua artefak + SHA256SUMS
+ 	scripts/build-all.sh $(DIST)
+ 
++sign: ## tandatangani dist/SHA256SUMS: make sign KEY=SIDIKJARI (kunci milikmu; tidak mengunggah apa pun)
++	scripts/sign-release.sh $(KEY) $(DIST)
++
++apt-repo: deb  ## repositori apt bertanda tangan di dist/apt: make apt-repo KEY=SIDIKJARI URL=https://host/apt
++	scripts/make-apt-repo.sh --key $(KEY) --url $(URL) --debs $(DIST) --out $(DIST)/apt
++
+ install: release-check  ## pasang ke $(DESTDIR)$(PREFIX) (butuh python-build dan python-installer)
+ 	rm -rf $(DIST)/.install-wheel && scripts/build-wheel.sh $(DIST)/.install-wheel >/dev/null
+ 	$(PYTHON) -m installer --destdir="$(DESTDIR)" --prefix="$(PREFIX)" $(DIST)/.install-wheel/*.whl
+diff -ruN n2/sorot-0.7.2/README.md n3/sorot-0.7.3/README.md
+--- n2/sorot-0.7.2/README.md	2026-11-01 16:18:49.069181229 +0700
++++ n3/sorot-0.7.3/README.md	2026-11-02 14:19:17.202579793 +0700
+@@ -1,4 +1,4 @@
+-# Sorot 0.7.2 Beta
++# Sorot 0.7.3 Beta
+ 
+ Teleprompter overlay untuk Linux. Naskah tampil dalam jendela transparan yang menggulir **mengikuti kecepatan bicaramu**, di atas aplikasi lain. Naskah dan pengaturan **hanya disimpan di komputermu**; aplikasi berfungsi penuh tanpa internet, tanpa akun, dan tanpa API key.
+ 
+@@ -30,10 +30,10 @@
+ 
+ | Sistem | Cara |
+ |---|---|
+-| **Debian 13** | `sudo apt install ./sorot_0.7.2_all.deb` |
+-| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.2-py3-none-any.whl` |
++| **Debian 13** | `sudo apt install ./sorot_0.7.3_all.deb` |
++| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.3-py3-none-any.whl` |
+ | **Arch Linux** (dan turunannya) | `cd arch && makepkg -si` (folder `arch/` dari rilis) — lihat [PACKAGING.md](docs/PACKAGING.md) |
+-| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.2-py3-none-any.whl` |
++| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.3-py3-none-any.whl` |
+ | **Tanpa root, ke `~/.local`** | `./scripts/install-user.sh` (butuh `python3-venv` dan akses PyPI) |
+ | **Pengembangan** | `make dev` lalu `sorot` |
+ 
+@@ -41,6 +41,8 @@
+ 
+ Status pengujian tiap format ada di [PACKAGING.md](docs/PACKAGING.md); format Arch **belum dijalankan di mesin Arch**.
+ 
++**Memverifikasi unduhan dan memperbarui tanpa menghapus:** setiap rilis punya `SHA256SUMS` (dan `SHA256SUMS.asc` bila ditandatangani); memasang `.deb` versi baru di atas versi lama otomatis menaikkan versi dan membuat cadangan data. Bila pengelola menyediakan repositori apt bertanda tangan, pembaruan juga muncul di Discover dan `apt upgrade`. Langkahnya ada di [docs/VERIFY.md](docs/VERIFY.md).
++
+ ### Memperbarui
+ 
+ ```bash
+@@ -91,4 +93,4 @@
+ 
+ ## Dokumentasi
+ 
+-[Profil Tampilan](docs/PROFILES.md) · [Memperbarui](docs/UPGRADING.md) · [Pengemasan](docs/PACKAGING.md) · [Ekstensi](docs/EXTENSIONS.md) · [Kompatibilitas](docs/COMPATIBILITY.md) · [Arsitektur](docs/ARCHITECTURE.md) · [Pengujian manual](docs/MANUAL-TESTING.md) · [Pemecahan masalah](docs/TROUBLESHOOTING.md) · [Audit 0.3.0](docs/AUDIT-0.3.0.md) · [Laporan tes](docs/TEST-REPORT.md) · [Checklist rilis](docs/RELEASE-CHECKLIST.md) · [CHANGELOG](CHANGELOG.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md)
++[Profil Tampilan](docs/PROFILES.md) · [Memperbarui](docs/UPGRADING.md) · [Pengemasan](docs/PACKAGING.md) · [Verifikasi dan repositori](docs/VERIFY.md) · [Ekstensi](docs/EXTENSIONS.md) · [Kompatibilitas](docs/COMPATIBILITY.md) · [Arsitektur](docs/ARCHITECTURE.md) · [Pengujian manual](docs/MANUAL-TESTING.md) · [Pemecahan masalah](docs/TROUBLESHOOTING.md) · [Audit 0.3.0](docs/AUDIT-0.3.0.md) · [Laporan tes](docs/TEST-REPORT.md) · [Checklist rilis](docs/RELEASE-CHECKLIST.md) · [CHANGELOG](CHANGELOG.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md)
+diff -ruN n2/sorot-0.7.2/docs/TEST-REPORT.md n3/sorot-0.7.3/docs/TEST-REPORT.md
+--- n2/sorot-0.7.2/docs/TEST-REPORT.md	2026-11-01 16:18:49.069620886 +0700
++++ n3/sorot-0.7.3/docs/TEST-REPORT.md	2026-11-02 14:19:17.202675900 +0700
+@@ -1,6 +1,6 @@
+-# Laporan tes — Sorot 0.7.2 Beta
++# Laporan tes — Sorot 0.7.3 Beta
+ 
+-Tanggal: 2026-10-29 s.d. 11-01 (0.7.1 dan 0.7.2) · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
++Tanggal: 2026-10-29 s.d. 11-01 (0.7.1 sampai 0.7.3) · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
+ 
+ > **Berbeda dari laporan 0.7.0:** kali ini PySide6, pytest, pytest-qt, ruff, mypy, lintian, desktop-file-validate, shellcheck, Xvfb dan window manager (openbox) **tersedia**, sehingga kode Qt 0.7.0 yang sebelumnya tidak pernah dijalankan akhirnya dijalankan pada Qt asli. Hasilnya: **mode cermin di 0.7.0 tidak berfungsi sama sekali**, dan ditemukan beberapa cacat lain (lihat CHANGELOG 0.7.1). Semua temuan itu sudah diperbaiki dan dijaga tes regresi.
+ 
+@@ -8,11 +8,11 @@
+ 
+ | Pemeriksaan | Hasil |
+ |---|---|
+-| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **582 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
+-| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **582 lulus**, 1 dilewati |
+-| 128 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **128 lulus**; tes penjaga membuktikan platform memang `xcb` |
+-| 128 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **124 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
+-| Tes non-GUI saja | 455 lulus |
++| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **586 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
++| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **586 lulus**, 1 dilewati |
++| 129 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **129 lulus**; tes penjaga membuktikan platform memang `xcb` |
++| 129 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **125 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
++| Tes non-GUI saja | 457 lulus |
+ | `ruff check src tests`, `mypy src` (47 berkas) | bersih (sebelumnya 1 dan 7 temuan) |
+ | `scripts/release.py check` | konsisten (0.7.1) |
+ | `lintian` (level bawaan), `desktop-file-validate`, `shellcheck`, `dash -n` pada skrip maintainer, `groff -ww` pada man page | bersih |
+@@ -22,6 +22,16 @@
+ 
+ Catatan menjalankan: tes pengemasan memanggil `python3` dari `PATH`, jadi jalankan dengan venv aktif (`make test`). Tanpa window manager, tes fokus keyboard gagal di Xvfb; gunakan `make test-x11`.
+ 
++## Tambahan 0.7.3 (kredibilitas paket)
++
++| Pemeriksaan | Hasil |
++|---|---|
++| Dialog Dukung terpotong (tangkapan layar pengguna di KDE) | Direproduksi dengan font diperbesar (tinggi 444 < 524 yang dibutuhkan; 4 label terpotong); kini tidak terpotong. Tes gagal bila perbaikan dicabut |
++| Metadata AppStream | `appstreamcli validate --pedantic`: 0 galat; 3 peringatan yang disengaja/lingkungan (ID bukan domain terbalik, homepage belum ada, URL tak terjangkau dari lingkungan ini) |
++| Repositori apt bertanda tangan (kunci uji sekali pakai, apt sungguhan, `file://`) | `apt-get update` menerima repositori asli dan `apt-cache policy` melihat kandidat; **menolak** indeks `Packages` yang dirusak (hash tidak cocok) dan kunci yang salah ("not signed"). Tes dibuktikan tidak hampa (indeks benar-benar berubah) dan gagal bila penandatanganan dilepas |
++| `.deb` memuat `usr/share/metainfo/sorot.metainfo.xml` dan ikon PNG 64/128/256 | Diperiksa dengan `dpkg -c`, `appstreamcli validate-tree`, lintian bersih |
++| **Belum diuji:** tampilan di Discover dengan metadata baru, repositori di hosting nyata dari mesin lain, kunci GPG asli milik pengelola | — |
++
+ ## Tambahan 0.7.2 (kestabilan dan integritas)
+ 
+ | Cacat | Bukti |
+diff -ruN n2/sorot-0.7.2/docs/UPGRADING.md n3/sorot-0.7.3/docs/UPGRADING.md
+--- n2/sorot-0.7.2/docs/UPGRADING.md	2026-11-01 16:18:49.070070878 +0700
++++ n3/sorot-0.7.3/docs/UPGRADING.md	2026-11-02 14:19:17.202806420 +0700
+@@ -18,10 +18,10 @@
+ 
+ | Cara pasang | Perintah pembaruan | Catatan |
+ |---|---|---|
+-| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.2_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
+-| Arch Linux | `tar xf sorot-0.7.2.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.2-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
+-| pipx | `pipx install --force ./sorot-0.7.2-py3-none-any.whl` | |
+-| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.2-py3-none-any.whl` | |
++| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.3_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
++| Arch Linux | `tar xf sorot-0.7.3.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.3-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
++| pipx | `pipx install --force ./sorot-0.7.3-py3-none-any.whl` | |
++| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.3-py3-none-any.whl` | |
+ | Skrip pengguna | `./scripts/install-user.sh` dari sumber versi baru | Aman diulang; hanya mengganti venv di `~/.local/share/sorot/venv`. |
+ | Salinan sumber | `git pull`, lalu `python -m pip install -e ".[dev]"` | |
+ 
+@@ -29,8 +29,9 @@
+ 
+ ## Jalur versi
+ 
+-| Dari | Ke 0.7.2 | Yang terjadi |
++| Dari | Ke 0.7.3 | Yang terjadi |
+ |---|---|---|
++| 0.7.2 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema atau format. Hanya perbaikan dialog Dukung dan metadata paket. |
+ | 0.7.1 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema atau format. Perbaikan kestabilan: penutupan rapi saat sinyal, penyimpanan tidak lagi gagal oleh karakter surrogate, proses turunan ekstensi ikut berhenti. |
+ | 0.7.0 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema (tetap 4). Perbaikan: mode cermin yang sebelumnya tidak berfungsi, hitung mundur yang terbaca, `config.json` berisi angka tak wajar (`1e999`) tidak lagi membuat aplikasi crash. |
+ | 0.6.x | langsung | Cadangan otomatis dibuat. Skema pengaturan naik 3 → 4: hanya **menambah** kunci tampilan baru (`font_weight`, `line_spacing`, `letter_spacing`, `mirror`, `show_countdown`, `profile`) yang nilai bawaannya persis sama dengan tampilan lama; tidak ada yang berubah untukmu. Profil milikmu (`~/.local/share/sorot/profiles/`) ikut dicadangkan. |
+diff -ruN n2/sorot-0.7.2/docs/VERIFY.md n3/sorot-0.7.3/docs/VERIFY.md
+--- n2/sorot-0.7.2/docs/VERIFY.md	1970-01-01 07:00:00.000000000 +0700
++++ n3/sorot-0.7.3/docs/VERIFY.md	2026-11-02 14:19:17.202820710 +0700
+@@ -0,0 +1,43 @@
++# Verifikasi unduhan, identitas pengelola, dan pembaruan
++
++Dokumen ini untuk **pengguna** (cara memastikan berkas asli) dan **pengelola** (cara menerbitkannya dengan kredibel). Tidak ada perintah di sini yang dijalankan otomatis; menerbitkan rilis tetap keputusan pengelola.
++
++## Untuk pengguna
++
++1. **Periksa hash** setelah mengunduh: `sha256sum -c SHA256SUMS` (jalankan di folder berkas).
++2. **Periksa tanda tangan** bila ada `SHA256SUMS.asc`:
++   `gpg --import sorot-archive-keyring.asc && gpg --verify SHA256SUMS.asc SHA256SUMS`, lalu cocokkan **sidik jari** dengan yang diumumkan pengelola di kanal resminya (bukan hanya yang ada di unduhan yang sama).
++3. **Lihat informasi paket** sebelum memasang: `dpkg-deb -I sorot_X_all.deb` (nama, pengelola, dependensi), `dpkg-deb -c sorot_X_all.deb` (isi), dan `appstreamcli` / Discover untuk deskripsi, lisensi (MIT) dan penulis setelah terpasang.
++4. **Memperbarui**: pasang `.deb` baru di atas yang lama (`sudo apt install ./sorot_X_all.deb` atau buka di Discover). Versi lama diganti di tempat, tidak perlu menghapus; peluncuran pertama membuat cadangan otomatis. Aplikasi yang sedang terbuka tetap versi lama sampai ditutup dan dibuka lagi.
++
++### Pembaruan otomatis lewat repositori (bila pengelola menyediakannya)
++
++```bash
++sudo install -d -m 0755 /etc/apt/keyrings
++sudo curl -fsSL URL/sorot-archive-keyring.asc -o /etc/apt/keyrings/sorot-archive-keyring.asc
++sudo curl -fsSL URL/sorot.sources -o /etc/apt/sources.list.d/sorot.sources
++sudo apt update && sudo apt install sorot
++```
++
++Sesudah itu rilis baru muncul di Discover dan `apt upgrade`. apt menolak indeks yang dirusak atau ditandatangani kunci lain (diuji, lihat `tests/test_apt_repo.py`).
++
++## Untuk pengelola
++
++Kunci tanda tangan harus **milikmu** dan tetap di komputermu; skrip tidak membuat atau mengunggah kunci.
++
++```bash
++gpg --quick-gen-key "Muhammad Andreatama (rilis Sorot) <muhammadandreatama@outlook.com>" ed25519 sign 3y
++gpg --list-secret-keys --keyid-format long          # catat sidik jari
++make dist
++make sign KEY=SIDIKJARI                              # dist/SHA256SUMS.asc
++make apt-repo KEY=SIDIKJARI URL=https://alamat-hosting/apt   # dist/apt: pool/, dists/, kunci publik, sorot.sources, PASANG.txt
++```
++
++Unggah isi `dist/apt` ke hosting statis apa pun (mis. GitHub Pages) dan umumkan **sidik jari** di kanal resmi (README, profil, situs). Simpan cadangan kunci rahasia dan sertifikat pencabutan di tempat aman luring; bila kunci hilang atau bocor, semua pengguna harus mengganti kunci.
++
++### Apa yang membuat paket tampak kredibel
++* Nama, pengelola, dan kontak di `control`; pengembang, lisensi, deskripsi, dan riwayat rilis di `sorot.metainfo.xml` (AppStream) yang dibaca Discover.
++* **Alamat situs/repositori publik** belum diisi: `Homepage` di `packaging/control.in`, `<url type="homepage">` dan `<url type="bugtracker">` di metainfo, serta `Source:` di `packaging/copyright` masih kosong sampai pengelola menentukan alamatnya. Ini yang paling menambah kepercayaan; isi sebelum rilis publik.
++* Tangkapan layar di metainfo membutuhkan URL gambar yang dihosting; belum ada.
++* ID komponen AppStream saat ini `sorot` (bukan domain terbalik) karena belum ada domain milik proyek; validator memberi peringatan, bukan galat.
++* Tampilan "berkas lokal" di Discover (membuka `.deb` langsung) hanya menunjukkan data paket dasar dan nama berkas; info lengkap (ikon, penulis, lisensi) baru muncul setelah terpasang atau lewat repositori.
+diff -ruN n2/sorot-0.7.2/packaging/RELEASE_DATE n3/sorot-0.7.3/packaging/RELEASE_DATE
+--- n2/sorot-0.7.2/packaging/RELEASE_DATE	2026-11-01 16:18:49.070827006 +0700
++++ n3/sorot-0.7.3/packaging/RELEASE_DATE	2026-11-02 14:19:17.203011022 +0700
+@@ -1 +1 @@
+-2026-11-01
++2026-11-02
+diff -ruN n2/sorot-0.7.2/packaging/debian-changelog n3/sorot-0.7.3/packaging/debian-changelog
+--- n2/sorot-0.7.2/packaging/debian-changelog	2026-11-01 16:18:49.071129655 +0700
++++ n3/sorot-0.7.3/packaging/debian-changelog	2026-11-02 14:19:17.203073447 +0700
+@@ -1,3 +1,14 @@
++sorot (0.7.3) stable; urgency=medium
++
++  * Fix the support dialog being cut off with larger fonts.
++  * Add AppStream metadata and PNG icons so software centres show the author,
++    licence (MIT), description and release notes.
++  * Add scripts to sign releases and to build a signed apt repository, so
++    updates can arrive through Discover and apt without removing the old
++    version; see VERIFY.md in the documentation directory.
++
++ -- Muhammad Andreatama <muhammadandreatama@outlook.com>  Mon, 02 Nov 2026 00:00:00 +0000
++
+ sorot (0.7.2) stable; urgency=medium
+ 
+   * Close cleanly on SIGTERM, SIGHUP and SIGINT (save, stop extensions,
+Binary files n2/sorot-0.7.2/packaging/icons/sorot-128.png and n3/sorot-0.7.3/packaging/icons/sorot-128.png differ
+Binary files n2/sorot-0.7.2/packaging/icons/sorot-256.png and n3/sorot-0.7.3/packaging/icons/sorot-256.png differ
+Binary files n2/sorot-0.7.2/packaging/icons/sorot-64.png and n3/sorot-0.7.3/packaging/icons/sorot-64.png differ
+diff -ruN n2/sorot-0.7.2/packaging/sorot.metainfo.xml n3/sorot-0.7.3/packaging/sorot.metainfo.xml
+--- n2/sorot-0.7.2/packaging/sorot.metainfo.xml	1970-01-01 07:00:00.000000000 +0700
++++ n3/sorot-0.7.3/packaging/sorot.metainfo.xml	2026-11-02 14:19:17.203215116 +0700
+@@ -0,0 +1,57 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!-- AppStream metadata: what Discover, GNOME Software and `appstreamcli` show about Sorot. -->
++<component type="desktop-application">
++  <id>sorot</id>
++  <metadata_license>CC0-1.0</metadata_license>
++  <project_license>MIT</project_license>
++  <name>Sorot</name>
++  <summary>Transparent teleprompter overlay for speaking and recording</summary>
++  <developer id="sorot.muhammadandreatama">
++    <name>Muhammad Andreatama</name>
++  </developer>
++  <description>
++    <p>Sorot shows your script in a transparent window that scrolls at the pace you speak (words per minute, a target duration, or a fixed speed) above other applications, so you can read while recording or presenting.</p>
++    <p>Scripts and settings stay on your computer, and the application works fully offline with no account. Optional features run only when you use them: rewriting scripts through an OpenAI-compatible API you configure yourself, and opening or saving scripts on Google Drive through your own rclone remote.</p>
++    <ul>
++      <li>Pause cues, private notes, reading line, progress bar and countdown</li>
++      <li>Display profiles you can export and share, plus a mirror mode for beam-splitter rigs</li>
++      <li>Extensions that run in separate processes and need your approval</li>
++      <li>Automatic backups before every upgrade</li>
++    </ul>
++    <p>Overlay abilities differ between X11 and Wayland compositors; see the compatibility notes in the package documentation.</p>
++  </description>
++  <launchable type="desktop-id">sorot.desktop</launchable>
++  <provides>
++    <binary>sorot</binary>
++  </provides>
++  <categories>
++    <category>AudioVideo</category>
++    <category>Video</category>
++  </categories>
++  <keywords>
++    <keyword>teleprompter</keyword>
++    <keyword>overlay</keyword>
++    <keyword>script</keyword>
++    <keyword>naskah</keyword>
++  </keywords>
++  <url type="donation">https://saweria.co/tamaandrea</url>
++  <content_rating type="oars-1.1"/>
++  <supports>
++    <control>pointing</control>
++    <control>keyboard</control>
++  </supports>
++  <releases>
++    <release version="0.7.3" date="2026-11-02">
++      <description><p>Fixes the support dialog being cut off, and adds package metadata and signed-release tooling.</p></description>
++    </release>
++    <release version="0.7.2" date="2026-11-01">
++      <description><p>Stability and data integrity: clean shutdown on logout or Ctrl+C, no more failed saves from odd characters, and extensions that start other programs now stop completely.</p></description>
++    </release>
++    <release version="0.7.1" date="2026-10-29">
++      <description><p>Fixes mirror mode, a start-up crash on unusual settings values, the start countdown, and random crashes on Wayland.</p></description>
++    </release>
++    <release version="0.7.0" date="2026-10-27">
++      <description><p>Display profiles, mirror mode and a visible start countdown.</p></description>
++    </release>
++  </releases>
++</component>
+diff -ruN n2/sorot-0.7.2/scripts/install-files.sh n3/sorot-0.7.3/scripts/install-files.sh
+--- n2/sorot-0.7.2/scripts/install-files.sh	2026-11-01 16:18:49.072482557 +0700
++++ n3/sorot-0.7.3/scripts/install-files.sh	2026-11-02 14:19:17.203437409 +0700
+@@ -20,10 +20,14 @@
+ D="${DEST%/}$PREFIX"
+ DOC="$D/share/doc/sorot"
+ install -d "$D/share/applications" "$D/share/icons/hicolor/scalable/apps" "$D/share/man/man1" \
+-    "$DOC/docs" "$D/share/sorot/extensions"
++    "$DOC/docs" "$D/share/sorot/extensions" "$D/share/metainfo"
+ 
+ install -m 0644 "$ROOT/packaging/sorot.desktop" "$D/share/applications/sorot.desktop"
+ install -m 0644 "$ROOT/packaging/sorot.svg" "$D/share/icons/hicolor/scalable/apps/sorot.svg"
++install -m 0644 "$ROOT/packaging/sorot.metainfo.xml" "$D/share/metainfo/sorot.metainfo.xml"
++for size in 64 128 256; do  # PNGs next to the SVG: AppStream catalogues and Discover prefer a raster icon
++    install -D -m 0644 "$ROOT/packaging/icons/sorot-$size.png" "$D/share/icons/hicolor/${size}x${size}/apps/sorot.png"
++done
+ install -m 0644 "$ROOT/packaging/extensions-README" "$D/share/sorot/extensions/README"
+ 
+ # Man page: the source holds @VERSION@/@DATE@ so the version lives in one place only.
+diff -ruN n2/sorot-0.7.2/scripts/make-apt-repo.sh n3/sorot-0.7.3/scripts/make-apt-repo.sh
+--- n2/sorot-0.7.2/scripts/make-apt-repo.sh	1970-01-01 07:00:00.000000000 +0700
++++ n3/sorot-0.7.3/scripts/make-apt-repo.sh	2026-11-02 14:19:17.203536886 +0700
+@@ -0,0 +1,76 @@
++#!/bin/bash
++# Build a signed apt repository from the .deb files in dist/, ready to upload to any static host
++# (GitHub Pages, your own server). People add it once; after that Discover, `apt upgrade` and
++# `apt install sorot` update Sorot in place, with no uninstalling and no downloading by hand.
++#
++# Usage: scripts/make-apt-repo.sh --key KEYID [--url https://host/path] [--debs DIR] [--out DIR]
++#   --key   your GPG key (the private key stays on your machine; this script never creates one)
++#   --url   where the repository will be served; only used to write the ready-to-copy sorot.sources
++#   --debs  folder with sorot_*.deb (default: dist)      --out  output folder (default: dist/apt)
++# Older versions already in --out/pool are kept, so people can still downgrade.
++# GNUPGHOME is honoured. Nothing is uploaded or published by this script.
++set -euo pipefail
++# shellcheck source=lib.sh
++. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
++
++KEY="" URL="https://EXAMPLE.invalid/apt" DEBS="$ROOT/dist" OUT="$ROOT/dist/apt"
++while [ $# -gt 0 ]; do
++    case "$1" in
++        --key) KEY="${2:?--key butuh nilai}"; shift 2 ;;
++        --url) URL="${2:?--url butuh nilai}"; shift 2 ;;
++        --debs) DEBS="${2:?--debs butuh nilai}"; shift 2 ;;
++        --out) OUT="${2:?--out butuh nilai}"; shift 2 ;;
++        *) echo "argumen tidak dikenal: $1" >&2; exit 2 ;;
++    esac
++done
++[ -n "$KEY" ] || { echo "Gunakan: make-apt-repo.sh --key KEYID [--url URL]" >&2; exit 2; }
++for tool in apt-ftparchive gpg gzip; do command -v "$tool" >/dev/null || { echo "perlu $tool (paket apt-utils/gnupg)" >&2; exit 1; }; done
++gpg --batch --list-secret-keys "$KEY" >/dev/null 2>&1 || { echo "kunci rahasia $KEY tidak ditemukan di GNUPGHOME" >&2; exit 1; }
++compgen -G "$DEBS/sorot_*_all.deb" >/dev/null || { echo "tidak ada sorot_*_all.deb di $DEBS (jalankan make deb)" >&2; exit 1; }
++
++OUT="$(absdir "$OUT")"
++POOL="$OUT/pool/main/s/sorot"
++DIST="$OUT/dists/stable"
++BIN="$DIST/main/binary-all"
++mkdir -p "$POOL" "$BIN"
++cp -f "$DEBS"/sorot_*_all.deb "$POOL/"
++
++(cd "$OUT" && apt-ftparchive packages pool > "$BIN/Packages")
++gzip -9n -c "$BIN/Packages" > "$BIN/Packages.gz"
++(cd "$OUT" && apt-ftparchive \
++    -o APT::FTPArchive::Release::Origin="Sorot" \
++    -o APT::FTPArchive::Release::Label="Sorot" \
++    -o APT::FTPArchive::Release::Suite="stable" \
++    -o APT::FTPArchive::Release::Codename="stable" \
++    -o APT::FTPArchive::Release::Architectures="all" \
++    -o APT::FTPArchive::Release::Components="main" \
++    -o APT::FTPArchive::Release::Description="Sorot teleprompter - repositori resmi Muhammad Andreatama" \
++    release dists/stable > "$DIST/Release")
++
++rm -f "$DIST/Release.gpg" "$DIST/InRelease"
++gpg --batch --yes --local-user "$KEY" --armor --detach-sign -o "$DIST/Release.gpg" "$DIST/Release"
++gpg --batch --yes --local-user "$KEY" --clearsign -o "$DIST/InRelease" "$DIST/Release"
++gpg --batch --yes --armor --export "$KEY" > "$OUT/sorot-archive-keyring.asc"
++FPR="$(gpg --batch --with-colons --fingerprint "$KEY" | awk -F: '/^fpr:/ {print $10; exit}')"
++
++cat > "$OUT/sorot.sources" <<SOURCES
++Types: deb
++URIs: $URL
++Suites: stable
++Components: main
++Signed-By: /etc/apt/keyrings/sorot-archive-keyring.asc
++SOURCES
++cat > "$OUT/PASANG.txt" <<TEXT
++Pasang repositori Sorot sekali saja (setelah itu pembaruan muncul di Discover dan lewat apt):
++
++  sudo install -d -m 0755 /etc/apt/keyrings
++  sudo curl -fsSL $URL/sorot-archive-keyring.asc -o /etc/apt/keyrings/sorot-archive-keyring.asc
++  sudo curl -fsSL $URL/sorot.sources -o /etc/apt/sources.list.d/sorot.sources
++  sudo apt update && sudo apt install sorot
++
++Periksa sidik jari kunci sebelum mempercayainya:
++  gpg --show-keys --with-fingerprint /etc/apt/keyrings/sorot-archive-keyring.asc
++  harus sama dengan: $FPR
++TEXT
++echo "Repositori: $OUT"
++echo "Sidik jari kunci: $FPR"
+diff -ruN n2/sorot-0.7.2/scripts/release.py n3/sorot-0.7.3/scripts/release.py
+--- n2/sorot-0.7.2/scripts/release.py	2026-11-01 16:18:49.072543629 +0700
++++ n3/sorot-0.7.3/scripts/release.py	2026-11-02 14:19:17.203452475 +0700
+@@ -89,6 +89,15 @@
+     if '.TH SOROT 1 "@DATE@" "@VERSION@"' not in man:
+         problems.append("packaging/sorot.1: baris .TH harus memakai @DATE@ dan @VERSION@")
+ 
++    metainfo = read(root, "packaging/sorot.metainfo.xml")
++    first = re.search(r'<release version="([^"]+)" date="([^"]+)"', metainfo)
++    if not first or first.group(1) != version or first.group(2) != release_date:
++        problems.append(f'packaging/sorot.metainfo.xml: <release> teratas harus version="{version}" date="{release_date}"')
++    if "TODO" in metainfo:
++        problems.append("packaging/sorot.metainfo.xml: masih berisi TODO")
++    if "<project_license>MIT</project_license>" not in metainfo:
++        problems.append("packaging/sorot.metainfo.xml: lisensi proyek harus MIT")
++
+     control = read(root, "packaging/control.in")
+     if "Version: @VERSION@" not in control or f"Maintainer: Muhammad Andreatama <{CONTACT}>" not in control:
+         problems.append("packaging/control.in: Version/Maintainer tidak sesuai")
+@@ -144,6 +153,10 @@
+     edit("packaging/RELEASE_DATE", lambda t: date + "\n")
+     edit("README.md", lambda t: t.replace(f"# Sorot {old} Beta", f"# Sorot {new} Beta", 1))
+     notes.extend(rename_artifacts(old, new, root))
++    edit(
++        "packaging/sorot.metainfo.xml",
++        lambda t: t.replace("<releases>\n", f'<releases>\n    <release version="{new}" date="{date}">\n      <description><p>TODO: ringkasan rilis</p></description>\n    </release>\n', 1),
++    )
+     stamp = dt.date.fromisoformat(date)
+     rfc = email.utils.format_datetime(dt.datetime(stamp.year, stamp.month, stamp.day, tzinfo=dt.timezone.utc))
+     edit("CHANGELOG.md", lambda t: re.sub(r"(?m)^## \[", f"## [{new} Beta] — {date}\n\n### Diubah\n- TODO: tulis ringkasan perubahan\n\n## [", t, count=1))
+diff -ruN n2/sorot-0.7.2/scripts/sign-release.sh n3/sorot-0.7.3/scripts/sign-release.sh
+--- n2/sorot-0.7.2/scripts/sign-release.sh	1970-01-01 07:00:00.000000000 +0700
++++ n3/sorot-0.7.3/scripts/sign-release.sh	2026-11-02 14:19:17.203605882 +0700
+@@ -0,0 +1,11 @@
++#!/bin/bash
++# Sign dist/SHA256SUMS with your GPG key so downloads can be verified: `gpg --verify SHA256SUMS.asc SHA256SUMS`.
++# Usage: scripts/sign-release.sh KEYID [dist-dir]        (GNUPGHOME is honoured; nothing is uploaded)
++set -euo pipefail
++KEY="${1:?Gunakan: sign-release.sh KEYID [dist]}"
++DIR="${2:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/dist}"
++[ -f "$DIR/SHA256SUMS" ] || { echo "tidak ada $DIR/SHA256SUMS (jalankan make dist)" >&2; exit 1; }
++rm -f "$DIR/SHA256SUMS.asc"
++gpg --batch --yes --local-user "$KEY" --armor --detach-sign -o "$DIR/SHA256SUMS.asc" "$DIR/SHA256SUMS"
++gpg --batch --verify "$DIR/SHA256SUMS.asc" "$DIR/SHA256SUMS"
++echo "Ditandatangani: $DIR/SHA256SUMS.asc"
+diff -ruN n2/sorot-0.7.2/src/sorot/__init__.py n3/sorot-0.7.3/src/sorot/__init__.py
+--- n2/sorot-0.7.2/src/sorot/__init__.py	2026-11-01 16:18:49.072932164 +0700
++++ n3/sorot-0.7.3/src/sorot/__init__.py	2026-11-02 14:19:17.203670363 +0700
+@@ -1,7 +1,7 @@
+ """Sorot — teleprompter overlay desktop untuk Linux."""
+ 
+-__version__ = "0.7.2"
+-VERSION_LABEL = "0.7.2 Beta"
++__version__ = "0.7.3"
++VERSION_LABEL = "0.7.3 Beta"
+ APP_NAME = "Sorot"
+ ORG_NAME = "Sorot"
+ AUTHOR = "Muhammad Andreatama"
+diff -ruN n2/sorot-0.7.2/src/sorot/ui/dialogs.py n3/sorot-0.7.3/src/sorot/ui/dialogs.py
+--- n2/sorot-0.7.2/src/sorot/ui/dialogs.py	2026-11-01 16:18:49.075710490 +0700
++++ n3/sorot-0.7.3/src/sorot/ui/dialogs.py	2026-11-02 14:19:17.204332985 +0700
+@@ -442,10 +442,28 @@
+         close_btn.clicked.connect(self.accept)
+         layout.addWidget(close_btn, 0, Qt.AlignmentFlag.AlignRight)
+ 
++        self.feedback.setMinimumHeight(self.feedback.fontMetrics().height() + 4)  # reserve the line so copying never changes the layout
+         self.open_btn.clicked.connect(self._open_saweria)
+         self.copy_link_btn.clicked.connect(lambda: self._copy(self.info.saweria_url, "Tautan Saweria disalin."))
+         self.copy_number_btn.clicked.connect(lambda: self._copy(self.info.gopay_number, "Nomor GoPay disalin."))
+ 
++    def _fit_height(self) -> None:
++        """Qt's minimum height ignores word-wrapped labels, so larger fonts squeezed the cards (the GoPay number was cut off)."""
++        layout = self.layout()
++        needed = layout.totalHeightForWidth(self.width()) if layout is not None else 0
++        if needed > 0:
++            self.setMinimumHeight(needed)
++            if self.height() < needed:
++                self.resize(self.width(), needed)
++
++    def showEvent(self, event) -> None:  # noqa: N802
++        super().showEvent(event)
++        self._fit_height()
++
++    def resizeEvent(self, event) -> None:  # noqa: N802
++        super().resizeEvent(event)
++        self._fit_height()
++
+     def _open_saweria(self) -> None:
+         QDesktopServices.openUrl(QUrl(self.info.saweria_url))
+         self.feedback.setText("Membuka Saweria di browser…")
+diff -ruN n2/sorot-0.7.2/tests/test_apt_repo.py n3/sorot-0.7.3/tests/test_apt_repo.py
+--- n2/sorot-0.7.2/tests/test_apt_repo.py	1970-01-01 07:00:00.000000000 +0700
++++ n3/sorot-0.7.3/tests/test_apt_repo.py	2026-11-02 14:19:17.205054720 +0700
+@@ -0,0 +1,83 @@
++"""The signed apt repository: apt must accept the genuine one and refuse a tampered index or a wrong key."""
++from __future__ import annotations
++
++import gzip
++import os
++import shutil
++import subprocess
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[1]
++TOOLS = ("apt-get", "apt-ftparchive", "gpg", "dpkg-deb")
++pytestmark = pytest.mark.skipif(any(shutil.which(t) is None for t in TOOLS), reason="needs apt, apt-utils, gnupg, dpkg")
++
++
++def _run(cmd, env=None, check=True):
++    return subprocess.run(cmd, env=env, capture_output=True, text=True, check=check, timeout=120)
++
++
++def _key(home: Path, name: str) -> str:
++    home.mkdir(mode=0o700)
++    env = {**os.environ, "GNUPGHOME": str(home)}
++    _run(["gpg", "--batch", "--pinentry-mode", "loopback", "--passphrase", "", "--quick-gen-key", f"{name} <t@example.com>", "ed25519", "sign", "never"], env)
++    out = _run(["gpg", "--batch", "--with-colons", "--fingerprint", name], env).stdout
++    return next(line.split(":")[9] for line in out.splitlines() if line.startswith("fpr:"))
++
++
++def _fake_deb(folder: Path) -> None:
++    tree = folder / "tree"
++    (tree / "DEBIAN").mkdir(parents=True)
++    (tree / "DEBIAN" / "control").write_text("Package: sorot\nVersion: 9.9.9\nArchitecture: all\nMaintainer: Uji <t@example.com>\nDescription: uji\n", encoding="utf-8")
++    _run(["dpkg-deb", "--root-owner-group", "-b", str(tree), str(folder / "sorot_9.9.9_all.deb")])
++
++
++def _apt_update(base: Path, source_text: str) -> subprocess.CompletedProcess:
++    (base / "src.d").mkdir(parents=True)
++    (base / "state" / "lists" / "partial").mkdir(parents=True)
++    (base / "cache" / "archives" / "partial").mkdir(parents=True)
++    (base / "src.d" / "sorot.sources").write_text(source_text, encoding="utf-8")
++    return _run(["apt-get", "-o", "Dir::Etc::sourcelist=/dev/null", "-o", f"Dir::Etc::sourceparts={base / 'src.d'}", "-o", f"Dir::State={base / 'state'}",
++                 "-o", f"Dir::Cache={base / 'cache'}", "-o", "Dir::Etc::trusted=/dev/null", "-o", "Dir::Etc::trustedparts=/dev/null",
++                 "-o", "APT::Sandbox::User=root", "update"], check=False)
++
++
++def test_apt_accepts_the_genuine_repository_and_rejects_tampering_and_wrong_keys(tmp_path):
++    tmp_path.chmod(0o755)
++    fingerprint = _key(tmp_path / "gnupg", "Sorot Uji")
++    env = {**os.environ, "GNUPGHOME": str(tmp_path / "gnupg")}
++    debs = tmp_path / "debs"
++    debs.mkdir()
++    _fake_deb(debs)
++    repo = tmp_path / "repo"
++    result = _run(["bash", str(ROOT / "scripts" / "make-apt-repo.sh"), "--key", fingerprint, "--url", f"file://{repo}", "--debs", str(debs), "--out", str(repo)], env)
++    assert fingerprint in result.stdout
++    assert (repo / "dists/stable/InRelease").is_file() and (repo / "sorot-archive-keyring.asc").is_file()
++    assert fingerprint in (repo / "PASANG.txt").read_text(encoding="utf-8")
++
++    def source(uri: Path, key: Path) -> str:
++        return f"Types: deb\nURIs: file://{uri}\nSuites: stable\nComponents: main\nSigned-By: {key}\n"
++
++    good = _apt_update(tmp_path / "ok", source(repo, repo / "sorot-archive-keyring.asc"))
++    assert good.returncode == 0, good.stderr
++    policy = _run(["apt-cache", "-o", f"Dir::Etc::sourceparts={tmp_path / 'ok' / 'src.d'}", "-o", "Dir::Etc::sourcelist=/dev/null",
++                   "-o", f"Dir::State={tmp_path / 'ok' / 'state'}", "-o", f"Dir::Cache={tmp_path / 'ok' / 'cache'}", "policy", "sorot"]).stdout
++    assert "Candidate: 9.9.9" in policy
++
++    evil = tmp_path / "evil"
++    shutil.copytree(repo, evil)
++    index = evil / "dists/stable/main/binary-all/Packages"
++    original = index.read_text(encoding="utf-8")
++    forged = original.replace("Maintainer: Uji", "Maintainer: Penyerang")
++    assert forged != original, "tes hampa: indeks tidak berubah"
++    index.write_text(forged, encoding="utf-8")
++    with gzip.open(evil / "dists/stable/main/binary-all/Packages.gz", "wt", encoding="utf-8") as handle:  # apt may fetch either form
++        handle.write(forged)
++    assert _apt_update(tmp_path / "evil-client", source(evil, repo / "sorot-archive-keyring.asc")).returncode != 0
++
++    other = _key(tmp_path / "gnupg2", "Orang Lain")
++    stranger = _run(["gpg", "--armor", "--export", other], {**os.environ, "GNUPGHOME": str(tmp_path / "gnupg2")}).stdout
++    (tmp_path / "other.asc").write_text(stranger, encoding="utf-8")
++    refused = _apt_update(tmp_path / "wrong-key", source(repo, tmp_path / "other.asc"))
++    assert refused.returncode != 0 and "not signed" in refused.stderr
+diff -ruN n2/sorot-0.7.2/tests/test_gui_integrations.py n3/sorot-0.7.3/tests/test_gui_integrations.py
+--- n2/sorot-0.7.2/tests/test_gui_integrations.py	2026-11-01 16:18:49.077783469 +0700
++++ n3/sorot-0.7.3/tests/test_gui_integrations.py	2026-11-02 14:19:17.204799158 +0700
+@@ -418,3 +418,29 @@
+     assert shown == [True]
+     assert any(action.text().startswith("Dukung") for menu in window.menuBar().findChildren(type(window.extensions_menu)) for action in menu.actions())
+     window.close()
++
++
++def test_support_dialog_is_never_squeezed_by_larger_fonts(qtbot):
++    """Regression: with a larger font the window stayed shorter than its word-wrapped content and the GoPay card was cut off."""
++    from PySide6.QtGui import QFont
++    from PySide6.QtWidgets import QApplication, QLabel
++
++    from sorot.ui.dialogs import SupportDialog
++
++    app = QApplication.instance()
++    original = app.font()
++    bigger = QFont(original)
++    bigger.setPointSize(original.pointSize() + 4)
++    app.setFont(bigger)
++    try:
++        dialog = SupportDialog()
++        qtbot.addWidget(dialog)
++        dialog.show()
++        dialog.resize(500, 200)
++        qtbot.wait(50)
++        for label in dialog.findChildren(QLabel):
++            if label.isVisible():
++                need = label.heightForWidth(label.width()) if label.wordWrap() else label.minimumSizeHint().height()
++                assert label.height() >= need, f"{label.text()[:30]!r} terpotong: {label.height()} < {need}"
++    finally:
++        app.setFont(original)
+diff -ruN n2/sorot-0.7.2/tests/test_packaging.py n3/sorot-0.7.3/tests/test_packaging.py
+--- n2/sorot-0.7.2/tests/test_packaging.py	2026-11-01 16:18:49.078788712 +0700
++++ n3/sorot-0.7.3/tests/test_packaging.py	2026-11-02 14:19:17.205093790 +0700
+@@ -70,6 +70,8 @@
+     ("pyproject.toml", '"sorot.ui" = ["assets/*.png"]', '"sorot.ui" = []', "package-data"),
+     # Anchored on the top entry's own heading, which always exists (a section name like "### Ditambahkan" may not).
+     ("CHANGELOG.md", f"## [{VER} Beta] — {DATE}\n", f"## [{VER} Beta] — {DATE}\n\n- TODO: nanti\n", "TODO"),
++    ("packaging/sorot.metainfo.xml", f'<release version="{VER}"', '<release version="0.0.1"', "metainfo"),
++    ("packaging/sorot.metainfo.xml", "<project_license>MIT</project_license>", "<project_license>GPL-3.0</project_license>", "lisensi"),
+ ])
+ def test_each_kind_of_drift_is_caught(tmp_path, rel, old, new, expect):
+     release = _load_release()
+@@ -102,10 +104,11 @@
+     assert (tree / "packaging/RELEASE_DATE").read_text(encoding="utf-8").strip() == "2099-11-01"
+     problems = release.check(tree)
+     assert problems and all("TODO" in problem for problem in problems), problems  # only the unwritten changelog remains
+-    for rel in ("CHANGELOG.md", "packaging/debian-changelog"):
++    assert "98.7.6" in (tree / "packaging/sorot.metainfo.xml").read_text(encoding="utf-8")
++    for rel in ("CHANGELOG.md", "packaging/debian-changelog", "packaging/sorot.metainfo.xml"):
+         path = tree / rel
+         text = path.read_text(encoding="utf-8")
+-        path.write_text(text.replace("TODO: tulis ringkasan perubahan", "Perbaikan kecil.").replace("TODO: write the change summary", "Small fix."), encoding="utf-8")
++        path.write_text(text.replace("TODO: tulis ringkasan perubahan", "Perbaikan kecil.").replace("TODO: write the change summary", "Small fix.").replace("TODO: ringkasan rilis", "Small fix."), encoding="utf-8")
+     assert release.check(tree) == []
+ 
+ 
+@@ -208,7 +211,8 @@
+     usr = tmp_path / "pkg" / "usr"
+     for rel in ("share/applications/sorot.desktop", "share/icons/hicolor/scalable/apps/sorot.svg", "share/man/man1/sorot.1.gz",
+                 "share/doc/sorot/README.md", "share/doc/sorot/docs/UPGRADING.md", "share/doc/sorot/docs/PACKAGING.md",
+-                "share/doc/sorot/examples/extensions/contoh.rapikan-teks/main.py", "share/sorot/extensions/README"):
++                "share/doc/sorot/examples/extensions/contoh.rapikan-teks/main.py", "share/sorot/extensions/README",
++                "share/metainfo/sorot.metainfo.xml", "share/icons/hicolor/64x64/apps/sorot.png", "share/icons/hicolor/256x256/apps/sorot.png"):
+         assert (usr / rel).is_file(), rel
+     sys.path.insert(0, str(ROOT / "src"))
+     import sorot
