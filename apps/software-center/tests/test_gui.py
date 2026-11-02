@@ -107,13 +107,15 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         window.close()
 
     def test_catalogue_metadata_refresh_timer_is_active_and_does_not_auto_install(self) -> None:
-        window = MainWindow(
-            service=CatalogService(data_dir=DATA_DIR),
-            profile=profile("debian-family"),
-        )
-        self.assertTrue(window.auto_refresh_timer.isActive())
-        self.assertEqual(window.auto_refresh_timer.interval(), 15 * 60 * 1000)
-        window.close()
+        with tempfile.TemporaryDirectory() as temp:
+            window = MainWindow(
+                service=CatalogService(cache_dir=Path(temp) / "cache"),
+                profile=profile("debian-family"),
+            )
+            self.assertTrue(window.service.auto_refresh_enabled)
+            self.assertTrue(window.auto_refresh_timer.isActive())
+            self.assertEqual(window.auto_refresh_timer.interval(), 15 * 60 * 1000)
+            window.close()
 
     def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
         window = MainWindow(
