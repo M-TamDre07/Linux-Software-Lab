@@ -65,7 +65,7 @@
 <h1>Inventaris <span>Linux yang lebih jelas.</span></h1>
 <p class="hero-lead">PaketScope 3 dikembangkan sebagai pengelola software Linux dengan target paket awal Debian 13 (Trixie), yang membantu pengguna memahami apa yang terpasang, fungsi dan jenis paketnya, serta asal yang dapat diketahui dari metadata lokal. Detail APT membedakan repositori yang saat ini menyediakan versi terpasang dari asal historis yang belum tentu dapat dibuktikan. Tindakan remove/purge dijaga agar tidak mencakup paket tambahan atau komponen sistem prioritas tinggi. Source inventory dapat dikembangkan dengan provider eksplisit. System &amp; Code Lab tetap read-only secara default; Flatpak belum dapat dipasang atau dihapus dari aplikasi.</p>
 <div class="hero-actions"><span class="status-badge">Testing · dev5</span><a class="btn btn-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>Unduh .deb ↗</a><a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope/releases/3.0.0.dev5" target="_blank" rel="noopener noreferrer">Semua aset & checksum ↗</a><a class="btn btn-secondary" href="/software/">Katalog</a></div>
-<p class="detail-disclaimer">Status: pratinjau pengembangan. Paket dev5 tersedia untuk pengujian terbatas. Status tetap testing; belum ada validasi instalasi nyata pada Debian 13, tanda tangan distribusi, atau audit keamanan independen.</p>
+<p class="detail-disclaimer">Status: pratinjau pengembangan. Paket dev5 berhasil dibangun, dipasang, diperiksa, dan di-purge pada container CI Debian 13. Status tetap testing; interaksi GUI/Polkit di desktop nyata, tanda tangan rilis produksi, dan audit keamanan independen belum diverifikasi.</p>
 </div>
 <div class="detail-art"><div class="detail-art-top"><span>PAKETSCOPE / V3</span><span>INTERFACE STUDY · 01</span></div><img src="/assets/images/paketscope-preview.svg" alt="Ilustrasi konsep antarmuka inventaris PaketScope, bukan tangkapan layar aplikasi yang dirilis." width="960" height="600"><div class="detail-art-caption"><span>ORIGINAL CONCEPT ART</span><span>LINUX SOFTWARE LAB</span></div></div>
 </div></section>
@@ -75,7 +75,7 @@
     <div class="install-copy">
       <span class="eyebrow">PAKETSCOPE 3.0.0.dev5 · TESTING</span>
       <h2>Paket pengujian tersedia.</h2>
-      <p>Artefak dev5 sudah disimpan di repositori. Paket Debian ditujukan untuk evaluasi terbatas pada Debian 13 (Trixie). Laporan pengujian belum mencatat instalasi nyata pada Debian 13 atau uji interaksi GUI/Polkit di sesi desktop.</p>
+      <p>Artefak dev5 sudah disimpan di repositori. Workflow CI berhasil membangun, memasang melalui APT, memeriksa, dan me-purge paket pada container Debian 13 (Trixie). Ini menguji jalur packaging dan dependensi di image CI; uji interaksi GUI/Polkit pada sesi desktop pengguna belum dilakukan.</p>
       <span class="install-state">Status testing · bukan rilis stable</span>
       <p class="install-followup">Jangan menganggap kompatibilitas sudah terjamin. Periksa laporan pengujian dan checksum sebelum menggunakan artefak. Uji instalasi pada VM atau sistem cadangan yang dapat dipulihkan, bukan perangkat utama.</p>
       <p><a class="btn btn-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>Unduh PaketScope .deb ↗</a></p>
@@ -118,7 +118,7 @@
 </div>
 <aside class="detail-spec"><div class="detail-spec-head"><img src="/assets/images/paketscope-icon.svg" alt="" width="36" height="36"><div><strong>PaketScope 3</strong><small>Native development preview</small></div></div>
 <div class="detail-spec-row"><span>VERSI</span><strong>3.0.0.dev5</strong></div>
-<div class="detail-spec-row"><span>TARGET</span><strong>Debian 13 · pengujian nyata belum dilakukan</strong></div>
+<div class="detail-spec-row"><span>TARGET</span><strong>Debian 13 · build/install/purge CI lulus</strong></div>
 <div class="detail-spec-row"><span>SUMBER</span><strong>APT / dpkg · Flatpak</strong></div>
 <div class="detail-spec-row"><span>HAK AKSES</span><strong>Pengguna biasa · tidak butuh root</strong></div>
 <div class="detail-spec-row"><span>ENKRIPSI CADANGAN</span><strong>AES-256-GCM + scrypt</strong></div>
@@ -131,7 +131,7 @@
 <section class="section"><div class="container"><div class="section-heading"><div><span class="eyebrow">03 / STATUS PENGEMBANGAN</span><h2>Bangun dengan teliti. Verifikasi dengan jujur.</h2></div><p>Fondasi kode v3 dipisahkan dari pekerjaan yang masih diperlukan sebelum distribusi publik.</p></div>
 <div class="principle-grid">
 <article class="principle-card"><span class="principle-number">SUDAH ADA DI SOURCE</span><h3>Inventaris yang lebih menjelaskan</h3><p>Inventaris APT/Flatpak, detail fungsi dan jenis paket dari metadata lokal, informasi asal dengan batasan yang dijelaskan, provider inventaris yang dapat dikembangkan, serta alur remove/purge dengan pengaman tambahan.</p></article>
-<article class="principle-card"><span class="principle-number">PERLU PENGUJIAN</span><h3>Validasi lingkungan nyata</h3><p>Pengujian UI pada Debian 13, sistem tanpa Flatpak, varian keluaran perintah yang berbeda, kinerja inventaris besar, dan aksesibilitas masih diperlukan.</p></article>
+<article class="principle-card"><span class="principle-number">PERLU PENGUJIAN</span><h3>Validasi desktop nyata</h3><p>CI Debian 13 telah memvalidasi build, install, import modul, dan purge. Interaksi GUI, alur Polkit/pkexec, aksesibilitas, kinerja inventaris besar, dan sesi GNOME/KDE nyata masih perlu diuji.</p></article>
 <article class="principle-card"><span class="principle-number">TAHAP BERIKUTNYA</span><h3>Sebelum rilis stabil</h3><p>Build paket, signature/checksum, matriks dukungan, integrasi CI yang lulus, penguncian dependensi, dan tinjauan keamanan independen.</p></article>
 </div></div></section>
 </main>
