@@ -128,7 +128,8 @@ class WebsiteExperienceTests(unittest.TestCase):
         for identifier in (
             "softwareSearch", "statusFilters", "categoryFilter", "platformFilter",
             "compatibilityFilter", "architectureFilter", "sortFilter", "clearFilters",
-            "catalogRefresh", "catalogCompatibilityStatus", "loadMore", "catalogSourceStatus",
+            "catalogRefresh", "catalogCompatibilityStatus", "catalogExportCsv", "catalogExportJson",
+            "catalogCopyFilters", "catalogExportStatus", "loadMore", "catalogSourceStatus",
         ):
             with self.subTest(control=identifier):
                 self.assertIn(f'id="{identifier}"', source)
