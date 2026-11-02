@@ -87,6 +87,16 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertIn("Debian 13", window.compatibility_label.text())
         window.close()
 
+    def test_catalogue_metadata_refresh_timer_is_active_and_does_not_auto_install(self) -> None:
+        window = MainWindow(
+            service=CatalogService(data_dir=DATA_DIR),
+            profile=profile("debian-family"),
+        )
+        self.assertTrue(window.auto_refresh_timer.isActive())
+        self.assertEqual(window.auto_refresh_timer.interval(), 15 * 60 * 1000)
+        self.assertEqual(window.install_button.text().startswith("Pasang"), True)
+        window.close()
+
     def test_launcher_portal_shortcut_opens_canonical_website(self) -> None:
         window = MainWindow(
             service=CatalogService(data_dir=DATA_DIR),
