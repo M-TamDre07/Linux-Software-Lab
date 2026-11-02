@@ -59,11 +59,13 @@ Refresh the user's local metadata cache from the official repository:
 lsl refresh
 ~~~
 
-The refresh command prompts for the exact confirmation word REFRESH before downloading. Both documents must validate before the cache files replace the previous copy. When the network is unavailable, the bundled catalog continues to work.
+The refresh command prompts for the exact confirmation word REFRESH before downloading. Both documents and every referenced release manifest must validate before the cache snapshot is activated. When the network is unavailable or a manifest is invalid, the previous verified snapshot or bundled catalogue remains available.
+
+The desktop GUI also checks catalogue metadata on launch and every 15 minutes while it is open. This is metadata refresh only: it does not install a new application build, change APT packages, or upgrade the operating system. Users still start package operations manually, review the APT simulation, and confirm the privileged transaction.
 
 ## Install behavior and limitations
 
-The launcher never substitutes another distro's package. At present, the only native install path is a listed .deb artifact on the Debian/Ubuntu family, with APT, pkexec, and Polkit available. The app is marked Beta/testing; the GUI and CLI warn that SHA-256 verifies bytes against metadata, **not the publisher's cryptographic signature**. The package manager simulation and a separate confirmation are required before the privileged operation.
+The launcher never substitutes another distro's package. The current PaketScope 3.0.0.dev5 and Sorot 0.7.1–0.7.3 builds have .deb artifacts whose manifests require Debian 13 specifically; Ubuntu 24.04 and other Debian-family derivatives are not considered compatible with those artifacts. Compatibility is evaluated from the manifest's distribution and minimum-OS metadata, CPU architecture, and installed package-manager tools. The app status remains Beta/testing; SHA-256 verifies bytes against release metadata, **not the publisher's cryptographic signature**. The package manager simulation and a separate confirmation are required before the privileged operation.
 
 Do not run the entire launcher with sudo. Start it as a normal user so the system can request package-manager authorization at the installation boundary.
 
@@ -71,10 +73,10 @@ The current source archive does not contain a publisher-signed release manifest.
 
 ### Current artifact availability
 
-- Sorot 0.5.0 Beta: .deb, .tar.gz, and .zip are in the versioned archive.
-- Sorot for Arch Linux / 0.6.0: planned only; no .pkg.tar.zst or official PKGBUILD is declared as available.
-- PaketScope: source-mode project, not a public packaged release in this catalogue.
-- Fedora/RHEL, SUSE, Flatpak, AppImage: no installer adapter is enabled in this MVP.
+- Sorot 0.7.3 Beta/testing: Debian 13 .deb, source tar.gz, ZIP, and Python wheel are indexed. Earlier versions remain archived.
+- PaketScope 3.0.0.dev5 testing: Debian 13 .deb, source tar.gz, Python wheel, and a source patch are indexed. The patch is source material, never an installable package.
+- Arch Linux remains planned for Sorot; no validated .pkg.tar.zst is published. PaketScope Arch/Fedora package recipes are experimental and unsupported.
+- Fedora/RHEL, SUSE, Flatpak, AppImage: no native installation adapter is enabled in this MVP.
 
 The app catalogue never treats a planned format as a download. Each family adapter must be implemented and tested before the product card can show installation as available.
 
