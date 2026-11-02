@@ -167,12 +167,13 @@ class MainWindow(QMainWindow):
         if self.app_list.count():
             self.app_list.setCurrentRow(0)
 
-        # Refresh metadata only; package installation and OS upgrades remain explicit user actions.
-        QTimer.singleShot(1500, self._refresh_catalog_automatically)
+        # Refresh metadata only; fixture/custom-data services stay offline and deterministic.
         self.auto_refresh_timer = QTimer(self)
         self.auto_refresh_timer.setInterval(15 * 60 * 1000)
         self.auto_refresh_timer.timeout.connect(self._refresh_catalog_automatically)
-        self.auto_refresh_timer.start()
+        if self.service.auto_refresh_enabled:
+            QTimer.singleShot(1500, self._refresh_catalog_automatically)
+            self.auto_refresh_timer.start()
 
     def _build_ui(self) -> None:
         root = QWidget()
