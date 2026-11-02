@@ -453,10 +453,15 @@ class MainWindow(QMainWindow):
         ]
         if compatible:
             newest = compatible[-1]
+            minimum_os_note = (
+                f" Persyaratan OS: {newest.minimum_os}."
+                if newest.minimum_os else ""
+            )
             notice = (
                 f"Format cocok: .{newest.format} · versi {newest.version} · "
                 f"{newest.release_status.upper()}. "
                 "Kompatibilitas package manager belum berarti semua distro/versi OS telah diuji."
+                + minimum_os_note
             )
             if newest.release_status == "testing":
                 notice += (
