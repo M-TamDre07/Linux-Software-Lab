@@ -31,6 +31,7 @@ from .installer import (
 )
 from .integrations import LOCAL_INTEGRATIONS
 from .models import Application, SystemProfile
+from .search import search_applications
 from .selection import select_artifact
 
 
@@ -173,6 +174,8 @@ def _show_list(service: CatalogService, profile: SystemProfile, as_json: bool) -
                     "version": artifact.version,
                     "format": artifact.format,
                     "status": artifact.release_status,
+                    "architecture": artifact.architecture,
+                    "minimum_os": artifact.minimum_os or None,
                     "sha256": artifact.sha256,
                 }
                 for artifact in app.artifacts
@@ -239,6 +242,18 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("detect", help="Deteksi distro, package manager, dan arsitektur lokal.")
     list_parser = sub.add_parser("list", help="Tampilkan aplikasi katalog dan status paket.")
     list_parser.add_argument("--json", action="store_true", help="Keluarkan data mesin dalam JSON.")
+
+    search_parser = sub.add_parser(
+        "search",
+        help="Cari aplikasi secara lokal dengan sinonim, toleransi typo, dan filter kolom.",
+    )
+    search_parser.add_argument("--json", action="store_true", help="Keluarkan hasil sebagai JSON.")
+    search_parser.add_argument("--limit", type=int, default=50, help="Batas jumlah hasil (1–200).")
+    search_parser.add_argument(
+        "query",
+        nargs=argparse.REMAINDER,
+        help="Istilah pencarian; mendukung nama:, tag:, kategori:, platform:, status:, dan -pengecualian.",
+    )
 
     info_parser = sub.add_parser("info", help="Tampilkan ringkasan aplikasi dan format paket.")
     info_parser.add_argument("application_id")
@@ -351,6 +366,56 @@ def main(
     except CatalogError as exc:
         print(f"Katalog tidak valid: {exc}", file=sys.stderr)
         return 1
+    if args.command == "search":
+        query = " ".join(args.query).strip()
+        if not query:
+            print("Masukkan istilah pencarian setelah 'lsl search'.", file=sys.stderr)
+            return 2
+        if not 1 <= args.limit <= 200:
+            print("Batas hasil harus berada di antara 1 dan 200.", file=sys.stderr)
+            return 2
+        matches = search_applications(snapshot.applications, query)[: args.limit]
+        records = []
+        for app in matches:
+            compatible = []
+            for artifact in app.artifacts:
+                is_compatible, reason = artifact_compatibility(artifact, system_profile)
+                if is_compatible:
+                    compatible.append({
+                        "version": artifact.version,
+                        "format": artifact.format,
+                        "architecture": artifact.architecture,
+                        "minimum_os": artifact.minimum_os or None,
+                        "status": artifact.release_status,
+                        "sha256": artifact.sha256,
+                        "reason": reason,
+                    })
+            records.append({
+                "id": app.id,
+                "name": app.name,
+                "version": app.version,
+                "status": app.status,
+                "category": app.category,
+                "summary": app.summary,
+                "website_url": f"{WEBSITE_ROOT}{app.detail_url}",
+                "source_url": app.source_url,
+                "available_artifacts": compatible,
+            })
+        if args.json:
+            print(json.dumps({
+                "query": query,
+                "total": len(records),
+                "results": records,
+            }, ensure_ascii=False, indent=2))
+        else:
+            print(f"Hasil pencarian lokal: {len(records)} aplikasi · query: {query}")
+            for record in records:
+                print(f"{record['name']} ({record['id']}) · {record['status']}")
+                print(f"  {record['summary']}")
+                print(f"  Paket kompatibel: {', '.join('.' + item['format'] for item in record['available_artifacts']) or 'belum tersedia'}")
+                print(f"  Website: {record['website_url']}")
+        return 0
+
     app: Application | None = snapshot.find(args.application_id)
     if app is None:
         print(f"Aplikasi tidak ditemukan dalam katalog: {args.application_id}", file=sys.stderr)
