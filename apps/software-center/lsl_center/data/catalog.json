@@ -5,7 +5,7 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-11-01"
+    "updatedAt": "2026-11-02"
   },
   "software": [
     {
@@ -56,20 +56,21 @@
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-10-24"
+      "updatedAt": "2026-11-02"
     },
     {
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "0.7.2 Beta",
+      "version": "0.7.3 Beta",
       "summary": "Teleprompter desktop Linux dengan overlay, mode cermin, kontrol pemutaran, pengelolaan naskah, pemulihan data, dan sistem ekstensi.",
-      "description": "Sorot 0.7.2 Beta merupakan pembaruan perbaikan dari 0.7.0 melalui 0.7.1 dan 0.7.2. Laporan pengujian mencatat perbaikan mode cermin, validasi konfigurasi/profil, penanganan sinyal proses, penyimpanan cadangan yang lebih aman, dan penghentian proses ekstensi. Pengujian otomatis dan GUI tercatat pada Ubuntu 24.04.5 container dengan X11 virtual serta Weston headless; instalasi bersih Debian 13, Arch Linux, dan desktop nyata GNOME/KDE tetap perlu divalidasi sebelum klaim kompatibilitas stabil.",
+      "description": "Sorot 0.7.3 Beta memperbaiki dialog dukungan dan metadata AppStream serta menambahkan bahan verifikasi dan panduan pembaruan repositori APT bertanda tangan. Pengujian tercatat: 586 tes pada Python 3.11 dan 3.13, GUI X11 virtual, dan Weston headless. Paket .deb dibatasi ke Debian 13; instalasi bersih Debian 13, Discover/repo hosting nyata, serta compositor GNOME/KDE pada desktop fisik belum diverifikasi. Arch belum memiliki paket .pkg.tar.zst yang tervalidasi. Status tetap testing, bukan stable.",
       "category": "Produktivitas",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Linux desktop (pengujian tercatat: Ubuntu 24.04.5 container; Debian 13 dan desktop nyata belum diverifikasi)"
+        "Debian 13 (paket .deb testing; instalasi bersih belum diverifikasi)",
+        "Linux desktop (X11 virtual dan Wayland headless diuji; desktop nyata belum diverifikasi)"
       ],
       "tags": [
         "Python",
@@ -93,10 +94,11 @@
         "Editor naskah dan pengelolaan dokumen teleprompter",
         "Overlay dengan kontrol pemutaran, jeda, kecepatan, dan hitung mundur",
         "Mode cermin dengan tes regresi pada Qt",
-        "Validasi konfigurasi dan profil untuk mencegah crash akibat nilai tidak valid",
+        "Validasi konfigurasi, profil, dan input ekstensi",
         "Penyimpanan dan pemulihan cadangan dengan jalur rollback",
-        "Penanganan sinyal proses dan penghentian grup proses ekstensi",
-        "Dukungan uji GUI X11 virtual dan Wayland headless; compositor desktop nyata masih perlu diuji"
+        "Metadata AppStream serta arsip dan checksum per versi",
+        "Panduan pembaruan APT bertanda tangan; hosting dan kunci produksi tetap dikelola maintainer",
+        "Pengujian GUI X11 virtual dan Wayland headless; compositor desktop nyata masih perlu diuji"
       ],
       "detailUrl": "/software/sorot.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
@@ -105,7 +107,7 @@
       "iconImage": "/assets/images/sorot-icon.svg",
       "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
-      "updatedAt": "2026-11-01"
+      "updatedAt": "2026-11-02"
     }
   ]
 }
