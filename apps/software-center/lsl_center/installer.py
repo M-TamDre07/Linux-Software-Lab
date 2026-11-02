@@ -23,7 +23,7 @@ RAW_PATH_PREFIX = f"/{OWNER}/{REPOSITORY}/main/apps/"
 MAX_ARTIFACT_BYTES = 1024 * 1024 * 1024
 MAX_RELEASE_METADATA_BYTES = 2 * 1024 * 1024
 SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
-SAFE_FILENAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
+SAFE_FILENAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+~-]*$")
 PACKAGE_KINDS = {"debian-package", "rpm-package", "arch-package", "native-package"}
 
 
