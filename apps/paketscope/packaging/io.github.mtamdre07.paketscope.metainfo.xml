@@ -12,7 +12,7 @@
   <description>
     <p>PaketScope gives you a searchable view of applications installed on a Debian-family desktop, from APT/dpkg and Flatpak.</p>
     <p>Package changes go through APT itself: every install, remove, or purge is simulated first, shown to you for confirmation, and re-simulated before it runs. It never runs a bulk upgrade or autoremove.</p>
-    <p>This is a development preview (3.0.0~dev4). It is currently validated for Debian 13 only.</p>
+    <p>This is a development preview (3.0.0~dev5). It is currently validated for Debian 13 only.</p>
   </description>
   <categories>
     <category>System</category>
