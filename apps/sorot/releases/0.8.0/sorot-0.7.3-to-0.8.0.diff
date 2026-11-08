@@ -1,0 +1,1872 @@
+diff -ruN n3/sorot-0.7.3/CHANGELOG.md n4/sorot-0.8.0/CHANGELOG.md
+--- n3/sorot-0.7.3/CHANGELOG.md	2026-11-02 14:19:17.205115375 +0700
++++ n4/sorot-0.8.0/CHANGELOG.md	2026-11-06 09:03:21.607398930 +0700
+@@ -2,6 +2,26 @@
+ 
+ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id/1.1.0/). Proyek ini masih beta; nomor versi belum menjamin kestabilan API internal.
+ 
++## [0.8.0 Beta] — 2026-11-06
++
++Rilis fleksibilitas berkas, distribusi, dan identitas proyek. Tidak ada perubahan skema data (tetap 4).
++
++### Ditambahkan
++- **Buka naskah dari lebih banyak format:** `.docx`, `.odt`, `.rtf`, `.html`, `.pdf` (teks; butuh `pypdf` opsional), selain `.txt`/`.md`. Hanya teks yang diambil; berkas hasil konversi tidak pernah ditimpa (Simpan meminta nama baru). Batas ukuran berkas, ekstraksi, dan hasil; XML dengan DOCTYPE/ENTITY ditolak; zip raksasa ditolak sebelum dibaca. Modul `sorot.core.documents`.
++- **Encoding lebih toleran:** UTF-8 (dengan/tanpa BOM), UTF-16/32 berpenanda, dan Windows-1252 dengan catatan terlihat, menggantikan galat "bukan UTF-8". Teks biasa dibuka apa adanya.
++- **Seret dan lepas** satu berkas naskah ke jendela utama.
++- **Periksa pembaruan** (Bantuan): hanya saat diklik; satu GET HTTPS tanpa pengenal, tanpa redirect, jawaban dibatasi dan divalidasi ketat. Sorot tidak mengunduh atau memasang apa pun sendiri. `make update-manifest` membuat `latest.json` dari berkas rilis nyata.
++- **Paket Fedora** (`make rpm`, noarch) dan **manifes Flatpak** (`make flatpak`); lihat [docs/DISTRIBUSI.md](docs/DISTRIBUSI.md). Di Flatpak, nama berkas desktop mengikuti `FLATPAK_ID`.
++- **Identitas proyek:** Homepage, bugtracker, dan sumber mengarah ke repositori GitHub di semua metadata (control, copyright, AppStream, PKGBUILD, pyproject), dijaga `release.py check`; alamat ditampilkan di Tentang.
++- [docs/ROADMAP.md](docs/ROADMAP.md): kriteria 1.0 dan evaluasi kesiapan.
++
++### Diperbaiki
++- Berkas yang diawali penanda UTF-16/32 tetapi rusak menimbulkan `UnicodeDecodeError` mentah pada jalur impor baru; kini galat yang jelas (ditemukan oleh tes, bukan pengguna).
++- `SECURITY.md` masih menyebut "versi 0.6.x" dan "repositori belum ada".
++
++### Pengujian
++- `tests/test_documents.py` (format, serangan, encoding), `test_update_service.py` (server HTTP lokal nyata), tes GUI seret-lepas dan menu pembaruan, tes manifes Flatpak dan `latest.json`. Fuzz: 8.000 berkas dokumen rusak dan 20.000 berkas ber-BOM acak, 0 crash. Tes dibuktikan gagal bila logikanya dicabut (penjaga seret-lepas, perbandingan versi).
++
+ ## [0.7.3 Beta] — 2026-11-02
+ 
+ Rilis kredibilitas paket dan perbaikan tampilan. Tidak ada perubahan skema atau fitur aplikasi.
+diff -ruN n3/sorot-0.7.3/Makefile n4/sorot-0.8.0/Makefile
+--- n3/sorot-0.7.3/Makefile	2026-11-02 14:19:17.202565403 +0700
++++ n4/sorot-0.8.0/Makefile	2026-11-06 09:03:21.598697264 +0700
+@@ -5,7 +5,7 @@
+ DIST ?= dist
+ 
+ .DEFAULT_GOAL := help
+-.PHONY: help dev lint typecheck test test-fast test-x11 test-wayland release-check sign apt-repo wheel deb source arch dist install uninstall-user clean
++.PHONY: help dev lint typecheck test test-fast test-x11 test-wayland release-check sign apt-repo rpm flatpak update-manifest wheel deb source arch dist install uninstall-user clean
+ 
+ help:  ## tampilkan daftar target
+ 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
+@@ -53,6 +53,15 @@
+ sign: ## tandatangani dist/SHA256SUMS: make sign KEY=SIDIKJARI (kunci milikmu; tidak mengunggah apa pun)
+ 	scripts/sign-release.sh $(KEY) $(DIST)
+ 
++rpm: ## paket Fedora/RPM di dist/rpm (RPM_NODEPS=1 RPM_PYTHON=... untuk percobaan di luar Fedora)
++	scripts/build-rpm.sh $(DIST)
++
++flatpak: ## manifes Flatpak di dist/flatpak (BASE=https://alamat/berkas untuk bentuk Flathub)
++	scripts/build-flatpak.sh $(DIST) $(if $(BASE),--base-url $(BASE),)
++
++update-manifest: ## dist/latest.json untuk fitur Periksa pembaruan: make update-manifest BASE=https://alamat/berkas-rilis
++	python3 scripts/release.py manifest --base-url $(BASE) --dist $(DIST)
++
+ apt-repo: deb  ## repositori apt bertanda tangan di dist/apt: make apt-repo KEY=SIDIKJARI URL=https://host/apt
+ 	scripts/make-apt-repo.sh --key $(KEY) --url $(URL) --debs $(DIST) --out $(DIST)/apt
+ 
+diff -ruN n3/sorot-0.7.3/README.md n4/sorot-0.8.0/README.md
+--- n3/sorot-0.7.3/README.md	2026-11-02 14:19:17.202579793 +0700
++++ n4/sorot-0.8.0/README.md	2026-11-06 09:03:21.598714331 +0700
+@@ -1,4 +1,4 @@
+-# Sorot 0.7.3 Beta
++# Sorot 0.8.0 Beta
+ 
+ Teleprompter overlay untuk Linux. Naskah tampil dalam jendela transparan yang menggulir **mengikuti kecepatan bicaramu**, di atas aplikasi lain. Naskah dan pengaturan **hanya disimpan di komputermu**; aplikasi berfungsi penuh tanpa internet, tanpa akun, dan tanpa API key.
+ 
+@@ -30,10 +30,12 @@
+ 
+ | Sistem | Cara |
+ |---|---|
+-| **Debian 13** | `sudo apt install ./sorot_0.7.3_all.deb` |
+-| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.7.3-py3-none-any.whl` |
++| **Debian 13** | `sudo apt install ./sorot_0.8.0_all.deb` |
++| **Ubuntu 24.04 dan turunannya** | Paket `.deb` **tidak dapat dipasang** (repositori Ubuntu 24.04 hanya punya PySide2, bukan `python3-pyside6.qtwidgets`). Pakai wheel: `pipx install ./sorot-0.8.0-py3-none-any.whl` |
++| **Fedora 40+** | `sudo dnf install ./sorot-0.8.0-1.noarch.rpm` (`make rpm`; belum diuji di Fedora) |
++| **Flatpak** | manifes di `make flatpak` (belum dibangun/diterbitkan); lihat [DISTRIBUSI.md](docs/DISTRIBUSI.md) |
+ | **Arch Linux** (dan turunannya) | `cd arch && makepkg -si` (folder `arch/` dari rilis) — lihat [PACKAGING.md](docs/PACKAGING.md) |
+-| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.7.3-py3-none-any.whl` |
++| **Distro mana pun, lewat pip** | `pipx install ./sorot-0.8.0-py3-none-any.whl` |
+ | **Tanpa root, ke `~/.local`** | `./scripts/install-user.sh` (butuh `python3-venv` dan akses PyPI) |
+ | **Pengembangan** | `make dev` lalu `sorot` |
+ 
+@@ -93,4 +95,4 @@
+ 
+ ## Dokumentasi
+ 
+-[Profil Tampilan](docs/PROFILES.md) · [Memperbarui](docs/UPGRADING.md) · [Pengemasan](docs/PACKAGING.md) · [Verifikasi dan repositori](docs/VERIFY.md) · [Ekstensi](docs/EXTENSIONS.md) · [Kompatibilitas](docs/COMPATIBILITY.md) · [Arsitektur](docs/ARCHITECTURE.md) · [Pengujian manual](docs/MANUAL-TESTING.md) · [Pemecahan masalah](docs/TROUBLESHOOTING.md) · [Audit 0.3.0](docs/AUDIT-0.3.0.md) · [Laporan tes](docs/TEST-REPORT.md) · [Checklist rilis](docs/RELEASE-CHECKLIST.md) · [CHANGELOG](CHANGELOG.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md)
++[Profil Tampilan](docs/PROFILES.md) · [Memperbarui](docs/UPGRADING.md) · [Pengemasan](docs/PACKAGING.md) · [Verifikasi dan repositori](docs/VERIFY.md) · [Distribusi](docs/DISTRIBUSI.md) · [Peta jalan 1.0](docs/ROADMAP.md) · [Ekstensi](docs/EXTENSIONS.md) · [Kompatibilitas](docs/COMPATIBILITY.md) · [Arsitektur](docs/ARCHITECTURE.md) · [Pengujian manual](docs/MANUAL-TESTING.md) · [Pemecahan masalah](docs/TROUBLESHOOTING.md) · [Audit 0.3.0](docs/AUDIT-0.3.0.md) · [Laporan tes](docs/TEST-REPORT.md) · [Checklist rilis](docs/RELEASE-CHECKLIST.md) · [CHANGELOG](CHANGELOG.md) · [CONTRIBUTING](CONTRIBUTING.md) · [SECURITY](SECURITY.md)
+diff -ruN n3/sorot-0.7.3/SECURITY.md n4/sorot-0.8.0/SECURITY.md
+--- n3/sorot-0.7.3/SECURITY.md	2026-11-02 14:19:17.202597108 +0700
++++ n4/sorot-0.8.0/SECURITY.md	2026-11-06 09:03:21.598734584 +0700
+@@ -1,10 +1,10 @@
+ # Kebijakan keamanan
+ 
+ ## Versi yang didukung
+-Hanya rilis beta terbaru (0.6.x).
++Hanya rilis beta terbaru.
+ 
+ ## Melaporkan kerentanan
+-Repositori publik belum ada, sehingga satu-satunya kontak yang dipublikasikan saat ini adalah **muhammadandreatama@outlook.com**. Jangan membuka isu publik untuk kerentanan. Kirim email dengan judul “Sorot security” yang berisi **ringkasan, versi, dan dampak saja**; rincian eksploit sebaiknya dikirim setelah ada balasan yang menyepakati saluran yang lebih aman. Jangan melampirkan naskah pribadi atau API key. Tidak ada jaminan waktu tanggapan tertulis untuk proyek beta ini. Setelah repositori publik dibuat, fitur *Private vulnerability reporting* GitHub akan ditambahkan dan berkas ini diperbarui.
++Repositori publik: https://github.com/M-TamDre07/Linux-Software-Lab (Sorot ada di `apps/sorot/`). Untuk kerentanan, jangan membuka isu publik; kirim email ke **muhammadandreatama@outlook.com**, atau gunakan *Private vulnerability reporting* GitHub bila pengelola sudah mengaktifkannya di tab Security repositori. Kirim email dengan judul “Sorot security” yang berisi **ringkasan, versi, dan dampak saja**; rincian eksploit sebaiknya dikirim setelah ada balasan yang menyepakati saluran yang lebih aman. Jangan melampirkan naskah pribadi atau API key. Tidak ada jaminan waktu tanggapan tertulis untuk proyek beta ini.
+ 
+ ## Model ancaman singkat
+ - Naskah dan pengaturan disimpan lokal (`~/.local/share/sorot`, `~/.config/sorot`) dengan izin berkas `0600`; tidak dienkripsi.
+diff -ruN n3/sorot-0.7.3/docs/COMPATIBILITY.md n4/sorot-0.8.0/docs/COMPATIBILITY.md
+--- n3/sorot-0.7.3/docs/COMPATIBILITY.md	2026-11-02 14:19:17.202628881 +0700
++++ n4/sorot-0.8.0/docs/COMPATIBILITY.md	2026-11-06 09:03:21.598773915 +0700
+@@ -20,12 +20,14 @@
+ | Target | Status |
+ |---|---|
+ | Debian 13, GNOME Wayland (lewat XWayland, pilihan otomatis) | **BELUM DIUJI** pada sesi nyata |
+-| Debian 13, KDE Plasma Wayland via XWayland (xcb) | aplikasi **berjalan** (laporan pengguna, 0.4.0); overlay **BELUM DIUJI** |
++| KDE Plasma, sesi Wayland, backend xcb (XWayland) | aplikasi **berjalan**, pemasangan `.deb` dan upgrade 0.7.0→0.7.2 berhasil dengan cadangan otomatis, jendela dan dialog tampil (tangkapan layar pengguna, 0.7.2; dari situ ditemukan dan diperbaiki dialog Dukung yang terpotong). Overlay selalu-di-atas/klik-tembus/transparansi **BELUM DIUJI** secara manual |
+ | Wayland asli pada **weston headless** (Ubuntu 24.04, tanpa seat) | 124 tes GUI lulus (4 dilewati: fokus/clipboard); latar transparan terkomposit terbukti lewat tangkapan compositor; segfault acak ditemukan dan diperbaiki (lihat CHANGELOG). Selalu-di-atas dan posisi tidak dapat dibuktikan di sana |
+ | Debian 13, GNOME Wayland asli (`SOROT_QT_PLATFORM=wayland`) | **BELUM DIUJI** pada desktop nyata |
+ | KDE Plasma X11, Wayland asli | **BELUM DIUJI** |
+ | X11 dengan window manager (diuji: Xvfb + openbox, **tanpa compositor**) | Terverifikasi lewat properti jendela di X server: `_NET_WM_STATE_ABOVE` aktif, dekorasi dimatikan (Motif hints), posisi dan ukuran sama dengan yang dihitung aplikasi, *input shape* kosong saat klik-tembus aktif dan penuh saat dimatikan, seluruh 128 tes GUI lulus. **Transparansi nyata** (butuh compositor) dan desktop Xfce/Cinnamon/KDE/GNOME **BELUM DIUJI** |
+ | Ubuntu 24.04 | Paket `.deb` **tidak dapat dipasang** (`apt install -s` gagal: `python3-pyside6.qtwidgets` tidak ada; Ubuntu 24.04 hanya punya PySide2). Wheel dipasang di venv Python 3.12 dan `sorot --version`/`--upgrade-info` berjalan. Ubuntu rilis lebih baru dan Linux Mint: **BELUM DIUJI** |
++| Fedora 40+ (`.rpm`) | RPM noarch **dibangun** dan isinya dijalankan (`sorot --version`); **BELUM dipasang** di Fedora; `rpmlint` belum dijalankan |
++| Flatpak | manifes dihasilkan dan terbaca `flatpak-builder`; **BELUM dibangun** (runtime Flathub tidak terjangkau); integrasi Drive tidak tersedia di sandbox |
+ | Arch Linux (dan turunannya), paket dari `PKGBUILD` | **BELUM DIUJI** — `makepkg` belum pernah dijalankan; nama paket `pyside6` dan hasil `namcap` belum diverifikasi (lihat [PACKAGING.md](PACKAGING.md)) |
+ | Instalasi lewat wheel (pip/pipx) pada distro mana pun | Wheel dibangun, isinya diperiksa (termasuk aset PNG), dipasang di venv Ubuntu 24.04/Python 3.12 dan CLI-nya berjalan; **dijalankan** pada desktop nyata: BELUM DIUJI |
+ 
+diff -ruN n3/sorot-0.7.3/docs/DISTRIBUSI.md n4/sorot-0.8.0/docs/DISTRIBUSI.md
+--- n3/sorot-0.7.3/docs/DISTRIBUSI.md	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/docs/DISTRIBUSI.md	2026-11-06 09:03:21.599046799 +0700
+@@ -0,0 +1,29 @@
++# Distribusi: Debian, Fedora, Arch, Flatpak, pembaruan
++
++Status jujur tiap jalur. "Dibangun" berarti artefaknya dihasilkan dan diperiksa di lingkungan pembangunan (Ubuntu 24.04); "dipasang" berarti diuji di distro sasaran, dan itu **belum** terjadi untuk Fedora, Arch, dan Flatpak.
++
++| Jalur | Perintah | Dibangun | Dipasang di distro sasaran |
++|---|---|---|---|
++| Debian 13 (`.deb`) | `make deb` | ya; lintian bersih; dibangun ulang identik | belum (Debian 13 bersih lewat `apt`) |
++| Repositori apt bertanda tangan | `make apt-repo KEY=… URL=…` | ya; diuji dengan apt sungguhan | belum dari hosting nyata |
++| Fedora 40+ (`.rpm`) | `make rpm` | ya (noarch, identik di dua build; percobaan dengan `RPM_NODEPS=1` karena host Ubuntu) | belum; `rpmlint` tidak dapat dijalankan di lingkungan ini |
++| Arch (`PKGBUILD`) | `make dist` → `dist/arch/` | `PKGBUILD` dan `.SRCINFO` dihasilkan | belum (`makepkg`/`namcap` tidak ada) |
++| Flatpak | `make flatpak [BASE=url]` | manifes dihasilkan dan terbaca `flatpak-builder` | belum dibangun (Flathub tidak terjangkau) |
++| Wheel (pip/pipx) | `make dist` | ya | ya (venv Python 3.12) |
++
++## Pembaruan tanpa menghapus
++* Paket baru dipasang di atas yang lama di semua format; data dicadangkan otomatis saat peluncuran pertama.
++* Repositori apt, Flatpak, dan (nanti) COPR/AUR membuat pembaruan muncul di Discover/pengelola paket.
++* **Periksa pembaruan** (menu Bantuan) hanya aktif saat diklik. Ia membaca `latest.json` (satu GET HTTPS, tanpa pengenal) dan menunjukkan versi, catatan, dan tautan. Sorot tidak mengunduh atau memasang apa pun sendiri: mengganti program lewat jaringan tanpa tanda tangan yang diperiksa adalah risiko keamanan. Buat berkasnya dengan `make update-manifest BASE=https://alamat/berkas-rilis` dan simpan sebagai `apps/sorot/latest.json` di repositori.
++
++## Fedora
++`make rpm` menghasilkan `dist/rpm/sorot.spec` dan RPM noarch. Dependensi: `python3-pyside6` (Fedora 40+). Di Fedora sungguhan jalankan tanpa `RPM_NODEPS`, lalu uji `sudo dnf install ./sorot-*.rpm`, `rpm -V sorot`, dan `rpmlint`. Untuk distribusi: COPR (`copr-cli build`) memudahkan `dnf copr enable`; paket resmi Fedora membutuhkan proses review dan makro `%pyproject_*`.
++
++## Flatpak
++* ID aplikasi bawaan `io.github.M_TamDre07.Sorot` (dari akun GitHub). **Konfirmasikan** ke peninjau Flathub; ubah dengan `SOROT_FLATPAK_ID`.
++* Dasar: `org.kde.Platform` 6.8 + `io.qt.PySide.BaseApp` 6.8 (menyediakan PySide6). Percobaan lokal: `make flatpak` lalu `scripts/build-flatpak.sh --build`.
++* Izin: X11 dan Wayland, GPU, jaringan (hanya untuk fitur AI opsional), keyring (`org.freedesktop.secrets`). **Tanpa akses berkas rumah**: dialog Buka/Simpan memakai portal. rclone tidak ada di sandbox, jadi **integrasi Google Drive tidak tersedia** di Flatpak.
++* Flathub mewajibkan URL sumber berhash (`make flatpak BASE=https://…`), AppStream valid, tangkapan layar yang dihosting, dan peninjauan manusia. Pengiriman ke Flathub dilakukan pengelola; skrip ini tidak mengirim apa pun.
++
++## Yang masih dibutuhkan dari pengelola
++Kunci GPG sendiri, tempat hosting (repositori apt, `latest.json`, berkas rilis), akun Flathub/COPR/AUR, dan persetujuan eksplisit untuk menerbitkan. Lihat [VERIFY.md](VERIFY.md).
+diff -ruN n3/sorot-0.7.3/docs/RELEASE-CHECKLIST.md n4/sorot-0.8.0/docs/RELEASE-CHECKLIST.md
+--- n3/sorot-0.7.3/docs/RELEASE-CHECKLIST.md	2026-11-02 14:19:17.202777835 +0700
++++ n4/sorot-0.8.0/docs/RELEASE-CHECKLIST.md	2026-11-06 09:03:21.598935827 +0700
+@@ -17,7 +17,9 @@
+ - [ ] Isi entri `CHANGELOG.md` dan `packaging/debian-changelog` (kata `TODO` membuat `check` gagal)
+ - [ ] Jika skema pengaturan naik: langkah baru di `MIGRATIONS` + tes; jika format cadangan berubah: tetap baca format lama
+ - [ ] Perbarui `docs/UPGRADING.md` bila jalur versi atau perilaku pembaruan berubah
+-- [ ] Isi `Source:` di `packaging/copyright`, `Homepage:` di `control.in`, dan `url=` di `PKGBUILD.in` setelah URL repositori ada; perbarui `SECURITY.md` dengan pelaporan privat
++- [x] `Source:`, `Homepage:`, `url=`, metainfo dan `pyproject` sudah memakai alamat repositori (dijaga `release.py check`)
++- [ ] Aktifkan *Private vulnerability reporting* di tab Security repositori GitHub, lalu perbarui `SECURITY.md`
++- [ ] Pastikan lisensi: akar repositori berlisensi GPL-3.0 sedangkan Sorot MIT; letakkan `apps/sorot/LICENSE` (MIT) dan nyatakan lisensi per aplikasi di README repositori
+ - [ ] CI GitHub Actions hijau (matriks Python 3.11/3.12/3.13, job `gui-x11`, `package`, dan Arch) — workflow belum pernah dijalankan; semua langkahnya sudah dijalankan manual secara lokal (lihat [TEST-REPORT.md](TEST-REPORT.md))
+ - [ ] **Debian 13 bersih** (bukan Ubuntu: `.deb` tidak dapat dipasang di Ubuntu 24.04): `apt install ./sorot_X_all.deb`, jalankan, `remove` dan `purge`; periksa dependensi `python3-pyside6.qtwidgets` dan apakah tanda centang tema (PNG) tampil; siklus `dpkg` dengan `--force-depends` sudah dijalankan di Ubuntu
+ - [ ] **Arch Linux bersih** (mis. `archlinux:base-devel` atau VM): `makepkg -si` dari `dist/arch`, `namcap PKGBUILD` dan `namcap *.pkg.tar.zst`, jalankan, `pacman -Rns`
+@@ -29,3 +31,10 @@
+ - [ ] Konfirmasi nomor GoPay (`src/sorot/support.py`), tautan Saweria, dan alamat email kontak benar; sadari semuanya menjadi publik di repositori dan paket
+ - [ ] Periksa nama “Sorot” belum dipakai produk lain di bidang yang sama (pemeriksaan merek dagang belum dilakukan)
+ - [ ] Tag git, unggah artefak + `SHA256SUMS` — **hanya setelah persetujuan eksplisit pemilik**
++
++## Tambahan 0.8.0 (tindakan pengelola)
++- [ ] Simpan `dist/latest.json` (`make update-manifest BASE=…`) sebagai `apps/sorot/latest.json` hanya setelah berkas rilis diunggah dan hash cocok
++- [ ] Di Fedora nyata: `make rpm` tanpa `RPM_NODEPS`, `sudo dnf install`, jalankan, `rpmlint`
++- [ ] Di mesin dengan Flatpak: `scripts/build-flatpak.sh --build`, jalankan, lalu ajukan ke Flathub (konfirmasi ID aplikasi)
++- [ ] Buka berkas `.docx`, `.odt`, `.pdf` milikmu sendiri lewat Buka dan seret-lepas; periksa hasilnya
++- [ ] Bantuan → Periksa pembaruan: harus menampilkan "Belum ada informasi pembaruan" sebelum `latest.json` diterbitkan
+diff -ruN n3/sorot-0.7.3/docs/ROADMAP.md n4/sorot-0.8.0/docs/ROADMAP.md
+--- n3/sorot-0.7.3/docs/ROADMAP.md	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/docs/ROADMAP.md	2026-11-06 09:03:21.599063588 +0700
+@@ -0,0 +1,29 @@
++# Peta jalan: 0.8 → 0.9 → 1.0, dan apakah langsung ke 1.0.0
++
++## Rekomendasi: bertahap
++**Jangan langsung 1.0.0.** Versi 1.0.0 berarti "stabil dan didukung"; kriteria di bawah sebagian besar belum terbukti, dan beberapa hanya bisa dibuktikan oleh pemakaian nyata, bukan oleh pengujian otomatis.
++
++| Rilis | Isi | Syarat selesai |
++|---|---|---|
++| **0.8.0** | Impor naskah (docx/odt/rtf/html/pdf, encoding), seret-lepas, Periksa pembaruan (opt-in), paket Fedora/Flatpak, identitas repo | Suite hijau semua platform uji; paket dibangun |
++| **0.9.0** | Kontrol eksternal (CLI + soket lokal, pintasan lewat desktop, ponsel opsional); penanda gaya naskah. **Pembekuan fitur** | Fitur lengkap; semua jalur distribusi dipasang di distro sasaran oleh manusia |
++| **0.9.x (RC)** | Hanya perbaikan bug dari pemakaian nyata | ≥ 2–4 minggu tanpa bug berat; CI hijau di GitHub |
++| **1.0.0** | Pembekuan format data, ekstensi, profil, CLI | Semua kriteria di bawah terpenuhi |
++
++## Kriteria 1.0 dan status saat ini (0.8.0)
++| # | Kriteria | Status | Bukti / yang kurang |
++|---|---|---|---|
++| 1 | Suite otomatis hijau (Python 3.11/3.13, X11, Wayland) | ✅ | lihat TEST-REPORT |
++| 2 | Tanpa crash terbuka; fuzz parser bersih | ✅ | fuzz 8.000 berkas dokumen, 60.000+ input konfigurasi |
++| 3 | Pasang/upgrade/hapus bersih di Debian 13 | ❌ belum | hanya `dpkg --force-depends` di Ubuntu; upgrade 0.7.0→0.7.2 berjalan di KDE (laporan pengguna) |
++| 4 | Fedora, Arch, Flatpak terpasang dan berjalan | ❌ belum | artefak ada; tidak ada mesin sasaran |
++| 5 | CI GitHub hijau | ❌ belum | workflow belum pernah dijalankan |
++| 6 | Desktop nyata: KDE ✔ sebagian, GNOME ✘; overlay selalu-di-atas, klik-tembus, transparansi dengan compositor | ⚠️ sebagian | KDE (Wayland+xcb) berjalan 0.7.2 per tangkapan layar; sisanya belum |
++| 7 | Uji manual: beam-splitter, HiDPI, pembaca layar | ❌ belum | |
++| 8 | Fitur inti lengkap (kontrol saat overlay di atas aplikasi lain) | ❌ 0.9 | |
++| 9 | Format data, ekstensi, profil, CLI dibekukan dan didokumentasikan | ⚠️ skema 4 stabil sejak 0.7; belum dinyatakan beku | |
++| 10 | Kanal pembaruan berjalan (repo apt/Flatpak/latest.json) dan kunci tanda tangan terbit | ❌ butuh persetujuan dan hosting | |
++| 11 | Kebijakan keamanan aktif (pelaporan privat), lisensi konsisten (repo GPL-3.0 vs Sorot MIT) | ❌ tindakan pengelola | |
++| 12 | Masa uji publik ≥ 2 minggu tanpa bug berat | ❌ | |
++
++Tujuh dari dua belas belum terpenuhi dan tidak dapat dipenuhi oleh kode saja. Karena itu urutan yang realistis adalah 0.8.0 (ini), 0.9.0, beberapa RC, lalu 1.0.0.
+diff -ruN n3/sorot-0.7.3/docs/TEST-REPORT.md n4/sorot-0.8.0/docs/TEST-REPORT.md
+--- n3/sorot-0.7.3/docs/TEST-REPORT.md	2026-11-02 14:19:17.202675900 +0700
++++ n4/sorot-0.8.0/docs/TEST-REPORT.md	2026-11-06 09:03:21.598833200 +0700
+@@ -1,6 +1,6 @@
+-# Laporan tes — Sorot 0.7.3 Beta
++# Laporan tes — Sorot 0.8.0 Beta
+ 
+-Tanggal: 2026-10-29 s.d. 11-01 (0.7.1 sampai 0.7.3) · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
++Tanggal: 2026-10-29 s.d. 11-01 (0.7.1 sampai 0.8.0) · Lingkungan: Ubuntu 24.04.5 x86_64 (container), akses jaringan lewat proxy. **Bukan Debian 13, bukan Arch Linux, bukan desktop nyata dengan compositor.**
+ 
+ > **Berbeda dari laporan 0.7.0:** kali ini PySide6, pytest, pytest-qt, ruff, mypy, lintian, desktop-file-validate, shellcheck, Xvfb dan window manager (openbox) **tersedia**, sehingga kode Qt 0.7.0 yang sebelumnya tidak pernah dijalankan akhirnya dijalankan pada Qt asli. Hasilnya: **mode cermin di 0.7.0 tidak berfungsi sama sekali**, dan ditemukan beberapa cacat lain (lihat CHANGELOG 0.7.1). Semua temuan itu sudah diperbaiki dan dijaga tes regresi.
+ 
+@@ -8,11 +8,11 @@
+ 
+ | Pemeriksaan | Hasil |
+ |---|---|
+-| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **586 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
+-| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **586 lulus**, 1 dilewati |
+-| 129 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **129 lulus**; tes penjaga membuktikan platform memang `xcb` |
+-| 129 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **125 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
+-| Tes non-GUI saja | 457 lulus |
++| Suite lengkap, Python 3.13.18 + PySide6 6.12.0, Qt `offscreen` | **652 lulus**, 1 dilewati (tes penjaga platform; hanya aktif bila `SOROT_TEST_QPA` diatur) |
++| Suite lengkap, Python 3.11.18 + PySide6 6.8.3 (batas bawah yang dinyatakan) | **652 lulus**, 1 dilewati |
++| 135 tes GUI di **X11 nyata** (Xvfb + openbox, backend `xcb`, `make test-x11`) | **135 lulus**; tes penjaga membuktikan platform memang `xcb` |
++| 135 tes GUI di **Wayland asli** (weston headless, backend `wayland`, `make test-wayland`) | **131 lulus**, 4 dilewati (fokus keyboard/clipboard: compositor tanpa seat) |
++| Tes non-GUI saja | 518 lulus |
+ | `ruff check src tests`, `mypy src` (47 berkas) | bersih (sebelumnya 1 dan 7 temuan) |
+ | `scripts/release.py check` | konsisten (0.7.1) |
+ | `lintian` (level bawaan), `desktop-file-validate`, `shellcheck`, `dash -n` pada skrip maintainer, `groff -ww` pada man page | bersih |
+@@ -22,6 +22,19 @@
+ 
+ Catatan menjalankan: tes pengemasan memanggil `python3` dari `PATH`, jadi jalankan dengan venv aktif (`make test`). Tanpa window manager, tes fokus keyboard gagal di Xvfb; gunakan `make test-x11`.
+ 
++## Tambahan 0.8.0 (fleksibilitas berkas, distribusi)
++
++| Pemeriksaan | Hasil |
++|---|---|
++| Impor `.docx/.odt/.rtf/.html/.pdf` dan encoding | Tes dengan berkas nyata yang dibuat di tes (PDF ditulis tangan, lalu dibaca `pypdf`); XML ber-DOCTYPE/ENTITY ditolak; zip raksasa (40 MB terdekompresi dari <1 MB) ditolak sebelum dibaca; hasil >5 MB ditolak |
++| Fuzz pemuat dokumen | 8.000 berkas rusak acak (rtf/html/txt/docx/odt/pdf) + 20.000 berkas dengan BOM acak: **0 crash**. Tes GUI lama menemukan satu crash nyata (BOM UTF-16 rusak) sebelum fuzz; diperbaiki |
++| Seret-lepas | Tes mengirim `QDragEnterEvent/QDropEvent` sungguhan; berkas tak didukung dan banyak berkas diabaikan; penjaga dibuktikan gagal bila dicabut |
++| Periksa pembaruan | 30 tes: parser ketat (13 manifes jahat), server HTTP lokal nyata (User-Agent generik, tanpa cookie/referer, redirect/404/jawaban raksasa ditolak, HTTP jarak jauh ditolak), dan **tes yang memastikan tak ada kode lain yang memanggilnya** (tetap opt-in). Logika versi dibuktikan gagal bila dicabut |
++| RPM Fedora | Spec dibangun menjadi RPM noarch, identik di dua build; isi dijalankan (`sorot --version`), shebang `/usr/bin/python3`, dependensi `python3-pyside6` saja. **Dibangun dengan `--nodeps` di Ubuntu; belum dipasang di Fedora; `rpmlint` tidak dapat dijalankan** (modul `rpm` rusak di host) |
++| Flatpak | Manifes JSON dihasilkan dari rilis nyata, hash cocok, terbaca `flatpak-builder --show-manifest`; metainfo/desktop hasil penggantian nama lolos validator. **Tidak dibangun** (Flathub tidak terjangkau) |
++| `latest.json` | Dibangkitkan dari berkas nyata dan divalidasi parser aplikasi sendiri |
++| Terlihat di dunia nyata | Tangkapan layar pengguna (KDE Plasma Wayland/xcb, 0.7.2): `.deb` terpasang, upgrade 0.7.0→0.7.2 dengan cadangan otomatis, jendela dan dialog tampil |
++
+ ## Tambahan 0.7.3 (kredibilitas paket)
+ 
+ | Pemeriksaan | Hasil |
+diff -ruN n3/sorot-0.7.3/docs/UPGRADING.md n4/sorot-0.8.0/docs/UPGRADING.md
+--- n3/sorot-0.7.3/docs/UPGRADING.md	2026-11-02 14:19:17.202806420 +0700
++++ n4/sorot-0.8.0/docs/UPGRADING.md	2026-11-06 09:03:21.599006881 +0700
+@@ -18,10 +18,10 @@
+ 
+ | Cara pasang | Perintah pembaruan | Catatan |
+ |---|---|---|
+-| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.7.3_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
+-| Arch Linux | `tar xf sorot-0.7.3.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.7.3-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
+-| pipx | `pipx install --force ./sorot-0.7.3-py3-none-any.whl` | |
+-| pip (venv) | `python -m pip install --upgrade ./sorot-0.7.3-py3-none-any.whl` | |
++| Debian/Ubuntu `.deb` | `sudo apt install ./sorot_0.8.0_all.deb` | Menggantikan versi lama di tempat. Paket `tama-prompter` (≤0.4.x) dihapus otomatis. |
++| Arch Linux | `tar xf sorot-0.8.0.tar.gz`, atau pakai folder `arch/` dari rilis; lalu `makepkg -si` | Atau, bila sudah punya paket jadi: `sudo pacman -U sorot-0.8.0-1-any.pkg.tar.zst`. Lihat [PACKAGING.md](PACKAGING.md). |
++| pipx | `pipx install --force ./sorot-0.8.0-py3-none-any.whl` | |
++| pip (venv) | `python -m pip install --upgrade ./sorot-0.8.0-py3-none-any.whl` | |
+ | Skrip pengguna | `./scripts/install-user.sh` dari sumber versi baru | Aman diulang; hanya mengganti venv di `~/.local/share/sorot/venv`. |
+ | Salinan sumber | `git pull`, lalu `python -m pip install -e ".[dev]"` | |
+ 
+@@ -29,8 +29,9 @@
+ 
+ ## Jalur versi
+ 
+-| Dari | Ke 0.7.3 | Yang terjadi |
++| Dari | Ke 0.8.0 | Yang terjadi |
+ |---|---|---|
++| 0.7.3 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema. Ada menu Bantuan → Periksa pembaruan (tidak pernah berjalan sendiri) dan format berkas baru di Buka. |
+ | 0.7.2 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema atau format. Hanya perbaikan dialog Dukung dan metadata paket. |
+ | 0.7.1 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema atau format. Perbaikan kestabilan: penutupan rapi saat sinyal, penyimpanan tidak lagi gagal oleh karakter surrogate, proses turunan ekstensi ikut berhenti. |
+ | 0.7.0 | langsung | Cadangan otomatis dibuat. Tidak ada perubahan skema (tetap 4). Perbaikan: mode cermin yang sebelumnya tidak berfungsi, hitung mundur yang terbaca, `config.json` berisi angka tak wajar (`1e999`) tidak lagi membuat aplikasi crash. |
+diff -ruN n3/sorot-0.7.3/packaging/RELEASE_DATE n4/sorot-0.8.0/packaging/RELEASE_DATE
+--- n3/sorot-0.7.3/packaging/RELEASE_DATE	2026-11-02 14:19:17.203011022 +0700
++++ n4/sorot-0.8.0/packaging/RELEASE_DATE	2026-11-06 09:03:21.599327139 +0700
+@@ -1 +1 @@
+-2026-11-02
++2026-11-06
+diff -ruN n3/sorot-0.7.3/packaging/arch/PKGBUILD.in n4/sorot-0.8.0/packaging/arch/PKGBUILD.in
+--- n3/sorot-0.7.3/packaging/arch/PKGBUILD.in	2026-11-02 14:19:17.203036366 +0700
++++ n4/sorot-0.8.0/packaging/arch/PKGBUILD.in	2026-11-06 09:03:21.599374751 +0700
+@@ -7,6 +7,7 @@
+ pkgver=@VERSION@
+ pkgrel=1
+ pkgdesc='Teleprompter overlay mengambang untuk Linux (Qt/PySide6)'
++url='https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot'
+ arch=('any')
+ license=('MIT')
+ depends=('python' 'pyside6')
+@@ -15,6 +16,7 @@
+ optdepends=(
+   'python-keyring: simpan API key di keyring sistem'
+   'rclone: buka dan simpan naskah di Google Drive'
++  'python-pypdf: buka naskah dari berkas PDF'
+   'qt6-wayland: backend Wayland asli'
+   'xorg-xwayland: backend xcb melalui XWayland'
+ )
+diff -ruN n3/sorot-0.7.3/packaging/control.in n4/sorot-0.8.0/packaging/control.in
+--- n3/sorot-0.7.3/packaging/control.in	2026-11-02 14:19:17.203050873 +0700
++++ n4/sorot-0.8.0/packaging/control.in	2026-11-06 09:03:21.599994647 +0700
+@@ -6,9 +6,10 @@
+ Installed-Size: @SIZE@
+ Maintainer: Muhammad Andreatama <muhammadandreatama@outlook.com>
+ Depends: python3 (>= 3.11), python3-pyside6.qtwidgets (>= 6.8.2.1), libxcb-cursor0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render-util0, libxcb-xinerama0, libxcb-xkb1, libxkbcommon-x11-0
++Homepage: https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot
+ Conflicts: tama-prompter
+ Replaces: tama-prompter
+-Suggests: qt6-wayland, xwayland, rclone, python3-keyring
++Suggests: qt6-wayland, xwayland, rclone, python3-keyring, python3-pypdf
+ Description: Teleprompter overlay for Linux with extensions, optional AI and Drive
+  Sorot is a Python/Qt desktop teleprompter for Debian-derived systems.
+  It follows the speaker (words per minute or a target duration), supports
+diff -ruN n3/sorot-0.7.3/packaging/copyright n4/sorot-0.8.0/packaging/copyright
+--- n3/sorot-0.7.3/packaging/copyright	2026-11-02 14:19:17.203061946 +0700
++++ n4/sorot-0.8.0/packaging/copyright	2026-11-06 09:03:21.599400244 +0700
+@@ -1,7 +1,7 @@
+ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+ Upstream-Name: Sorot
+ Upstream-Contact: Muhammad Andreatama <muhammadandreatama@outlook.com>
+-Source: (belum ada URL repositori publik)
++Source: https://github.com/M-TamDre07/Linux-Software-Lab
+ 
+ Files: *
+ Copyright: 2026 Muhammad Andreatama
+diff -ruN n3/sorot-0.7.3/packaging/debian-changelog n4/sorot-0.8.0/packaging/debian-changelog
+--- n3/sorot-0.7.3/packaging/debian-changelog	2026-11-02 14:19:17.203073447 +0700
++++ n4/sorot-0.8.0/packaging/debian-changelog	2026-11-06 09:03:21.599424253 +0700
+@@ -1,3 +1,14 @@
++sorot (0.8.0) stable; urgency=medium
++
++  * Open scripts from .docx, .odt, .rtf, .html and .pdf (pypdf, suggested),
++    tolerate UTF-16 and Windows-1252 text, and accept a dropped file.
++  * Add an opt-in "Check for updates" action; Sorot never downloads or
++    installs anything itself.
++  * Point Homepage, Source and bug tracker at the public repository and add
++    Fedora and Flatpak packaging recipes.
++
++ -- Muhammad Andreatama <muhammadandreatama@outlook.com>  Fri, 06 Nov 2026 00:00:00 +0000
++
+ sorot (0.7.3) stable; urgency=medium
+ 
+   * Fix the support dialog being cut off with larger fonts.
+diff -ruN n3/sorot-0.7.3/packaging/rpm/sorot.spec.in n4/sorot-0.8.0/packaging/rpm/sorot.spec.in
+--- n3/sorot-0.7.3/packaging/rpm/sorot.spec.in	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/packaging/rpm/sorot.spec.in	2026-11-06 09:03:21.600098681 +0700
+@@ -0,0 +1,70 @@
++# Dihasilkan oleh scripts/build-rpm.sh dari packaging/rpm/sorot.spec.in. Sunting templatnya, bukan hasilnya.
++# Sasaran: Fedora 40+ (python3-pyside6 tersedia dari repositori Fedora). Paket noarch murni Python.
++%{!?_metainfodir:%global _metainfodir %{_datadir}/metainfo}
++%{!?python3:%global python3 %{__python3}}
++%{!?python3_sitelib:%global python3_sitelib %(%{python3} -c "import sysconfig; print(sysconfig.get_path('purelib', vars={'base': '/usr', 'platbase': '/usr'}))")}
++
++# The generated python3dist(pyside6-essentials) requirement is not provided under that name by Fedora's
++# python3-pyside6; the explicit Requires below is the real dependency.
++%global __requires_exclude ^python3[.0-9]*dist\\(pyside6.*$
++
++Name:           sorot
++Version:        @VERSION@
++Release:        1%{?dist}
++Summary:        Transparent teleprompter overlay for speaking and recording
++License:        MIT
++URL:            @URL@
++Source0:        sorot-%{version}.tar.gz
++BuildArch:      noarch
++BuildRequires:  python3-devel
++BuildRequires:  python3-build
++BuildRequires:  python3-installer
++BuildRequires:  python3-setuptools
++BuildRequires:  python3-wheel
++BuildRequires:  desktop-file-utils
++BuildRequires:  libappstream-glib
++Requires:       python3 >= 3.11
++Requires:       python3-pyside6
++Recommends:     python3-keyring
++Recommends:     qt6-qtwayland
++Suggests:       rclone
++Suggests:       python3-pypdf
++
++%description
++Sorot shows your script in a transparent window that scrolls at the pace you speak,
++above other applications, so you can read while recording or presenting. Scripts and
++settings stay on your computer and the application works fully offline. Optional
++features (AI rewriting through an API you configure, Google Drive through your own
++rclone remote) run only when you use them. Overlay abilities differ between X11 and
++Wayland compositors; see the compatibility notes in the documentation.
++
++%prep
++%autosetup -n sorot-%{version}
++
++%build
++%{python3} -m build --wheel --no-isolation
++
++%install
++%{python3} -m installer --destdir=%{buildroot} --prefix=%{_prefix} dist/*.whl
++sed -i '1s|^#!.*|#!%{_bindir}/python3|' %{buildroot}%{_bindir}/sorot  # installer writes the build interpreter's path
++./scripts/install-files.sh --layout arch %{buildroot} %{_prefix}
++
++%check
++desktop-file-validate %{buildroot}%{_datadir}/applications/sorot.desktop
++appstream-util validate-relax --nonet %{buildroot}%{_metainfodir}/sorot.metainfo.xml || :
++
++%files
++%license %{_datadir}/licenses/sorot/LICENSE
++%doc %{_docdir}/sorot
++%{_bindir}/sorot
++%{python3_sitelib}/sorot
++%{python3_sitelib}/sorot-%{version}.dist-info
++%{_datadir}/applications/sorot.desktop
++%{_datadir}/icons/hicolor/*/apps/sorot.*
++%{_metainfodir}/sorot.metainfo.xml
++%{_mandir}/man1/sorot.1*
++%{_datadir}/sorot
++
++%changelog
++* @CHANGELOG_DATE@ Muhammad Andreatama <muhammadandreatama@outlook.com> - @VERSION@-1
++- Rilis @VERSION@; lihat CHANGELOG.md di dokumentasi paket.
+diff -ruN n3/sorot-0.7.3/packaging/sorot.metainfo.xml n4/sorot-0.8.0/packaging/sorot.metainfo.xml
+--- n3/sorot-0.7.3/packaging/sorot.metainfo.xml	2026-11-02 14:19:17.203215116 +0700
++++ n4/sorot-0.8.0/packaging/sorot.metainfo.xml	2026-11-06 09:03:21.599925940 +0700
+@@ -34,6 +34,9 @@
+     <keyword>script</keyword>
+     <keyword>naskah</keyword>
+   </keywords>
++  <url type="homepage">https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot</url>
++  <url type="bugtracker">https://github.com/M-TamDre07/Linux-Software-Lab/issues</url>
++  <url type="vcs-browser">https://github.com/M-TamDre07/Linux-Software-Lab</url>
+   <url type="donation">https://saweria.co/tamaandrea</url>
+   <content_rating type="oars-1.1"/>
+   <supports>
+@@ -41,6 +44,9 @@
+     <control>keyboard</control>
+   </supports>
+   <releases>
++    <release version="0.8.0" date="2026-11-06">
++      <description><p>Opens Word, OpenDocument, RTF, HTML and PDF scripts, accepts dropped files, adds an opt-in update check, and prepares Fedora and Flatpak packaging.</p></description>
++    </release>
+     <release version="0.7.3" date="2026-11-02">
+       <description><p>Fixes the support dialog being cut off, and adds package metadata and signed-release tooling.</p></description>
+     </release>
+diff -ruN n3/sorot-0.7.3/pyproject.toml n4/sorot-0.8.0/pyproject.toml
+--- n3/sorot-0.7.3/pyproject.toml	2026-11-02 14:19:17.203321832 +0700
++++ n4/sorot-0.8.0/pyproject.toml	2026-11-06 09:03:21.600608838 +0700
+@@ -24,7 +24,13 @@
+ 
+ [project.optional-dependencies]
+ keyring = ["keyring>=24"]
+-dev = ["pytest>=8", "pytest-qt>=4.4", "keyring>=24", "ruff>=0.5", "mypy>=1.10"]
++pdf = ["pypdf>=4"]
++dev = ["pytest>=8", "pytest-qt>=4.4", "keyring>=24", "pypdf>=4", "ruff>=0.5", "mypy>=1.10"]
++
++[project.urls]
++Homepage = "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot"
++Source = "https://github.com/M-TamDre07/Linux-Software-Lab"
++Issues = "https://github.com/M-TamDre07/Linux-Software-Lab/issues"
+ 
+ [project.scripts]
+ sorot = "sorot.app:main"
+diff -ruN n3/sorot-0.7.3/scripts/build-flatpak.sh n4/sorot-0.8.0/scripts/build-flatpak.sh
+--- n3/sorot-0.7.3/scripts/build-flatpak.sh	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/scripts/build-flatpak.sh	2026-11-06 09:03:21.601419584 +0700
+@@ -0,0 +1,82 @@
++#!/bin/bash
++# Flatpak preparation: renders a flatpak-builder manifest for the current release.
++# Usage: scripts/build-flatpak.sh [output-dir] [--base-url https://host/path/to/release/files] [--build]
++#   Without --base-url the manifest points at the local tarball and wheel (for a trial build on this machine).
++#   With --base-url the manifest points at BASE/sorot-VERSION.tar.gz and BASE/sorot-VERSION-py3-none-any.whl
++#   with their SHA-256, which is the form Flathub requires. Nothing is uploaded.
++#   --build  also runs flatpak-builder (needs flatpak, flatpak-builder and the org.kde.Platform 6.8 runtime
++#            plus the io.qt.PySide.BaseApp 6.8 base app from Flathub; this was NOT possible in the build environment).
++# The Flatpak application id is derived from the GitHub account; confirm it with the Flathub reviewers.
++set -euo pipefail
++# shellcheck source=lib.sh
++. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
++
++BASE="" BUILD=0 ARGS=()
++while [ $# -gt 0 ]; do
++    case "$1" in
++        --base-url) BASE="${2:?--base-url butuh nilai}"; shift 2 ;;
++        --build) BUILD=1; shift ;;
++        *) ARGS+=("$1"); shift ;;
++    esac
++done
++OUT="$(absdir "${ARGS[0]:-$ROOT/dist}")"
++FP="$(absdir "$OUT/flatpak")"
++APPID="${SOROT_FLATPAK_ID:-io.github.M_TamDre07.Sorot}"
++"$ROOT/scripts/build-source.sh" "$FP" >/dev/null
++rm -f "$FP/sorot-$VERSION.zip"
++"$ROOT/scripts/build-wheel.sh" "$FP" >/dev/null
++TARBALL="sorot-$VERSION.tar.gz"
++WHEEL="sorot-$VERSION-py3-none-any.whl"
++
++python3 - "$FP" "$APPID" "$VERSION" "$TARBALL" "$WHEEL" "$BASE" <<'PY'
++import hashlib, json, pathlib, sys
++
++fp, appid, version, tarball, wheel, base = sys.argv[1:7]
++fp = pathlib.Path(fp)
++sha = lambda name: hashlib.sha256((fp / name).read_bytes()).hexdigest()
++if base:
++    sources = [{"type": "file", "url": f"{base.rstrip('/')}/{name}", "sha256": sha(name)} for name in (tarball, wheel)]
++else:
++    sources = [{"type": "file", "path": name, "sha256": sha(name)} for name in (tarball, wheel)]
++manifest = {
++    "app-id": appid,
++    "runtime": "org.kde.Platform",
++    "runtime-version": "6.8",
++    "sdk": "org.kde.Sdk",
++    "base": "io.qt.PySide.BaseApp",
++    "base-version": "6.8",
++    "command": "sorot",
++    "rename-desktop-file": "sorot.desktop",
++    "rename-appdata-file": "sorot.metainfo.xml",
++    "rename-icon": "sorot",
++    "finish-args": [
++        "--share=ipc",
++        "--socket=x11",
++        "--socket=wayland",
++        "--device=dri",
++        "--share=network",
++        "--talk-name=org.freedesktop.secrets",
++    ],
++    "modules": [{
++        "name": "sorot",
++        "buildsystem": "simple",
++        "build-commands": [
++            f"pip3 install --verbose --exists-action=i --no-index --no-deps --prefix=${{FLATPAK_DEST}} --no-build-isolation {wheel}",
++            f"mkdir -p src && tar -xzf {tarball} -C src --strip-components=1",
++            "install -Dm644 src/packaging/sorot.desktop ${FLATPAK_DEST}/share/applications/sorot.desktop",
++            f"sed -e 's|<id>sorot</id>|<id>{appid}</id>|' -e 's|sorot.desktop|{appid}.desktop|' src/packaging/sorot.metainfo.xml > sorot.metainfo.xml",
++            "install -Dm644 sorot.metainfo.xml ${FLATPAK_DEST}/share/metainfo/sorot.metainfo.xml",
++            "install -Dm644 src/packaging/sorot.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/sorot.svg",
++            "for s in 64 128 256; do install -Dm644 src/packaging/icons/sorot-$s.png ${FLATPAK_DEST}/share/icons/hicolor/${s}x${s}/apps/sorot.png; done",
++            "install -Dm644 src/LICENSE ${FLATPAK_DEST}/share/licenses/" + appid + "/LICENSE",
++        ],
++        "sources": sources,
++    }],
++}
++(fp / f"{appid}.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
++PY
++echo "$FP/$APPID.json"
++if [ "$BUILD" = 1 ]; then
++    command -v flatpak-builder >/dev/null 2>&1 || { echo "flatpak-builder tidak ditemukan." >&2; exit 1; }
++    (cd "$FP" && flatpak-builder --user --force-clean --install-deps-from=flathub build-dir "$APPID.json")
++fi
+diff -ruN n3/sorot-0.7.3/scripts/build-rpm.sh n4/sorot-0.8.0/scripts/build-rpm.sh
+--- n3/sorot-0.7.3/scripts/build-rpm.sh	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/scripts/build-rpm.sh	2026-11-06 09:03:21.601526206 +0700
+@@ -0,0 +1,43 @@
++#!/bin/bash
++# Fedora/RPM packaging: renders sorot.spec next to the source tarball and, when rpmbuild exists, builds a noarch RPM.
++# Usage: scripts/build-rpm.sh [output-dir] [--no-build]
++#   Result: OUTPUT/rpm/{sorot.spec, sorot-VERSION.tar.gz, sorot-VERSION-1.noarch.rpm}
++# Overrides for non-Fedora hosts: RPM_PYTHON=/path/to/python (needs build + installer + setuptools + wheel)
++# and RPM_NODEPS=1 (skips the Fedora BuildRequires check; only for trial builds, never for a release).
++set -euo pipefail
++# shellcheck source=lib.sh
++. "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
++
++BUILD=1
++ARGS=()
++for arg in "$@"; do if [ "$arg" = "--no-build" ]; then BUILD=0; else ARGS+=("$arg"); fi; done
++OUT="$(absdir "${ARGS[0]:-$ROOT/dist}")"
++RPM_DIR="$(absdir "$OUT/rpm")"
++URL="$(sed -n "s/^HOMEPAGE = \"\\(.*\\)\"$/\\1/p" "$ROOT/scripts/release.py")"
++[ -n "$URL" ] || URL="$(python3 - "$ROOT" <<'PY'
++import re, sys
++text = open(sys.argv[1] + "/scripts/release.py", encoding="utf-8").read()
++src = re.search(r'^SOURCE = "([^"]+)"', text, re.M).group(1)
++print(src + "/tree/main/apps/sorot")
++PY
++)"
++
++"$ROOT/scripts/build-source.sh" "$RPM_DIR" >/dev/null
++rm -f "$RPM_DIR/sorot-$VERSION.zip"
++CHANGELOG_DATE="$(date -u -d "$RELEASE_DATE" '+%a %b %d %Y')"
++sed -e "s|@VERSION@|$VERSION|g" -e "s|@URL@|$URL|g" -e "s|@CHANGELOG_DATE@|$CHANGELOG_DATE|g" "$ROOT/packaging/rpm/sorot.spec.in" > "$RPM_DIR/sorot.spec"
++if grep -q '@[A-Z0-9_]*@' "$RPM_DIR/sorot.spec"; then echo "Placeholder tersisa di sorot.spec" >&2; exit 1; fi
++echo "$RPM_DIR/sorot.spec"
++if [ "$BUILD" = 1 ] && command -v rpmbuild >/dev/null 2>&1; then
++    TOP="$(mktemp -d)"
++    trap 'rm -rf "$TOP"' EXIT
++    mkdir -p "$TOP/SOURCES"
++    cp "$RPM_DIR/sorot-$VERSION.tar.gz" "$TOP/SOURCES/"
++    DEFS=(--define "_topdir $TOP" --define "_builddir $TOP/BUILD" --define "source_date_epoch_from_changelog 0"
++          --define "use_source_date_epoch_as_buildtime 1" --define "clamp_mtime_to_source_date_epoch 1")
++    [ -z "${RPM_PYTHON:-}" ] || DEFS+=(--define "python3 $RPM_PYTHON")
++    NODEPS=(); [ -z "${RPM_NODEPS:-}" ] || NODEPS=(--nodeps)
++    rpmbuild -bb "${NODEPS[@]}" "${DEFS[@]}" "$RPM_DIR/sorot.spec" >"$RPM_DIR/rpmbuild.log" 2>&1 || { tail -30 "$RPM_DIR/rpmbuild.log" >&2; exit 1; }
++    cp "$TOP"/RPMS/noarch/*.rpm "$RPM_DIR/"
++    ls "$RPM_DIR"/*.rpm
++fi
+diff -ruN n3/sorot-0.7.3/scripts/release.py n4/sorot-0.8.0/scripts/release.py
+--- n3/sorot-0.7.3/scripts/release.py	2026-11-02 14:19:17.203452475 +0700
++++ n4/sorot-0.8.0/scripts/release.py	2026-11-06 09:03:21.601198264 +0700
+@@ -19,6 +19,8 @@
+ 
+ ROOT = Path(__file__).resolve().parents[1]
+ CONTACT = "muhammadandreatama@outlook.com"
++SOURCE = "https://github.com/M-TamDre07/Linux-Software-Lab"
++HOMEPAGE = SOURCE + "/tree/main/apps/sorot"
+ VERSION_RE = re.compile(r"\d+\.\d+\.\d+")
+ #: Documents that may mention an old placeholder because they describe history.
+ PLACEHOLDER_ALLOWED = {"docs/AUDIT-0.3.0.md"}
+@@ -93,6 +95,11 @@
+     first = re.search(r'<release version="([^"]+)" date="([^"]+)"', metainfo)
+     if not first or first.group(1) != version or first.group(2) != release_date:
+         problems.append(f'packaging/sorot.metainfo.xml: <release> teratas harus version="{version}" date="{release_date}"')
++    for rel, needle in (("packaging/control.in", f"Homepage: {HOMEPAGE}"), ("packaging/copyright", f"Source: {SOURCE}"),
++                        ("packaging/sorot.metainfo.xml", f'<url type="homepage">{HOMEPAGE}</url>'), ("packaging/sorot.metainfo.xml", f'<url type="bugtracker">{SOURCE}/issues</url>'),
++                        ("packaging/arch/PKGBUILD.in", f"url='{HOMEPAGE}'"), ("pyproject.toml", f'Homepage = "{HOMEPAGE}"')):
++        if needle not in read(root, rel):
++            problems.append(f"{rel}: alamat proyek tidak sama dengan src/sorot/__init__.py ({needle[:40]}…)")
+     if "TODO" in metainfo:
+         problems.append("packaging/sorot.metainfo.xml: masih berisi TODO")
+     if "<project_license>MIT</project_license>" not in metainfo:
+@@ -224,6 +231,33 @@
+     return "\n".join(lines)
+ 
+ 
++def manifest(base_url: str, dist: Path, root: Path = ROOT) -> str:
++    """The ``latest.json`` the in-app update check reads. Hashes come from the real files; the result is validated
++    with the application's own parser so a manifest the app would reject is never produced."""
++    import hashlib
++    import json
++
++    version = package_version(root)
++    date = read(root, "packaging/RELEASE_DATE").strip()
++    section = re.search(rf"^## \[{re.escape(version)}[^\]]*\][^\n]*\n+(.*?)(?=^### |^## |\Z)", read(root, "CHANGELOG.md"), re.S | re.M)
++    notes = (section.group(1).strip().split("\n\n")[0] if section else "")[:1500]
++    names = [f"sorot_{version}_all.deb", f"sorot-{version}-py3-none-any.whl", f"sorot-{version}.tar.gz", f"sorot-{version}.zip", f"rpm/sorot-{version}-1.noarch.rpm"]
++    files = {}
++    for name in names:
++        path = dist / name
++        if path.is_file():
++            files[path.name] = {"url": f"{base_url.rstrip('/')}/{path.name}", "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
++    if not files:
++        raise SystemExit(f"Tidak ada artefak rilis di {dist}; jalankan make dist dahulu.")
++    doc = {"schema": 1, "name": "sorot", "version": version, "date": date, "notes": notes, "page": HOMEPAGE, "files": files}
++    text = json.dumps(doc, indent=2, ensure_ascii=False) + "\n"
++    sys.path.insert(0, str(root / "src"))
++    from sorot.services.update_service import parse_manifest
++
++    parse_manifest(text.encode("utf-8"))
++    return text
++
++
+ def main(argv: list[str]) -> int:
+     command = argv[0] if argv else "check"
+     if command == "version":
+@@ -243,6 +277,15 @@
+         for note in bump(argv[1], date):
+             print(note)
+         return 0
++    if command == "manifest":
++        if "--base-url" not in argv:
++            print("Gunakan: release.py manifest --base-url https://alamat/berkas-rilis [--dist dist]", file=sys.stderr)
++            return 2
++        dist = Path(argv[argv.index("--dist") + 1]) if "--dist" in argv else ROOT / "dist"
++        text = manifest(argv[argv.index("--base-url") + 1], dist)
++        (dist / "latest.json").write_text(text, encoding="utf-8")
++        print(dist / "latest.json")
++        return 0
+     if command == "srcinfo":
+         if len(argv) < 2:
+             print("Gunakan: release.py srcinfo PKGBUILD", file=sys.stderr)
+diff -ruN n3/sorot-0.7.3/src/sorot/__init__.py n4/sorot-0.8.0/src/sorot/__init__.py
+--- n3/sorot-0.7.3/src/sorot/__init__.py	2026-11-02 14:19:17.203670363 +0700
++++ n4/sorot-0.8.0/src/sorot/__init__.py	2026-11-06 09:03:21.601696005 +0700
+@@ -1,11 +1,14 @@
+ """Sorot — teleprompter overlay desktop untuk Linux."""
+ 
+-__version__ = "0.7.3"
+-VERSION_LABEL = "0.7.3 Beta"
++__version__ = "0.8.0"
++VERSION_LABEL = "0.8.0 Beta"
+ APP_NAME = "Sorot"
+ ORG_NAME = "Sorot"
+ AUTHOR = "Muhammad Andreatama"
+ CONTACT_EMAIL = "muhammadandreatama@outlook.com"  # professional inquiries
+ COPYRIGHT = "Hak cipta © 2026 Muhammad Andreatama"
+ LICENSE_NAME = "MIT"
++SOURCE_URL = "https://github.com/M-TamDre07/Linux-Software-Lab"  # repositori publik (katalog Linux Software Lab)
++HOMEPAGE_URL = "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot"
++ISSUES_URL = "https://github.com/M-TamDre07/Linux-Software-Lab/issues"
+ TAGLINE = "Teleprompter overlay untuk Linux"
+diff -ruN n3/sorot-0.7.3/src/sorot/app.py n4/sorot-0.8.0/src/sorot/app.py
+--- n3/sorot-0.7.3/src/sorot/app.py	2026-11-02 14:19:17.204553958 +0700
++++ n4/sorot-0.8.0/src/sorot/app.py	2026-11-06 09:03:21.605172530 +0700
+@@ -3,7 +3,9 @@
+ 
+ import logging
+ import os
++import re
+ import sys
++from collections.abc import Mapping
+ 
+ from sorot import APP_NAME, ORG_NAME, VERSION_LABEL, __version__
+ 
+@@ -32,6 +34,12 @@
+ )
+ 
+ 
++def desktop_file_name(environ: Mapping[str, str] | None = None) -> str:
++    """``sorot`` normally; inside Flatpak the desktop file is named after the application id (``FLATPAK_ID``)."""
++    value = (environ if environ is not None else os.environ).get("FLATPAK_ID", "")
++    return value if re.fullmatch(r"[A-Za-z0-9_.-]{3,120}", value) else "sorot"
++
++
+ def main(argv: list[str] | None = None) -> int:
+     args = list(sys.argv[1:] if argv is None else argv)
+     if "--help" in args or "-h" in args:
+@@ -106,7 +114,7 @@
+     app.setApplicationName(APP_NAME)
+     app.setOrganizationName(ORG_NAME)
+     app.setApplicationVersion(__version__)
+-    app.setDesktopFileName("sorot")
++    app.setDesktopFileName(desktop_file_name())
+ 
+     from sorot.gc_guard import MainThreadGC
+ 
+diff -ruN n3/sorot-0.7.3/src/sorot/core/documents.py n4/sorot-0.8.0/src/sorot/core/documents.py
+--- n3/sorot-0.7.3/src/sorot/core/documents.py	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/src/sorot/core/documents.py	2026-11-06 09:03:21.602583287 +0700
+@@ -0,0 +1,314 @@
++"""Open scripts from the formats people actually have: text, Markdown, Word, OpenDocument, RTF, HTML and PDF.
++
++Only plain text comes back. Nothing is executed, no network is used, and every format has a size limit.
++Office files are ZIP archives, so their members are size-checked before reading, and XML that declares a
++DOCTYPE/ENTITY (the "billion laughs" family) is refused instead of parsed. PDF needs the optional ``pypdf``.
++"""
++from __future__ import annotations
++
++import html
++import re
++import zipfile
++from dataclasses import dataclass, field
++from html.parser import HTMLParser
++from pathlib import Path
++from xml.etree import ElementTree as ET
++
++from sorot.core.fileio import MAX_SCRIPT_BYTES, ScriptFileError, scrub_text
++
++TEXT_SUFFIXES = {".txt", ".text", ".md", ".markdown"}
++SUFFIXES = TEXT_SUFFIXES | {".docx", ".odt", ".rtf", ".html", ".htm", ".pdf"}
++MAX_FILE_BYTES = 25_000_000          # the file itself (a script of 2 MB can sit in a larger Word file)
++MAX_MEMBER_BYTES = 30_000_000        # one archive member after decompression
++MAX_PDF_PAGES = 400
++
++FILE_DIALOG_FILTER = "Naskah (*.txt *.md *.docx *.odt *.rtf *.html *.htm *.pdf);;Berkas teks (*.txt *.md);;Semua berkas (*)"
++
++
++@dataclass
++class LoadedScript:
++    text: str
++    format: str
++    notes: list[str] = field(default_factory=list)
++
++    @property
++    def converted(self) -> bool:
++        """True when the text was extracted from another format (so saving must not overwrite the original)."""
++        return self.format not in {"txt", "md"}
++
++
++def is_supported(path: Path) -> bool:
++    return Path(path).suffix.lower() in SUFFIXES
++
++
++def load_script_file(path: Path) -> LoadedScript:
++    path = Path(path)
++    try:
++        info = path.stat()
++    except OSError as exc:
++        raise ScriptFileError(f"Berkas tidak dapat diakses: {exc.strerror or exc}") from exc
++    if not path.is_file():
++        raise ScriptFileError("Jalur yang dipilih bukan berkas biasa.")
++    suffix = path.suffix.lower()
++    if suffix in TEXT_SUFFIXES or suffix not in SUFFIXES:
++        return _load_text(path, info.st_size, "md" if suffix in {".md", ".markdown"} else "txt")
++    if info.st_size > MAX_FILE_BYTES:
++        raise ScriptFileError(f"Berkas terlalu besar ({info.st_size / 1_000_000:.0f} MB; batas {MAX_FILE_BYTES // 1_000_000} MB).")
++    try:
++        data = path.read_bytes()
++    except OSError as exc:
++        raise ScriptFileError(f"Berkas tidak dapat dibaca: {exc.strerror or exc}") from exc
++    if suffix == ".docx":
++        result = LoadedScript(_docx_text(path), "docx")
++    elif suffix == ".odt":
++        result = LoadedScript(_odt_text(path), "odt")
++    elif suffix == ".rtf":
++        text, notes = _decode_text(data)
++        result = LoadedScript(_rtf_text(text), "rtf", notes)
++    elif suffix in {".html", ".htm"}:
++        text, notes = _decode_text(data)
++        result = LoadedScript(_html_text(text), "html", notes)
++    else:
++        result = LoadedScript(_pdf_text(path), "pdf")
++    return _finish(result)
++
++
++# ------------------------------------------------------------------------------ plain text
++def _load_text(path: Path, size: int, kind: str) -> LoadedScript:
++    if size > MAX_SCRIPT_BYTES:
++        raise ScriptFileError(f"Berkas terlalu besar ({size / 1_000_000:.1f} MB). Batas untuk naskah adalah {MAX_SCRIPT_BYTES / 1_000_000:.0f} MB.")
++    try:
++        data = path.read_bytes()
++    except OSError as exc:
++        raise ScriptFileError(f"Berkas tidak dapat dibaca: {exc.strerror or exc}") from exc
++    text, notes = _decode_text(data)
++    return _finish(LoadedScript(text, kind, notes))
++
++
++def _decode_text(data: bytes) -> tuple[str, list[str]]:
++    """UTF-8 (with or without BOM) first; UTF-16/32 by BOM; otherwise Windows-1252 with a visible note."""
++    for bom, codec, label in ((b"\xff\xfe\x00\x00", "utf-32", "UTF-32"), (b"\x00\x00\xfe\xff", "utf-32", "UTF-32"),
++                              (b"\xff\xfe", "utf-16", "UTF-16"), (b"\xfe\xff", "utf-16", "UTF-16")):
++        if data.startswith(bom):
++            try:
++                return data.decode(codec), [f"Berkas berenkoding {label}; dikonversi."]
++            except UnicodeDecodeError as exc:
++                raise ScriptFileError(f"Berkas diawali penanda {label} tetapi isinya rusak.") from exc
++    try:
++        return data.decode("utf-8-sig"), []
++    except UnicodeDecodeError:
++        return data.decode("cp1252", errors="replace"), ["Berkas bukan UTF-8; dibaca sebagai Windows-1252. Periksa huruf bertanda baca, lalu simpan ulang sebagai UTF-8."]
++
++
++def _finish(result: LoadedScript) -> LoadedScript:
++    text = scrub_text(result.text).replace("\r\n", "\n").replace("\r", "\n").replace("\x00", "")
++    if result.converted:  # extracted text gets tidied; a plain text file is left exactly as the author wrote it
++        text = re.sub(r"\n{4,}", "\n\n\n", text).strip("\n") + ("\n" if text.strip() else "")
++    if not text.strip():
++        raise ScriptFileError("Berkas tidak berisi teks yang dapat dibaca." + (" Jika ini PDF hasil pindai, teksnya berupa gambar." if result.format == "pdf" else ""))
++    if len(text.encode("utf-8")) > MAX_SCRIPT_BYTES:
++        raise ScriptFileError(f"Teks hasil impor terlalu besar (batas {MAX_SCRIPT_BYTES / 1_000_000:.0f} MB).")
++    if result.converted:
++        result.notes.insert(0, f"Teks diambil dari berkas {result.format.upper()}; pemformatan tidak dibawa. Simpan sebagai berkas baru.")
++    return LoadedScript(text, result.format, result.notes)
++
++
++# ------------------------------------------------------------------------------ office archives
++def _read_member(archive: zipfile.ZipFile, name: str) -> bytes:
++    try:
++        info = archive.getinfo(name)
++    except KeyError as exc:
++        raise ScriptFileError("Berkas rusak: isi dokumen tidak ditemukan.") from exc
++    if info.file_size > MAX_MEMBER_BYTES:
++        raise ScriptFileError("Dokumen terlalu besar setelah diekstrak.")
++    with archive.open(info) as handle:
++        data = handle.read(MAX_MEMBER_BYTES + 1)
++    if len(data) > MAX_MEMBER_BYTES:
++        raise ScriptFileError("Dokumen terlalu besar setelah diekstrak.")
++    return data
++
++
++def _parse_xml(data: bytes) -> ET.Element:
++    head = data[:4096].upper()
++    if b"<!DOCTYPE" in head or b"<!ENTITY" in data[:65536].upper():
++        raise ScriptFileError("Dokumen ditolak: memuat deklarasi DOCTYPE/ENTITY yang tidak aman.")
++    try:
++        return ET.fromstring(data)
++    except ET.ParseError as exc:
++        raise ScriptFileError("Dokumen rusak: isi XML tidak valid.") from exc
++
++
++def _open_zip(path: Path) -> zipfile.ZipFile:
++    try:
++        archive = zipfile.ZipFile(path)
++    except (zipfile.BadZipFile, OSError) as exc:
++        raise ScriptFileError("Berkas bukan dokumen yang valid atau rusak.") from exc
++    if len(archive.infolist()) > 5000:
++        archive.close()
++        raise ScriptFileError("Dokumen berisi terlalu banyak bagian.")
++    return archive
++
++
++_W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
++
++
++def _docx_text(path: Path) -> str:
++    with _open_zip(path) as archive:
++        root = _parse_xml(_read_member(archive, "word/document.xml"))
++    lines: list[str] = []
++    for paragraph in root.iter(f"{_W}p"):
++        parts: list[str] = []
++        for node in paragraph.iter():
++            if node.tag == f"{_W}t":
++                parts.append(node.text or "")
++            elif node.tag == f"{_W}tab":
++                parts.append("\t")
++            elif node.tag in (f"{_W}br", f"{_W}cr"):
++                parts.append("\n")
++        lines.append("".join(parts))
++    return "\n".join(lines)
++
++
++_TEXT = "{urn:oasis:names:tc:opendocument:xmlns:text:1.0}"
++
++
++def _odt_text(path: Path) -> str:
++    with _open_zip(path) as archive:
++        root = _parse_xml(_read_member(archive, "content.xml"))
++    lines: list[str] = []
++
++    def walk(node: ET.Element) -> str:
++        out = [node.text or ""]
++        for child in node:
++            if child.tag == f"{_TEXT}line-break":
++                out.append("\n")
++            elif child.tag == f"{_TEXT}tab":
++                out.append("\t")
++            elif child.tag == f"{_TEXT}s":
++                out.append(" " * min(int(child.get(f"{_TEXT}c", "1") or 1), 200))
++            else:
++                out.append(walk(child))
++            out.append(child.tail or "")
++        return "".join(out)
++
++    for node in root.iter():
++        if node.tag in (f"{_TEXT}p", f"{_TEXT}h"):
++            lines.append(walk(node))
++    return "\n".join(lines)
++
++
++# ------------------------------------------------------------------------------ RTF
++_RTF_SKIP = {"fonttbl", "colortbl", "stylesheet", "info", "pict", "header", "footer", "footnote", "object", "themedata", "colorschememapping", "latentstyles", "datastore"}
++_RTF_TOKEN = re.compile(r"\\([a-zA-Z]+)(-?\d+)? ?|\\'([0-9a-fA-F]{2})|\\([^a-zA-Z])|([{}])|([^\\{}]+)")
++
++
++def _rtf_text(source: str) -> str:
++    if not source.lstrip().startswith("{\\rtf"):
++        raise ScriptFileError("Berkas bukan RTF yang valid.")
++    out: list[str] = []
++    stack: list[bool] = []          # True = this group is being skipped
++    skipping = False
++    pending_star = False
++    unicode_skip = 1
++    skip_chars = 0
++    for match in _RTF_TOKEN.finditer(source):
++        word, number, hexa, symbol, brace, plain = match.groups()
++        if brace == "{":
++            stack.append(skipping)
++            pending_star = True
++        elif brace == "}":
++            skipping = stack.pop() if stack else False
++            pending_star = False
++        elif plain is not None:
++            if skip_chars:
++                cut = min(skip_chars, len(plain))
++                plain = plain[cut:]
++                skip_chars -= cut
++            if not skipping:
++                out.append(plain.replace("\r", "").replace("\n", ""))
++        elif hexa is not None:
++            if not skipping:
++                out.append(bytes([int(hexa, 16)]).decode("cp1252", errors="replace"))
++        elif symbol is not None:
++            if symbol == "*" and pending_star:
++                skipping = True
++            elif symbol in "\\{}" and not skipping:
++                out.append(symbol)
++            elif symbol == "~" and not skipping:
++                out.append("\u00a0")
++            pending_star = False
++        elif word is not None:
++            pending_star = False
++            if word in _RTF_SKIP:
++                skipping = True
++            elif skipping:
++                continue
++            elif word in ("par", "line", "sect", "page"):
++                out.append("\n")
++            elif word == "tab":
++                out.append("\t")
++            elif word == "uc" and number:
++                unicode_skip = max(0, min(int(number), 8))
++            elif word == "u" and number:
++                code = int(number)
++                out.append(chr(code + 65536 if code < 0 else code) if 0 <= (code + 65536 if code < 0 else code) <= 0x10FFFF else "\ufffd")
++                skip_chars = unicode_skip
++            elif word in ("emdash", "endash", "lquote", "rquote", "ldblquote", "rdblquote", "bullet"):
++                out.append({"emdash": "—", "endash": "–", "lquote": "‘", "rquote": "’", "ldblquote": "“", "rdblquote": "”", "bullet": "•"}[word])
++    return "".join(out)
++
++
++# ------------------------------------------------------------------------------ HTML
++class _HTMLText(HTMLParser):
++    BLOCKS = {"p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6", "section", "article", "blockquote", "ul", "ol", "table", "pre"}
++    SKIP = {"script", "style", "head", "template", "noscript"}
++
++    def __init__(self) -> None:
++        super().__init__(convert_charrefs=True)
++        self.parts: list[str] = []
++        self._skip = 0
++
++    def handle_starttag(self, tag: str, attrs) -> None:  # noqa: ANN001
++        if tag in self.SKIP:
++            self._skip += 1
++        elif tag in self.BLOCKS:
++            self.parts.append("\n")
++
++    def handle_endtag(self, tag: str) -> None:
++        if tag in self.SKIP:
++            self._skip = max(0, self._skip - 1)
++        elif tag in self.BLOCKS:
++            self.parts.append("\n")
++
++    def handle_data(self, data: str) -> None:
++        if not self._skip:
++            self.parts.append(re.sub(r"[ \t\r\n]+", " ", data))
++
++
++def _html_text(source: str) -> str:
++    parser = _HTMLText()
++    parser.feed(source)
++    parser.close()
++    text = html.unescape("".join(parser.parts))
++    return "\n".join(line.strip() for line in text.split("\n"))
++
++
++# ------------------------------------------------------------------------------ PDF (optional pypdf)
++def _pdf_text(path: Path) -> str:
++    try:
++        from pypdf import PdfReader
++    except ImportError as exc:
++        raise ScriptFileError("Membuka PDF membutuhkan pustaka pypdf. Pasang dengan `sudo apt install python3-pypdf` atau `pip install pypdf`.") from exc
++    import logging
++
++    logging.getLogger("pypdf").setLevel(logging.CRITICAL)  # it prints warnings for every malformed file
++    try:
++        reader = PdfReader(str(path))
++        if reader.is_encrypted:
++            raise ScriptFileError("PDF terkunci dengan kata sandi; buka kuncinya dahulu.")
++        pages = reader.pages[:MAX_PDF_PAGES]
++        return "\n\n".join((page.extract_text() or "") for page in pages)
++    except ScriptFileError:
++        raise
++    except Exception as exc:  # noqa: BLE001 - a malformed PDF can raise anything; report it, never crash
++        raise ScriptFileError(f"PDF tidak dapat dibaca ({type(exc).__name__}).") from exc
+diff -ruN n3/sorot-0.7.3/src/sorot/services/update_service.py n4/sorot-0.8.0/src/sorot/services/update_service.py
+--- n3/sorot-0.7.3/src/sorot/services/update_service.py	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/src/sorot/services/update_service.py	2026-11-06 09:03:21.603760704 +0700
+@@ -0,0 +1,121 @@
++"""Optional "is there a newer Sorot?" check.
++
++Privacy contract (same as the rest of Sorot): nothing is contacted until the user chooses
++*Bantuan → Periksa pembaruan*. One HTTPS GET of a small JSON file; no identifiers are sent
++(only ``User-Agent: Sorot/<version>``), redirects are refused, the answer is size-limited and
++strictly validated. Sorot never downloads or installs anything itself: updates come through the
++package manager (``apt``/Discover, ``dnf``, ``pacman``, Flatpak) or a file the user chooses to download.
++"""
++from __future__ import annotations
++
++import json
++import os
++import re
++import urllib.error
++import urllib.parse
++import urllib.request
++from collections.abc import Callable
++from dataclasses import dataclass, field
++
++from sorot import SOURCE_URL, __version__
++
++DEFAULT_MANIFEST_URL = SOURCE_URL.replace("https://github.com/", "https://raw.githubusercontent.com/") + "/main/apps/sorot/latest.json"
++MAX_MANIFEST_BYTES = 65_536
++TIMEOUT_SECONDS = 10
++_VERSION = re.compile(r"^\d{1,4}\.\d{1,4}\.\d{1,4}$")
++_SHA256 = re.compile(r"^[0-9a-f]{64}$")
++
++
++class UpdateError(Exception):
++    """A problem with the update check whose message is safe to show to the user."""
++
++
++@dataclass(frozen=True)
++class UpdateInfo:
++    version: str
++    date: str
++    notes: str
++    page: str
++    files: dict[str, tuple[str, str]] = field(default_factory=dict)  # name -> (url, sha256)
++
++    def is_newer_than(self, current: str) -> bool:
++        return version_key(self.version) > version_key(current)
++
++
++def version_key(version: str) -> tuple[int, int, int]:
++    """``0.8.0`` / ``0.8.0 Beta`` -> (0, 8, 0). Anything unparsable sorts lowest."""
++    match = re.match(r"\s*(\d{1,4})\.(\d{1,4})\.(\d{1,4})", version or "")
++    return (int(match.group(1)), int(match.group(2)), int(match.group(3))) if match else (-1, -1, -1)
++
++
++def manifest_url() -> str:
++    override = os.environ.get("SOROT_UPDATE_URL", "").strip()
++    return override or DEFAULT_MANIFEST_URL
++
++
++def _safe_url(value: object, *, what: str) -> str:
++    if not isinstance(value, str) or len(value) > 500:
++        raise UpdateError(f"Jawaban pembaruan tidak valid ({what}).")
++    parsed = urllib.parse.urlparse(value)
++    local = parsed.hostname in {"127.0.0.1", "localhost"}
++    if parsed.scheme != "https" and not (local and parsed.scheme == "http") or not parsed.hostname:
++        raise UpdateError(f"Jawaban pembaruan tidak valid ({what}: hanya HTTPS).")
++    return value
++
++
++def parse_manifest(data: bytes) -> UpdateInfo:
++    if len(data) > MAX_MANIFEST_BYTES:
++        raise UpdateError("Jawaban pembaruan terlalu besar.")
++    try:
++        doc = json.loads(data.decode("utf-8"))
++    except (UnicodeDecodeError, ValueError) as exc:
++        raise UpdateError("Jawaban pembaruan bukan JSON yang valid.") from exc
++    if not isinstance(doc, dict) or doc.get("schema") != 1 or doc.get("name") != "sorot":
++        raise UpdateError("Jawaban pembaruan bukan untuk Sorot atau memakai format yang belum dikenal.")
++    version, date, notes = doc.get("version"), doc.get("date"), doc.get("notes", "")
++    if not isinstance(version, str) or not _VERSION.match(version):
++        raise UpdateError("Jawaban pembaruan tidak valid (versi).")
++    if not isinstance(date, str) or not re.match(r"^\d{4}-\d{2}-\d{2}$", date):
++        raise UpdateError("Jawaban pembaruan tidak valid (tanggal).")
++    if not isinstance(notes, str):
++        raise UpdateError("Jawaban pembaruan tidak valid (catatan).")
++    page = _safe_url(doc.get("page"), what="halaman")
++    files: dict[str, tuple[str, str]] = {}
++    raw_files = doc.get("files", {})
++    if not isinstance(raw_files, dict) or len(raw_files) > 20:
++        raise UpdateError("Jawaban pembaruan tidak valid (berkas).")
++    for name, entry in raw_files.items():
++        if not isinstance(name, str) or not re.match(r"^[A-Za-z0-9._-]{1,120}$", name) or not isinstance(entry, dict):
++            raise UpdateError("Jawaban pembaruan tidak valid (nama berkas).")
++        digest = entry.get("sha256")
++        if not isinstance(digest, str) or not _SHA256.match(digest):
++            raise UpdateError("Jawaban pembaruan tidak valid (sha256).")
++        files[name] = (_safe_url(entry.get("url"), what="unduhan"), digest)
++    return UpdateInfo(version, date, notes.strip()[:2000], page, files)
++
++
++class _NoRedirect(urllib.request.HTTPRedirectHandler):
++    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: ANN001
++        return None
++
++
++_OPENER = urllib.request.build_opener(_NoRedirect)
++
++
++def fetch_manifest(url: str | None = None) -> bytes:
++    target = _safe_url(url or manifest_url(), what="alamat")
++    request = urllib.request.Request(target, headers={"User-Agent": f"Sorot/{__version__}", "Accept": "application/json"})
++    try:
++        with _OPENER.open(request, timeout=TIMEOUT_SECONDS) as response:
++            return response.read(MAX_MANIFEST_BYTES + 1)
++    except urllib.error.HTTPError as exc:
++        if exc.code == 404:
++            raise UpdateError("Belum ada informasi pembaruan yang diterbitkan.") from exc
++        raise UpdateError(f"Server pembaruan menjawab galat {exc.code}.") from exc
++    except (urllib.error.URLError, TimeoutError, OSError) as exc:
++        raise UpdateError("Tidak dapat menghubungi server pembaruan. Periksa sambungan internet.") from exc
++
++
++def check_for_update(fetch: Callable[[], bytes] | None = None) -> UpdateInfo:
++    """Returns the latest published release (which may be the one already installed)."""
++    return parse_manifest((fetch or fetch_manifest)())
+diff -ruN n3/sorot-0.7.3/src/sorot/ui/dialogs.py n4/sorot-0.8.0/src/sorot/ui/dialogs.py
+--- n3/sorot-0.7.3/src/sorot/ui/dialogs.py	2026-11-02 14:19:17.204332985 +0700
++++ n4/sorot-0.8.0/src/sorot/ui/dialogs.py	2026-11-06 09:03:21.604475420 +0700
+@@ -286,7 +286,7 @@
+ 
+     def __init__(self, environment: str, parent=None) -> None:  # noqa: ANN001
+         super().__init__(parent)
+-        from sorot import APP_NAME, AUTHOR, CONTACT_EMAIL, COPYRIGHT, LICENSE_NAME, TAGLINE, VERSION_LABEL
++        from sorot import APP_NAME, AUTHOR, CONTACT_EMAIL, COPYRIGHT, HOMEPAGE_URL, LICENSE_NAME, TAGLINE, VERSION_LABEL
+         from sorot.support import CONTACT_NOTE
+ 
+         self.contact_email = CONTACT_EMAIL
+@@ -308,6 +308,11 @@
+         licence.setWordWrap(True)
+         licence.setProperty("role", "muted")
+         layout.addWidget(licence)
++        project = QLabel(f"Kode sumber dan laporan masalah: {HOMEPAGE_URL}")  # shown as text; nothing is opened or contacted unless the user copies it
++        project.setWordWrap(True)
++        project.setProperty("role", "muted")
++        project.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
++        layout.addWidget(project)
+         layout.addSpacing(6)
+         contact_head = QLabel("KONTAK PROFESIONAL")
+         contact_head.setProperty("role", "caps")
+diff -ruN n3/sorot-0.7.3/src/sorot/ui/main_window.py n4/sorot-0.8.0/src/sorot/ui/main_window.py
+--- n3/sorot-0.7.3/src/sorot/ui/main_window.py	2026-11-02 14:19:17.204414673 +0700
++++ n4/sorot-0.8.0/src/sorot/ui/main_window.py	2026-11-06 09:03:21.605025073 +0700
+@@ -43,7 +43,8 @@
+     THEME_LABELS,
+     ConfigStore,
+ )
+-from sorot.core.fileio import ScriptFileError, atomic_write_text, read_script
++from sorot.core.documents import FILE_DIALOG_FILTER, is_supported, load_script_file
++from sorot.core.fileio import ScriptFileError, atomic_write_text
+ from sorot.core.script_markup import parse_script
+ from sorot.core.script_stats import MAX_WPM, MIN_WPM, format_clock, parsed_seconds
+ from sorot.core.scripts import DraftStore, ScriptLibrary
+@@ -55,6 +56,7 @@
+     detect_capabilities,
+     format_platform_report,
+ )
++from sorot.services.update_service import check_for_update
+ from sorot.ui import theme
+ from sorot.ui.ai_dialog import AIAssistantDialog, AIContext
+ from sorot.ui.dialogs import AboutDialog, ScriptLibraryDialog, ShortcutsDialog, SnapshotDialog, SupportDialog
+@@ -63,6 +65,7 @@
+ from sorot.ui.extensions_page import ExtensionsPage
+ from sorot.ui.highlighter import ScriptHighlighter
+ from sorot.ui.overlay import PromptOverlay
++from sorot.ui.task_worker import BackgroundTask
+ from sorot.ui.widgets import (
+     ColorButton,
+     OverlayPreview,
+@@ -115,6 +118,8 @@
+         self.store = config_store or ConfigStore()
+         self.draft = draft_store or DraftStore()
+         self._closing_by_signal = False
++        self._update_task: BackgroundTask | None = None
++        self.setAcceptDrops(True)
+         self.library = library or ScriptLibrary()
+         self.config = self.store.load().config
+         self.session_api_key = ""
+@@ -221,6 +226,7 @@
+ 
+         help_menu = bar.addMenu("Ban&tuan")
+         help_menu.addAction(self._action("Diagnostik sistem…", self.show_diagnostics))
++        help_menu.addAction(self._action("Periksa pembaruan…", self.check_for_updates))
+         help_menu.addAction(self._action("Dukung pengembangan…", self.show_support))
+         help_menu.addAction(self._action(f"Tentang {APP_NAME}", self.show_about))
+ 
+@@ -1134,6 +1140,48 @@
+     def show_support(self) -> None:
+         SupportDialog(self).exec()
+ 
++    # =============================================================== updates (only when the user asks)
++    def check_for_updates(self) -> None:
++        if self._update_task is not None and self._update_task.running:
++            return
++        self._set_status("Memeriksa pembaruan…")
++        task = BackgroundTask(lambda _token: check_for_update(), self)
++        task.succeeded.connect(self._on_update_result)
++        task.failed.connect(self._on_update_failed)
++        task.cancelled.connect(lambda: self._set_status("Pemeriksaan pembaruan dibatalkan."))
++        self._update_task = task
++        task.start()
++
++    def _on_update_failed(self, message: str) -> None:
++        self._set_status("Pemeriksaan pembaruan gagal.")
++        QMessageBox.information(self, "Periksa pembaruan", message)
++
++    def _on_update_result(self, info) -> None:  # noqa: ANN001
++        from sorot import VERSION_LABEL, __version__
++
++        if not info.is_newer_than(__version__):
++            self._set_status("Sorot sudah versi terbaru.")
++            QMessageBox.information(self, "Periksa pembaruan", f"Kamu memakai versi terbaru ({VERSION_LABEL}).")
++            return
++        self._set_status(f"Pembaruan tersedia: {info.version}")
++        box = QMessageBox(self)
++        box.setIcon(QMessageBox.Icon.Information)
++        box.setWindowTitle("Pembaruan tersedia")
++        box.setText(f"Sorot {info.version} ({info.date}) tersedia. Kamu memakai {VERSION_LABEL}.")
++        how = ("Perbarui lewat pengelola paket (Discover, apt, dnf, pacman, atau Flatpak), atau unduh berkas baru dari halaman rilis dan "
++               "pasang di atas versi lama; tidak perlu menghapus yang lama dan datamu dicadangkan otomatis. "
++               "Periksa SHA-256 berkas yang diunduh.")
++        box.setInformativeText(f"{info.notes}\n\n{how}" if info.notes else how)
++        open_btn = box.addButton("Buka halaman rilis", QMessageBox.ButtonRole.AcceptRole)
++        copy_btn = box.addButton("Salin tautan", QMessageBox.ButtonRole.ActionRole)
++        box.addButton("Tutup", QMessageBox.ButtonRole.RejectRole)
++        box.exec()
++        if box.clickedButton() is open_btn:
++            QDesktopServices.openUrl(QUrl(info.page))
++        elif box.clickedButton() is copy_btn:
++            QApplication.clipboard().setText(info.page)
++            self._set_status("Tautan halaman rilis disalin.")
++
+     # =============================================================== extensions
+     def _presets_map(self) -> dict[str, tuple[str, str, int]]:
+         merged = dict(COLOR_PRESETS)
+@@ -1381,21 +1429,50 @@
+         if not self._confirm_discard("Buka naskah"):
+             return
+         start = self.config.last_directory if self.config.last_directory and Path(self.config.last_directory).is_dir() else str(Path.home())
+-        filename, _ = QFileDialog.getOpenFileName(self, "Buka naskah", start, "Berkas teks (*.txt *.md);;Semua berkas (*)")
+-        if not filename:
+-            return
++        filename, _ = QFileDialog.getOpenFileName(self, "Buka naskah", start, FILE_DIALOG_FILTER)
++        if filename:
++            self._open_path(Path(filename))
++
++    def _open_path(self, path: Path) -> None:
++        """Open a script from any supported format. Word/PDF/RTF/HTML files are converted and never overwritten."""
+         try:
+-            text = read_script(Path(filename))
++            loaded = load_script_file(path)
+         except ScriptFileError as exc:
+             QMessageBox.warning(self, APP_NAME, str(exc))
+             return
+-        self.current_file = Path(filename)
+-        self.config.last_directory = str(self.current_file.parent)
+-        self._replace_editor_text(text, modified=False)
++        self.config.last_directory = str(path.parent)
++        self.current_file = None if loaded.converted else path
++        self._replace_editor_text(loaded.text, modified=loaded.converted)
+         self._update_title()
+         self._schedule_config_save()
+-        self._set_status(f"Naskah dibuka: {self.current_file.name}")
+-        self.extensions.broadcast("script.opened", {"name": self.current_file.name})
++        extra = f" {' '.join(loaded.notes)}" if loaded.notes else ""
++        self._set_status(f"Naskah dibuka: {path.name}.{extra}")
++        self.extensions.broadcast("script.opened", {"name": path.name})
++
++    # ---- drag and drop: drop a script file anywhere on the window
++    @staticmethod
++    def _dropped_script(mime) -> Path | None:
++        """The one supported local file in a drop, or None (several files, remote URLs and unknown types are ignored)."""
++        urls = mime.urls() if mime.hasUrls() else []
++        if len(urls) == 1 and urls[0].isLocalFile():
++            path = Path(urls[0].toLocalFile())
++            if is_supported(path):
++                return path
++        return None
++
++    def dragEnterEvent(self, event) -> None:  # noqa: N802
++        if self._dropped_script(event.mimeData()) is not None:
++            event.acceptProposedAction()
++        else:
++            event.ignore()
++
++    def dropEvent(self, event) -> None:  # noqa: N802
++        path = self._dropped_script(event.mimeData())
++        if path is None:
++            event.ignore()
++        elif self._confirm_discard("Buka naskah"):
++            event.acceptProposedAction()
++            self._open_path(path)
+ 
+     def save_file(self) -> bool:
+         if self.current_file is None:
+diff -ruN n3/sorot-0.7.3/src/sorot/ui/task_worker.py n4/sorot-0.8.0/src/sorot/ui/task_worker.py
+--- n3/sorot-0.7.3/src/sorot/ui/task_worker.py	2026-11-02 14:19:17.204475753 +0700
++++ n4/sorot-0.8.0/src/sorot/ui/task_worker.py	2026-11-06 09:03:21.604835098 +0700
+@@ -18,6 +18,7 @@
+ from sorot.extensions.manifest import ExtensionError
+ from sorot.services.ai_service import AIError, AIErrorKind
+ from sorot.services.drive_service import DriveIntegrationError
++from sorot.services.update_service import UpdateError
+ 
+ LOGGER = logging.getLogger(__name__)
+ 
+@@ -62,7 +63,7 @@
+                 self._finish(self.cancelled)
+             else:
+                 self._finish(self.failed, str(exc))
+-        except (DriveIntegrationError, ExtensionError) as exc:
++        except (DriveIntegrationError, ExtensionError, UpdateError) as exc:
+             self._finish(self.failed, str(exc))
+         except Exception as exc:  # noqa: BLE001 - last line of defence for a worker thread
+             LOGGER.exception("Tugas latar belakang gagal secara tak terduga")
+diff -ruN n3/sorot-0.7.3/tests/test_documents.py n4/sorot-0.8.0/tests/test_documents.py
+--- n3/sorot-0.7.3/tests/test_documents.py	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/tests/test_documents.py	2026-11-06 09:03:21.607339233 +0700
+@@ -0,0 +1,149 @@
++"""Opening scripts from Word, OpenDocument, RTF, HTML, PDF and odd encodings, including hostile files."""
++from __future__ import annotations
++
++import zipfile
++
++import pytest
++
++from sorot.core.documents import LoadedScript, is_supported, load_script_file
++from sorot.core.fileio import ScriptFileError
++
++W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
++
++
++def docx(path, paragraphs, *, doctype=""):
++    body = "".join(f"<w:p><w:r><w:t xml:space=\"preserve\">{p}</w:t></w:r></w:p>" for p in paragraphs)
++    xml = f'<?xml version="1.0" encoding="UTF-8"?>{doctype}<w:document xmlns:w="{W}"><w:body>{body}</w:body></w:document>'
++    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
++        zf.writestr("[Content_Types].xml", "<Types/>")
++        zf.writestr("word/document.xml", xml)
++    return path
++
++
++def test_docx_paragraphs_tabs_and_breaks(tmp_path):
++    path = tmp_path / "a.docx"
++    xml = (f'<w:document xmlns:w="{W}"><w:body><w:p><w:r><w:t>Halo</w:t></w:r><w:r><w:tab/></w:r><w:r><w:t>dunia</w:t></w:r></w:p>'
++           f'<w:p><w:r><w:t>Baris</w:t><w:br/><w:t>dua ✓</w:t></w:r></w:p></w:body></w:document>')
++    with zipfile.ZipFile(path, "w") as zf:
++        zf.writestr("word/document.xml", xml)
++    loaded = load_script_file(path)
++    assert loaded.text == "Halo\tdunia\nBaris\ndua ✓\n" and loaded.format == "docx" and loaded.converted
++    assert any("Simpan sebagai berkas baru" in n for n in loaded.notes)
++
++
++def test_odt(tmp_path):
++    path = tmp_path / "a.odt"
++    xml = ('<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">'
++           '<office:body><office:text><text:h>Judul</text:h><text:p>Satu<text:s text:c="3"/>dua<text:line-break/>tiga <text:span>tebal</text:span></text:p></office:text></office:body></office:document-content>')
++    with zipfile.ZipFile(path, "w") as zf:
++        zf.writestr("content.xml", xml)
++    assert load_script_file(path).text == "Judul\nSatu   dua\ntiga tebal\n"
++
++
++def test_rtf_groups_unicode_and_escapes(tmp_path):
++    path = tmp_path / "a.rtf"
++    path.write_bytes(rb"{\rtf1\ansi{\fonttbl{\f0 Arial;}}{\*\generator Word;}\pard Halo \b dunia\b0\par Caf\'e9 \u8212? ok \{x\}\par}")
++    assert load_script_file(path).text == "Halo dunia\nCafé — ok {x}\n"
++
++
++def test_html_ignores_scripts_and_decodes_entities(tmp_path):
++    path = tmp_path / "a.html"
++    path.write_text("<html><head><title>x</title><style>p{}</style></head><body><h1>Judul</h1><p>A &amp; B</p><script>alert(1)</script><p>Dua<br>baris</p></body></html>", encoding="utf-8")
++    assert load_script_file(path).text == "Judul\n\nA & B\n\nDua\nbaris\n"  # paragraphs stay separated by a blank line
++
++
++def test_pdf_text(tmp_path):
++    pytest.importorskip("pypdf")
++    stream = b"BT /F1 18 Tf 72 700 Td (Halo dari PDF) Tj ET"
++    objects = [b"<< /Type /Catalog /Pages 2 0 R >>", b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
++               b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
++               b"<< /Length %d >>\nstream\n" % len(stream) + stream + b"\nendstream", b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"]
++    out, offsets = bytearray(b"%PDF-1.4\n"), []
++    for i, body in enumerate(objects, 1):
++        offsets.append(len(out))
++        out += b"%d 0 obj\n" % i + body + b"\nendobj\n"
++    xref = len(out)
++    out += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1) + b"".join(b"%010d 00000 n \n" % o for o in offsets)
++    out += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (len(objects) + 1, xref)
++    path = tmp_path / "a.pdf"
++    path.write_bytes(bytes(out))
++    assert "Halo dari PDF" in load_script_file(path).text
++
++
++def test_pdf_without_pypdf_explains_how_to_install(tmp_path, monkeypatch):
++    import builtins
++    real = builtins.__import__
++    monkeypatch.setattr(builtins, "__import__", lambda name, *a, **k: (_ for _ in ()).throw(ImportError("x")) if name == "pypdf" else real(name, *a, **k))
++    path = tmp_path / "a.pdf"
++    path.write_bytes(b"%PDF-1.4")
++    with pytest.raises(ScriptFileError, match="pypdf"):
++        load_script_file(path)
++
++
++@pytest.mark.parametrize("data,expected,note", [
++    ("halo ✓".encode("utf-8-sig"), "halo ✓", False),
++    ("halo ✓".encode("utf-16"), "halo ✓", True),
++    ("café".encode("cp1252"), "café", True),
++    (b"a\r\nb\rc\n\n\n\n\nd\n", "a\nb\nc\n\n\n\n\nd\n", False),  # plain text is not tidied
++])
++def test_text_encodings_and_line_endings(tmp_path, data, expected, note):
++    path = tmp_path / "a.txt"
++    path.write_bytes(data)
++    loaded = load_script_file(path)
++    assert loaded.text == expected and bool(loaded.notes) is note and not loaded.converted
++
++
++def test_markdown_and_plain_text_are_not_marked_converted(tmp_path):
++    (tmp_path / "a.md").write_text("# Judul\n", encoding="utf-8")
++    assert load_script_file(tmp_path / "a.md").format == "md"
++
++
++@pytest.mark.parametrize("doctype", ['<!DOCTYPE d [<!ENTITY a "aaaa">]>', "<!ENTITY x 'y'>"])
++def test_xml_entity_declarations_are_refused(tmp_path, doctype):
++    path = docx(tmp_path / "evil.docx", ["&a;"], doctype=doctype)
++    with pytest.raises(ScriptFileError, match="DOCTYPE|ENTITY"):
++        load_script_file(path)
++
++
++def test_zip_bomb_member_is_refused_before_reading(tmp_path):
++    path = tmp_path / "bomb.docx"
++    with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
++        zf.writestr("word/document.xml", b"<a>" + b"x" * 40_000_000 + b"</a>")
++    assert path.stat().st_size < 1_000_000
++    with pytest.raises(ScriptFileError, match="terlalu besar"):
++        load_script_file(path)
++
++
++@pytest.mark.parametrize("name,data", [("bad.docx", b"not a zip"), ("bad.odt", b"PK\x03\x04junk"), ("bad.rtf", b"plain text"), ("empty.docx", b""),
++                                       ("bad.pdf", b"%PDF-1.4 garbage"), ("empty.txt", b"  \n\n")])
++def test_broken_files_raise_a_clear_error_never_crash(tmp_path, name, data):
++    path = tmp_path / name
++    path.write_bytes(data)
++    with pytest.raises(ScriptFileError):
++        load_script_file(path)
++
++
++def test_missing_and_directory_paths(tmp_path):
++    with pytest.raises(ScriptFileError):
++        load_script_file(tmp_path / "tidak-ada.docx")
++    with pytest.raises(ScriptFileError):
++        load_script_file(tmp_path)
++
++
++def test_oversized_result_is_refused(tmp_path):
++    path = docx(tmp_path / "big.docx", ["x" * 1000] * 6000)
++    with pytest.raises(ScriptFileError, match="terlalu besar"):
++        load_script_file(path)
++
++
++def test_supported_suffixes():
++    assert all(is_supported(f"a{s}") for s in (".TXT", ".docx", ".pdf", ".odt", ".rtf", ".html", ".md"))
++    assert not is_supported("a.exe") and isinstance(LoadedScript("x", "txt"), LoadedScript)
++
++
++@pytest.mark.parametrize("data", [b"\xff\xfe\xfa", b"\xfe\xff\x00", b"\xff\xfe\x00\x00\x01", b"\x00\x00\xfe\xff\xff"])
++def test_a_broken_utf16_or_utf32_file_is_an_error_not_a_crash(tmp_path, data):
++    path = tmp_path / "a.txt"
++    path.write_bytes(data)
++    with pytest.raises(ScriptFileError, match="rusak"):
++        load_script_file(path)
+diff -ruN n3/sorot-0.7.3/tests/test_gui_window.py n4/sorot-0.8.0/tests/test_gui_window.py
+--- n3/sorot-0.7.3/tests/test_gui_window.py	2026-11-02 14:19:17.204835060 +0700
++++ n4/sorot-0.8.0/tests/test_gui_window.py	2026-11-06 09:03:21.605487618 +0700
+@@ -272,18 +272,28 @@
+ 
+ def test_open_invalid_utf8_shows_error_and_keeps_text(qtbot, tmp_path, monkeypatch):
+     bad = tmp_path / "rusak.txt"
+-    bad.write_bytes(b"\xff\xfe\xfa")
++    bad.write_bytes(b"\xff\xfe\xfa")  # a UTF-16 marker followed by a half character
+     warnings = []
+     monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a, **k: (str(bad), ""))
+     monkeypatch.setattr(QMessageBox, "warning", lambda *a, **k: warnings.append(a[2]))
+     window = make_window(qtbot)
+     window._replace_editor_text("aman", modified=False)
+     window.open_file()
+-    assert warnings and "UTF-8" in warnings[0]
++    assert warnings and "rusak" in warnings[0]
+     assert window.editor.toPlainText() == "aman"
+     window.close()
+ 
+ 
++def test_a_latin1_file_opens_with_a_visible_note(qtbot, tmp_path, monkeypatch):
++    legacy = tmp_path / "lama.txt"
++    legacy.write_bytes("café".encode("cp1252"))
++    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a, **k: (str(legacy), ""))
++    window = make_window(qtbot)
++    window.open_file()
++    assert window.editor.toPlainText() == "café"
++    assert "Windows-1252" in window.status_label.text()
++
++
+ def test_library_open_replaces_text_via_signal(qtbot):
+     library = ScriptLibrary()
+     library.save("Pembuka", "Halo semuanya")
+@@ -647,3 +657,116 @@
+     if not wanted:
+         pytest.skip("SOROT_TEST_QPA tidak diatur")
+     assert QGuiApplication.platformName() == wanted
++
++
++def _docx(path, text):
++    import zipfile
++
++    ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
++    with zipfile.ZipFile(path, "w") as zf:
++        zf.writestr("word/document.xml", f'<w:document xmlns:w="{ns}"><w:body><w:p><w:r><w:t>{text}</w:t></w:r></w:p></w:body></w:document>')
++    return path
++
++
++def test_opening_a_word_file_converts_it_and_never_targets_the_original(qtbot, tmp_path, monkeypatch):
++    source = _docx(tmp_path / "naskah.docx", "Halo dari Word")
++    window = make_window(qtbot)
++    monkeypatch.setattr(QFileDialog, "getOpenFileName", lambda *a, **k: (str(source), ""))
++    window.open_file()
++    assert window.editor.toPlainText().strip() == "Halo dari Word"
++    assert window.current_file is None, "Simpan akan menimpa berkas Word asli"
++    assert window.editor.document().isModified()
++    assert "DOCX" in window.status_label.text()
++
++
++def _drop(window, paths):
++    from PySide6.QtCore import QMimeData, QPoint, Qt, QUrl
++    from PySide6.QtGui import QDragEnterEvent, QDropEvent
++
++    mime = QMimeData()
++    mime.setUrls([QUrl.fromLocalFile(str(p)) for p in paths])
++    enter = QDragEnterEvent(QPoint(5, 5), Qt.DropAction.CopyAction, mime, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
++    window.dragEnterEvent(enter)
++    drop = QDropEvent(QPoint(5, 5), Qt.DropAction.CopyAction, mime, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
++    window.dropEvent(drop)
++    return enter.isAccepted()
++
++
++def test_dropping_a_supported_file_opens_it(qtbot, tmp_path):
++    source = tmp_path / "a.txt"
++    source.write_text("dari seret lepas", encoding="utf-8")
++    window = make_window(qtbot)
++    assert _drop(window, [source]) is True
++    assert window.editor.toPlainText().strip() == "dari seret lepas" and window.current_file == source
++
++
++def test_dropping_unsupported_or_several_files_is_ignored(qtbot, tmp_path):
++    exe, one, two = tmp_path / "x.exe", tmp_path / "1.txt", tmp_path / "2.txt"
++    for f in (exe, one, two):
++        f.write_text("isi", encoding="utf-8")
++    window = make_window(qtbot)
++    before = window.editor.toPlainText()
++    assert _drop(window, [exe]) is False
++    assert _drop(window, [one, two]) is False
++    assert window.editor.toPlainText() == before
++
++
++def test_a_broken_word_file_shows_a_message_and_keeps_the_script(qtbot, tmp_path, monkeypatch):
++    bad = tmp_path / "rusak.docx"
++    bad.write_bytes(b"bukan zip")
++    shown = []
++    monkeypatch.setattr(QMessageBox, "warning", lambda *a, **k: shown.append(a[2]))
++    window = make_window(qtbot)
++    type_text(window, "naskahku")
++    window._open_path(bad)
++    assert shown and "valid" in shown[0]
++    assert "naskahku" in window.editor.toPlainText()
++
++
++def test_update_check_menu_reports_newer_same_and_failure(qtbot, monkeypatch):
++    from sorot.services import update_service as us
++    from sorot.ui import main_window as mw
++
++    shown = []
++    monkeypatch.setattr(QMessageBox, "information", lambda *a, **k: shown.append(a[2]))
++
++    class FakeBox:
++        def __init__(self, *a, **k):
++            self.texts = []
++            FakeBox.last = self
++
++        def __getattr__(self, name):  # accept every setter the dialog calls
++            return lambda *a, **k: None
++
++        def setText(self, text):  # noqa: N802
++            self.texts.append(text)
++
++        def addButton(self, label, role):  # noqa: N802
++            return label
++
++        def exec(self):
++            return 0
++
++        def clickedButton(self):  # noqa: N802
++            return None
++
++    monkeypatch.setattr(mw, "QMessageBox", type("QMB", (), {"Icon": QMessageBox.Icon, "ButtonRole": QMessageBox.ButtonRole, "information": QMessageBox.information, "warning": QMessageBox.warning, "__new__": lambda cls, *a, **k: FakeBox()}))
++    window = make_window(qtbot)
++
++    def run(doc_or_error):
++        if isinstance(doc_or_error, Exception):
++            monkeypatch.setattr(mw, "check_for_update", lambda: (_ for _ in ()).throw(doc_or_error))
++        else:
++            monkeypatch.setattr(mw, "check_for_update", lambda: us.parse_manifest(__import__("json").dumps(doc_or_error).encode()))
++        window.check_for_updates()
++        qtbot.waitUntil(lambda: window._update_task is not None and not window._update_task.running, timeout=5000)
++        qtbot.wait(100)
++
++    base = {"schema": 1, "name": "sorot", "date": "2030-01-01", "notes": "", "page": "https://example.com/r", "files": {}}
++    run({**base, "version": "99.0.0"})
++    assert "99.0.0" in FakeBox.last.texts[0] and "Pembaruan tersedia" in window.status_label.text()
++    shown.clear()
++    run({**base, "version": "0.0.1"})
++    assert "terbaru" in window.status_label.text()
++    run(us.UpdateError("Tidak dapat menghubungi server pembaruan."))
++    assert "gagal" in window.status_label.text()
+diff -ruN n3/sorot-0.7.3/tests/test_packaging.py n4/sorot-0.8.0/tests/test_packaging.py
+--- n3/sorot-0.7.3/tests/test_packaging.py	2026-11-02 14:19:17.205093790 +0700
++++ n4/sorot-0.8.0/tests/test_packaging.py	2026-11-06 09:03:21.607277875 +0700
+@@ -156,7 +156,7 @@
+     assert f"\tpkgver = {out[1]}" in info
+     for dep in out[2].split():
+         assert f"\tdepends = {dep}" in info
+-    assert info.count("\toptdepends = ") == int(out[3]) == 4
++    assert info.count("\toptdepends = ") == int(out[3]) == 5
+     assert f"\tsource = {out[4]}" in info and out[4] == "sorot-9.9.9.tar.gz"
+     assert f"\tsha256sums = {out[5]}" in info
+     assert f"\tarch = {out[6]}" in info and f"\tlicense = {out[7]}" in info
+@@ -336,3 +336,45 @@
+     assert f"'{_sha(tarball)}'" in pkgbuild, "PKGBUILD must pin the hash of the tarball sitting next to it"
+     assert f"\tsha256sums = {_sha(tarball)}" in srcinfo and f"\tpkgver = {sorot.__version__}" in srcinfo
+     assert "@VERSION@" not in pkgbuild and "@SHA256@" not in pkgbuild
++
++
++def test_desktop_file_name_follows_flatpak_id():
++    from sorot.app import desktop_file_name
++
++    assert desktop_file_name({}) == "sorot"
++    assert desktop_file_name({"FLATPAK_ID": "io.github.M_TamDre07.Sorot"}) == "io.github.M_TamDre07.Sorot"
++    assert desktop_file_name({"FLATPAK_ID": "bad id; rm"}) == "sorot"
++
++
++def test_flatpak_manifest_is_valid_and_pins_the_release_files(tmp_path):
++    import hashlib
++    import json
++
++    run = subprocess.run(["bash", str(ROOT / "scripts" / "build-flatpak.sh"), str(tmp_path)], capture_output=True, text=True, timeout=300, env={**os.environ, "PATH": f"{Path(sys.executable).parent}:{os.environ['PATH']}"})
++    assert run.returncode == 0, run.stderr
++    manifest = json.loads((tmp_path / "flatpak" / "io.github.M_TamDre07.Sorot.json").read_text(encoding="utf-8"))
++    assert manifest["app-id"] == "io.github.M_TamDre07.Sorot" and manifest["command"] == "sorot"
++    sources = {s["path"]: s["sha256"] for s in manifest["modules"][0]["sources"]}
++    assert len(sources) == 2
++    for name, digest in sources.items():
++        assert hashlib.sha256((tmp_path / "flatpak" / name).read_bytes()).hexdigest() == digest
++    args = manifest["finish-args"]
++    assert "--filesystem=host" not in args and "--filesystem=home" not in args, "izin berkas terlalu luas"
++    assert "--share=network" in args  # optional AI feature; documented in docs/FLATPAK.md
++
++
++def test_update_manifest_is_generated_from_real_files_and_accepted_by_the_app(tmp_path):
++    import json
++
++    spec = importlib.util.spec_from_file_location("release_tool_m", ROOT / "scripts" / "release.py")
++    tool = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(tool)
++    version = tool.package_version(ROOT)
++    deb = tmp_path / f"sorot_{version}_all.deb"
++    deb.write_bytes(b"isi deb")
++    doc = json.loads(tool.manifest("https://example.com/r/", tmp_path, ROOT))
++    assert doc["version"] == version and doc["files"][deb.name]["sha256"] == hashlib.sha256(b"isi deb").hexdigest()
++    assert doc["files"][deb.name]["url"] == f"https://example.com/r/{deb.name}"
++    assert doc["notes"], "catatan rilis harus diambil dari CHANGELOG"
++    with pytest.raises(SystemExit):
++        tool.manifest("https://example.com/r", tmp_path / "kosong", ROOT)
+diff -ruN n3/sorot-0.7.3/tests/test_update_service.py n4/sorot-0.8.0/tests/test_update_service.py
+--- n3/sorot-0.7.3/tests/test_update_service.py	1970-01-01 07:00:00.000000000 +0700
++++ n4/sorot-0.8.0/tests/test_update_service.py	2026-11-06 09:03:21.606330841 +0700
+@@ -0,0 +1,124 @@
++"""The optional update check: strict parsing, privacy (no redirects, https only) and a real local server."""
++from __future__ import annotations
++
++import http.server
++import json
++import threading
++
++import pytest
++
++from sorot import __version__
++from sorot.services import update_service as us
++
++GOOD = {"schema": 1, "name": "sorot", "version": "9.9.9", "date": "2030-01-02", "notes": "Baru.", "page": "https://example.com/rilis",
++        "files": {"sorot_9.9.9_all.deb": {"url": "https://example.com/a.deb", "sha256": "a" * 64}}}
++
++
++def enc(doc):
++    return json.dumps(doc).encode()
++
++
++def test_good_manifest_parses_and_compares():
++    info = us.parse_manifest(enc(GOOD))
++    assert info.version == "9.9.9" and info.files["sorot_9.9.9_all.deb"][1] == "a" * 64
++    assert info.is_newer_than("0.7.3") and not info.is_newer_than("9.9.9") and not info.is_newer_than("10.0.0")
++
++
++@pytest.mark.parametrize("a,b,newer", [("0.8.0", "0.7.3 Beta", True), ("0.10.0", "0.9.9", True), ("1.0.0", "0.99.99", True), ("0.7.3", "0.7.3", False), ("junk", "0.7.3", False)])
++def test_version_comparison_is_numeric_not_textual(a, b, newer):
++    assert (us.version_key(a) > us.version_key(b)) is newer
++
++
++@pytest.mark.parametrize("mutate", [
++    lambda d: d.update(schema=2), lambda d: d.update(name="lain"), lambda d: d.update(version="1.0"), lambda d: d.update(version="1.0.0; rm"),
++    lambda d: d.update(date="kemarin"), lambda d: d.update(notes=5), lambda d: d.update(page="http://example.com/x"), lambda d: d.update(page="javascript:alert(1)"),
++    lambda d: d.update(page="file:///etc/passwd"), lambda d: d["files"].update({"../x": {"url": "https://e.com/x", "sha256": "a" * 64}}),
++    lambda d: d["files"]["sorot_9.9.9_all.deb"].update(sha256="xyz"), lambda d: d["files"]["sorot_9.9.9_all.deb"].update(url="ftp://e.com/a"),
++    lambda d: d.update(files=[1]),
++])
++def test_invalid_manifests_are_rejected(mutate):
++    doc = json.loads(json.dumps(GOOD))
++    mutate(doc)
++    with pytest.raises(us.UpdateError):
++        us.parse_manifest(enc(doc))
++
++
++@pytest.mark.parametrize("data", [b"", b"[]", b"null", b"\xff\xfe", b"{" * 10, b"x" * 70_000])
++def test_garbage_is_an_error_not_a_crash(data):
++    with pytest.raises(us.UpdateError):
++        us.parse_manifest(data)
++
++
++class _Handler(http.server.BaseHTTPRequestHandler):
++    seen: list[dict] = []
++
++    def do_GET(self):  # noqa: N802
++        _Handler.seen.append({"path": self.path, "headers": dict(self.headers)})
++        if self.path == "/latest.json":
++            body = enc(GOOD)
++            self.send_response(200)
++            self.send_header("Content-Length", str(len(body)))
++            self.end_headers()
++            self.wfile.write(body)
++        elif self.path == "/redir":
++            self.send_response(302)
++            self.send_header("Location", "https://example.com/evil")
++            self.end_headers()
++        elif self.path == "/huge":
++            self.send_response(200)
++            self.end_headers()
++            self.wfile.write(b"x" * 200_000)
++        else:
++            self.send_response(404)
++            self.end_headers()
++
++    def log_message(self, *args):
++        pass
++
++
++@pytest.fixture
++def server():
++    httpd = http.server.HTTPServer(("127.0.0.1", 0), _Handler)
++    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
++    thread.start()
++    _Handler.seen.clear()
++    yield f"http://127.0.0.1:{httpd.server_port}"
++    httpd.shutdown()
++
++
++def test_real_fetch_sends_only_a_generic_user_agent(server):
++    info = us.check_for_update(lambda: us.fetch_manifest(server + "/latest.json"))
++    assert info.version == "9.9.9"
++    headers = {k.lower(): v for k, v in _Handler.seen[0]["headers"].items()}
++    assert headers["user-agent"] == f"Sorot/{__version__}"
++    assert not {"cookie", "authorization", "referer"} & set(headers)
++
++
++def test_redirects_missing_files_and_huge_answers_are_refused(server):
++    with pytest.raises(us.UpdateError, match="galat 302"):
++        us.fetch_manifest(server + "/redir")
++    with pytest.raises(us.UpdateError, match="Belum ada"):
++        us.fetch_manifest(server + "/nope")
++    with pytest.raises(us.UpdateError, match="terlalu besar"):
++        us.check_for_update(lambda: us.fetch_manifest(server + "/huge"))
++
++
++def test_remote_plain_http_and_unreachable_servers_are_refused():
++    with pytest.raises(us.UpdateError, match="HTTPS"):
++        us.fetch_manifest("http://example.com/latest.json")
++    with pytest.raises(us.UpdateError, match="Tidak dapat menghubungi"):
++        us.fetch_manifest("http://127.0.0.1:9/latest.json")
++
++
++def test_default_url_points_at_the_project_repository():
++    assert us.DEFAULT_MANIFEST_URL == "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/latest.json"
++
++
++def test_nothing_in_the_package_contacts_the_update_server_on_its_own():
++    """The check must stay opt-in: only the menu action may import-and-call it."""
++    import pathlib
++    import re
++
++    root = pathlib.Path(us.__file__).resolve().parents[1]
++    callers = [p.name for p in root.rglob("*.py") if re.search(r"check_for_update\(|fetch_manifest\(", p.read_text(encoding="utf-8")) and p.name != "update_service.py"]
++    assert callers == ["main_window.py"], callers

@@ -1,0 +1,48 @@
+{
+  "app-id": "io.github.M_TamDre07.Sorot",
+  "runtime": "org.kde.Platform",
+  "runtime-version": "6.8",
+  "sdk": "org.kde.Sdk",
+  "base": "io.qt.PySide.BaseApp",
+  "base-version": "6.8",
+  "command": "sorot",
+  "rename-desktop-file": "sorot.desktop",
+  "rename-appdata-file": "sorot.metainfo.xml",
+  "rename-icon": "sorot",
+  "finish-args": [
+    "--share=ipc",
+    "--socket=x11",
+    "--socket=wayland",
+    "--device=dri",
+    "--share=network",
+    "--talk-name=org.freedesktop.secrets"
+  ],
+  "modules": [
+    {
+      "name": "sorot",
+      "buildsystem": "simple",
+      "build-commands": [
+        "pip3 install --verbose --exists-action=i --no-index --no-deps --prefix=${FLATPAK_DEST} --no-build-isolation sorot-0.8.0-py3-none-any.whl",
+        "mkdir -p src && tar -xzf sorot-0.8.0.tar.gz -C src --strip-components=1",
+        "install -Dm644 src/packaging/sorot.desktop ${FLATPAK_DEST}/share/applications/sorot.desktop",
+        "sed -e 's|<id>sorot</id>|<id>io.github.M_TamDre07.Sorot</id>|' -e 's|sorot.desktop|io.github.M_TamDre07.Sorot.desktop|' src/packaging/sorot.metainfo.xml > sorot.metainfo.xml",
+        "install -Dm644 sorot.metainfo.xml ${FLATPAK_DEST}/share/metainfo/sorot.metainfo.xml",
+        "install -Dm644 src/packaging/sorot.svg ${FLATPAK_DEST}/share/icons/hicolor/scalable/apps/sorot.svg",
+        "for s in 64 128 256; do install -Dm644 src/packaging/icons/sorot-$s.png ${FLATPAK_DEST}/share/icons/hicolor/${s}x${s}/apps/sorot.png; done",
+        "install -Dm644 src/LICENSE ${FLATPAK_DEST}/share/licenses/io.github.M_TamDre07.Sorot/LICENSE"
+      ],
+      "sources": [
+        {
+          "type": "file",
+          "path": "sorot-0.8.0.tar.gz",
+          "sha256": "8e1c37fed6c544dc5f4f15e5f0fcdb7ec9674f531ff3fb3a03451d7f3cab0279"
+        },
+        {
+          "type": "file",
+          "path": "sorot-0.8.0-py3-none-any.whl",
+          "sha256": "6d77dd3e1538005d60d290aa11bb7b2a3e32331bbbc5ade5ba0934b2257f856b"
+        }
+      ]
+    }
+  ]
+}
