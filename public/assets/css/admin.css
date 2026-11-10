@@ -83,3 +83,13 @@
 .admin-quality-card .admin-table-caption{display:block;margin:0;padding:10px 24px;white-space:normal;overflow-wrap:anywhere}
 .admin-quality-card code{font-size:10px;overflow-wrap:anywhere}
 @media(max-width:780px){.admin-quality-summary{grid-template-columns:repeat(2,minmax(0,1fr));padding:14px}}
+
+.admin-otp-card{max-width:560px;margin:28px auto;padding:clamp(22px,4vw,36px)}
+.admin-otp-controls{display:grid;gap:12px;margin-top:22px;padding:17px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.admin-otp-step{margin:0!important;color:var(--text)!important;font-size:12px!important;font-weight:700}
+.admin-otp-card .admin-login-form{margin-top:18px}
+.admin-otp-card .admin-login-form button{width:100%;justify-self:stretch}
+.admin-otp-card .btn{justify-content:center;text-align:center}
+.admin-telegram-link{width:max-content;max-width:100%;overflow-wrap:anywhere}
+.admin-otp-exit{margin-top:22px}
+.admin-otp-card [role=status]{min-height:1.5em}
