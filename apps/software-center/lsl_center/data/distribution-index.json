@@ -1,7 +1,7 @@
 {
   "$schema": "./distribution-index.schema.json",
   "schema_version": 1,
-  "updated_at": "2026-11-02",
+  "updated_at": "2026-11-10",
   "detection_policy": {
     "native_launcher": "Read /etc/os-release and detect architecture locally; never infer exact distro from browser user-agent.",
     "browser": "Detect only broad operating-system hints; ask users to choose the target distro manually.",
@@ -18,7 +18,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.7.3 Beta (testing) memiliki paket .deb. Lihat laporan versi untuk cakupan uji; ini bukan jaminan instalasi bersih pada semua turunan Debian."
+      "note": "Sorot 0.8.0 Beta (testing) memiliki paket .deb yang ditujukan untuk Debian 13. Instalasi bersih Debian 13 belum diverifikasi; baca laporan versi sebelum memasang."
     },
     {
       "id": "debian-13",
@@ -42,7 +42,7 @@
         "tar.gz",
         "zip"
       ],
-      "note": "Sorot 0.7.3 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO adalah metadata build eksperimental, bukan paket siap pasang. Target ini belum menjadi unduhan."
+      "note": "Sorot 0.8.0 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian pada Arch Linux. PKGBUILD/.SRCINFO hanya metadata build eksperimental, bukan paket siap pasang. Jangan tampilkan sebagai unduhan native Arch. Target ini belum menjadi unduhan."
     },
     {
       "id": "fedora",
@@ -129,14 +129,18 @@
         {
           "version": "0.7.3",
           "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.7.3/release.json"
+        },
+        {
+          "version": "0.8.0",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/releases/0.8.0/release.json"
         }
       ],
       "planned_targets": [
         {
           "distribution_id": "arch",
-          "version": "0.7.3",
+          "version": "0.8.0",
           "status": "planned",
-          "note": "Sorot 0.7.3 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian Arch. PKGBUILD/.SRCINFO adalah metadata build eksperimental, bukan paket siap pasang."
+          "note": "Sorot 0.8.0 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian pada Arch Linux. PKGBUILD/.SRCINFO hanya metadata build eksperimental, bukan paket siap pasang. Jangan tampilkan sebagai unduhan native Arch."
         }
       ]
     }
