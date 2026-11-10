@@ -5,7 +5,7 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-11-02"
+    "updatedAt": "2026-11-10"
   },
   "software": [
     {
@@ -62,15 +62,15 @@
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "0.7.3 Beta",
-      "summary": "Teleprompter desktop Linux dengan overlay, mode cermin, kontrol pemutaran, pengelolaan naskah, pemulihan data, dan sistem ekstensi.",
-      "description": "Sorot 0.7.3 Beta memperbaiki dialog dukungan dan metadata AppStream serta menambahkan bahan verifikasi dan panduan pembaruan repositori APT bertanda tangan. Pengujian tercatat: 586 tes pada Python 3.11 dan 3.13, GUI X11 virtual, dan Weston headless. Paket .deb dibatasi ke Debian 13; instalasi bersih Debian 13, Discover/repo hosting nyata, serta compositor GNOME/KDE pada desktop fisik belum diverifikasi. Arch belum memiliki paket .pkg.tar.zst yang tervalidasi. Status tetap testing, bukan stable.",
+      "version": "0.8.0 Beta",
+      "summary": "Teleprompter desktop Linux dengan overlay, mode cermin, editor naskah, impor dokumen, seret-lepas, pemulihan data, dan pemeriksaan pembaruan opsional.",
+      "description": "Sorot 0.8.0 Beta menambahkan impor DOCX, ODT, RTF, HTML, PDF, dan teks dengan deteksi encoding; seret-lepas dokumen; serta pemeriksaan pembaruan yang hanya berjalan atas permintaan pengguna. Pengujian tercatat: 652 tes lulus pada Python 3.11 dan 3.13, 135 tes GUI X11 virtual, serta 131 tes Wayland headless (4 dilewati karena lingkungan tanpa seat). Paket .deb tersedia untuk Debian 13 sebagai testing, tetapi instalasi bersih Debian 13 belum diverifikasi. RPM dibuat dengan --nodeps di Ubuntu dan belum dipasang di Fedora; manifes Flatpak tervalidasi tetapi paket belum dibangun. Arch belum memiliki paket .pkg.tar.zst. GNOME/KDE pada desktop fisik dan layanan AI/cloud nyata belum disahkan. Status tetap Beta/testing, bukan stable.",
       "category": "Produktivitas",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Debian 13 (paket .deb testing; instalasi bersih belum diverifikasi)",
-        "Linux desktop (X11 virtual dan Wayland headless diuji; desktop nyata belum diverifikasi)"
+        "Debian 13 (paket .deb Beta/testing; instalasi bersih belum diverifikasi)",
+        "Linux desktop (GUI X11 virtual dan Wayland headless diuji; compositor desktop fisik belum diverifikasi)"
       ],
       "tags": [
         "Python",
@@ -78,6 +78,8 @@
         "Teleprompter",
         "Overlay",
         "Mirror mode",
+        "DOCX / ODT / PDF",
+        "Drag & Drop",
         "X11",
         "Wayland",
         "Extensions"
@@ -85,19 +87,27 @@
       "keywords": [
         "teleprompter linux",
         "sorot",
-        "membaca naskah",
+        "impor dokumen",
+        "DOCX",
+        "ODT",
+        "RTF",
+        "HTML",
+        "PDF",
+        "seret lepas",
         "presentasi",
-        "rekaman video",
+        "naskah",
         "overlay teks"
       ],
       "features": [
         "Editor naskah dan pengelolaan dokumen teleprompter",
+        "Impor DOCX, ODT, RTF, HTML, PDF, dan teks dengan deteksi encoding",
+        "Seret-lepas dokumen yang didukung ke aplikasi",
         "Overlay dengan kontrol pemutaran, jeda, kecepatan, dan hitung mundur",
         "Mode cermin dengan tes regresi pada Qt",
         "Validasi konfigurasi, profil, dan input ekstensi",
         "Penyimpanan dan pemulihan cadangan dengan jalur rollback",
-        "Metadata AppStream serta arsip dan checksum per versi",
-        "Panduan pembaruan APT bertanda tangan; hosting dan kunci produksi tetap dikelola maintainer",
+        "Pemeriksaan pembaruan HTTPS yang bersifat opt-in; tidak mengunduh atau memasang otomatis",
+        "Paket RPM dibangun dan manifes Flatpak divalidasi, tetapi belum disahkan melalui instalasi distro sasaran",
         "Pengujian GUI X11 virtual dan Wayland headless; compositor desktop nyata masih perlu diuji"
       ],
       "detailUrl": "/software/sorot.html",
@@ -107,7 +117,7 @@
       "iconImage": "/assets/images/sorot-icon.svg",
       "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
-      "updatedAt": "2026-11-02"
+      "updatedAt": "2026-11-10"
     }
   ]
 }
