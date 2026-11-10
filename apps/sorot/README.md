@@ -4,18 +4,19 @@ Sorot is a native Linux desktop teleprompter. Its existing interface, text workf
 
 ## Current archived versions
 
-The latest indexed build is **Sorot 0.7.0 Beta/testing**. Its Debian package is listed for the Debian family only. It is not a stable release, and the included test report documents important limits: Qt GUI changes were not tested with real PySide6/pytest in the packaging environment, and clean Debian 13/Arch installations are not certified.
+The latest indexed build is **Sorot 0.8.0 Beta/testing**. It is not a stable release. The .deb artifact is targeted to Debian 13; a clean Debian 13 installation has not yet been verified. RPM packaging was built with --nodeps on Ubuntu but not installed on Fedora. The Flatpak manifest was validated but the Flatpak package was not built. Arch remains a planned target without a published .pkg.tar.zst artifact.
 
-- [Sorot 0.7.0 Debian package](releases/0.7.0/sorot_0.7.0_all.deb)
-- [Sorot 0.7.0 source tar.gz](releases/0.7.0/sorot-0.7.0.tar.gz)
-- [Sorot 0.7.0 source ZIP](releases/0.7.0/sorot-0.7.0.zip)
-- [Sorot 0.7.0 SHA-256 checksums](releases/0.7.0/SHA256SUMS)
-- [Sorot 0.7.0 manifest](releases/0.7.0/release.json)
-- [Sorot 0.7.0 test report](releases/0.7.0/TEST-REPORT.md)
-- [Previous version archive](releases/0.6.0/)
+- [Sorot 0.8.0 Debian package](releases/0.8.0/sorot_0.8.0_all.deb)
+- [Sorot 0.8.0 source tar.gz](releases/0.8.0/sorot-0.8.0.tar.gz)
+- [Sorot 0.8.0 source ZIP](releases/0.8.0/sorot-0.8.0.zip)
+- [Sorot 0.8.0 Python wheel](releases/0.8.0/sorot-0.8.0-py3-none-any.whl)
+- [Sorot 0.8.0 SHA-256 checksums](releases/0.8.0/SHA256SUMS)
+- [Sorot 0.8.0 manifest](releases/0.8.0/release.json)
+- [Sorot 0.8.0 test report](releases/0.8.0/TEST-REPORT.md)
 - [Complete version index](releases/index.json)
+- [Previous version archive](releases/0.7.3/)
 
-See [the release archive guide](releases/README.md) for the release process. The website and terminal helper read the shared version index; GitHub Actions syncs the website catalogue after a release-index change. There is no need to manually integrate every new version in a second place.
+See [the release archive guide](releases/README.md) for the immutable version process. The website and terminal helper read the shared version index; the website catalogue and offline Software Center distribution index are generated from that canonical metadata.
 
 For distro selection, verified download links, and the terminal helper, see [DISTRIBUTION.md](DISTRIBUTION.md).
 
@@ -34,10 +35,10 @@ The separate process used for code extensions protects application stability; **
 
 ## Installation
 
-Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.7.0 package file:
+Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.8.0 package file:
 
 ~~~bash
-sudo apt install ./sorot_0.7.0_all.deb
+sudo apt install ./sorot_0.8.0_all.deb
 ~~~
 
 For a move back to an older version, first select that version's directory, verify its SHA-256 checksums, back up scripts and other important data, and install its package. If APT blocks a downgrade, use the explicit downgrade option:
@@ -52,23 +53,18 @@ The source tar.gz and ZIP archives are version-specific snapshots for reviewing 
 
 ## Test status and limitations
 
-The report for version 0.5.0 records 378 automated tests passed on Ubuntu 24.04 x86_64, Python 3.12.3, and PySide6 6.12.0, along with reproducible artifacts from two consecutive builds. This is the project's recorded report, not a universal compatibility guarantee.
+The 0.8.0 report records **652 passing automated tests** on each of Python 3.11 and 3.13. It also records 135 GUI tests passing on X11 (Xvfb + openbox) and 131 passing on headless Wayland (Weston), with four focus/clipboard tests skipped because the headless compositor has no seat. Linting and reproducible artifact builds were also reported clean.
 
-The following have not been confirmed by that report:
+These results are scoped to Ubuntu 24.04.5 x86_64 in a container. They do not certify a physical GNOME/KDE desktop, clean Debian 13 installation, Fedora RPM installation, Arch installation, or a built/installed Flatpak. Real AI/cloud integrations, accessibility with screen readers, and third-party extension compatibility still require manual testing.
 
-- Clean installation and dependency resolution on Debian 13.
-- Actual compositor behavior in real KDE Plasma Wayland/XWayland or X11 sessions, including always-on-top, click-through, dragging, multi-monitor, and fullscreen behavior.
-- Real AI provider, rclone/Google Drive, and keyring integration.
-- Third-party extension compatibility and screen-reader accessibility.
-
-See the [0.5.0 test report](releases/0.5.0/TEST-REPORT.md) for the test scope and known limitations.
+See the [0.8.0 test report](releases/0.8.0/TEST-REPORT.md) for the exact test scope and outstanding checks. The report is test evidence, not a universal compatibility guarantee.
 
 ## Integrity and maintenance
 
 Verify the artifacts in a version folder by running:
 
 ~~~bash
-cd apps/sorot/releases/0.7.0
+cd apps/sorot/releases/0.8.0
 sha256sum -c SHA256SUMS
 ~~~
 
