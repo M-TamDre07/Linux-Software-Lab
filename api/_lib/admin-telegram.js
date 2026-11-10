@@ -144,14 +144,13 @@ async function ensureTelegramWebhook(config, botId) {
     throw new Error('TELEGRAM_WEBHOOK_CONFLICT');
   }
 
-  if (!currentUrl) {
-    await telegramRequest(config, 'setWebhook', {
-      url: PRODUCTION_WEBHOOK_URL,
-      secret_token: telegramWebhookSecret(config.botToken),
-      allowed_updates: ['message', 'chat_member'],
-      drop_pending_updates: false,
-    });
-  }
+  // Always set the expected secret token, including when the URL was already configured.
+  await telegramRequest(config, 'setWebhook', {
+    url: PRODUCTION_WEBHOOK_URL,
+    secret_token: telegramWebhookSecret(config.botToken),
+    allowed_updates: ['message', 'chat_member'],
+    drop_pending_updates: false,
+  });
 }
 
 async function sendTelegramMessage(config, chatId, text) {
