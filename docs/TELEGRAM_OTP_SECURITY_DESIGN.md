@@ -1,6 +1,6 @@
 # LISO LAB — Telegram OTP
 
-Status: implemented in `feat/admin-telegram-otp`; production rollout is pending the reviewed merge and Vercel deployment.
+Status: merged to `main`; the Supabase production migration is applied and the Vercel Production deployment is READY. End-to-end Telegram delivery and browser login still require a live administrator test.
 
 ## Flow
 
