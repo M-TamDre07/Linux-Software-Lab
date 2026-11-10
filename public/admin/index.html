@@ -64,6 +64,31 @@
       <p class="admin-small-note">Belum terdaftar sebagai admin? Lihat panduan bootstrap akses di dokumentasi repository. Tidak ada pendaftaran admin publik.</p>
     </section>
 
+    <section class="admin-login-card admin-otp-card" id="otpPanel" aria-labelledby="otpTitle" hidden>
+      <div class="admin-section-kicker">SECOND-FACTOR VERIFICATION</div>
+      <h2 id="otpTitle">Verifikasi melalui Telegram</h2>
+      <p id="otpInstruction">Akses dashboard memerlukan verifikasi kedua. Akun Telegram harus terhubung dan masih menjadi anggota grup admin LISO LAB.</p>
+      <div id="telegramPairingControls" class="admin-otp-controls" hidden>
+        <p class="admin-otp-step">1. Tautkan akun Telegram yang akan menerima kode.</p>
+        <button class="btn btn-primary" id="startTelegramLinkButton" type="button">Buat tautan Telegram</button>
+        <a class="btn btn-secondary admin-telegram-link" id="telegramPairingLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Buka bot Telegram ↗</a>
+        <p class="admin-small-note">Di Telegram, buka percakapan bot dan tekan <strong>Start</strong>. Setelah bot mengonfirmasi tautan, kembali ke halaman ini.</p>
+        <button class="btn btn-secondary" id="refreshTelegramLinkButton" type="button" hidden>Saya sudah menekan Start</button>
+      </div>
+      <div id="telegramOtpControls" class="admin-otp-controls" hidden>
+        <p class="admin-otp-step">2. Minta kode OTP dikirim ke percakapan pribadi bot LISO LAB.</p>
+        <button class="btn btn-primary" id="requestTelegramOtpButton" type="button">Kirim kode OTP</button>
+      </div>
+      <form id="telegramOtpForm" class="admin-login-form" hidden>
+        <label for="telegramOtpCode">Kode OTP Telegram</label>
+        <input id="telegramOtpCode" name="otp" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required>
+        <button class="btn btn-primary" id="verifyTelegramOtpButton" type="submit">Verifikasi dan buka dashboard</button>
+        <button class="btn btn-secondary" id="resendTelegramOtpButton" type="button">Kirim ulang kode</button>
+      </form>
+      <button class="btn btn-secondary admin-otp-exit" id="cancelOtpButton" type="button">Keluar dari sesi admin</button>
+      <p class="admin-small-note" id="otpExpiryNote" role="status" aria-live="polite">Kode OTP berlaku singkat dan hanya dapat digunakan sekali.</p>
+    </section>
+
     <section id="dashboardPanel" hidden aria-labelledby="dashboardTitle">
       <div class="admin-toolbar">
         <div>

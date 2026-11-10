@@ -89,6 +89,86 @@
     $('#qualityReportStatus').textContent = 'Sesi tidak aktif';
   };
 
+  const otpPanel = $('#otpPanel');
+  const otpMessage = $('#otpInstruction');
+  const otpForm = $('#telegramOtpForm');
+  const otpCode = $('#telegramOtpCode');
+  const otpPairingControls = $('#telegramPairingControls');
+  const otpControls = $('#telegramOtpControls');
+  const pairingLink = $('#telegramPairingLink');
+  const otpExpiryNote = $('#otpExpiryNote');
+
+  const otpRequest = async (action, payload = {}) => {
+    await freshSession();
+    const call = async () => {
+      const response = await fetch('/api/admin-telegram-otp', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + session.access_token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ action, ...payload }),
+        cache: 'no-store',
+        credentials: 'omit',
+        redirect: 'error',
+      });
+      const raw = await response.text();
+      let result = null;
+      try { result = raw ? JSON.parse(raw) : null; } catch (_) {}
+      if (!response.ok) {
+        const error = new Error(result && result.error ? result.error : 'Verifikasi Telegram gagal.');
+        error.status = response.status;
+        throw error;
+      }
+      return result;
+    };
+    try {
+      return await call();
+    } catch (error) {
+      if (error.status !== 401) throw error;
+      await refreshSession();
+      return call();
+    }
+  };
+
+  const showOtpPanel = (linked) => {
+    loginPanel.hidden = true;
+    dashboardPanel.hidden = true;
+    otpPanel.hidden = false;
+    otpPairingControls.hidden = linked;
+    otpControls.hidden = !linked;
+    otpForm.hidden = true;
+    pairingLink.hidden = true;
+    otpMessage.textContent = linked
+      ? 'Akun Telegram telah ditautkan. Minta kode OTP, lalu masukkan enam digit yang dikirim bot ke chat pribadi.'
+      : 'Tautkan akun Telegram terlebih dahulu. Kode hanya dikirim ke akun yang terdaftar dan menjadi anggota grup admin.';
+  };
+
+  const checkOtpStatus = async () => {
+    const result = await otpRequest('status');
+    if (!result || typeof result.linked !== 'boolean' || typeof result.verified !== 'boolean') {
+      throw new Error('Status OTP tidak valid.');
+    }
+    return result;
+  };
+
+  const continueAfterPassword = async () => {
+    await verifyAdmin();
+    const state = await checkOtpStatus();
+    if (state.verified) {
+      otpPanel.hidden = true;
+      loginPanel.hidden = true;
+      dashboardPanel.hidden = false;
+      await loadCatalog();
+      return;
+    }
+    showOtpPanel(state.linked);
+    setMessage(state.linked
+      ? 'Password benar. Verifikasi kedua melalui Telegram diperlukan sebelum dashboard dibuka.'
+      : 'Password benar. Hubungkan akun Telegram terlebih dahulu untuk mengaktifkan OTP.', 'info');
+  };
+
   const apiUrl = (path) => {
     if (!config || typeof config.url !== 'string' || typeof config.publishableKey !== 'string') {
       throw new Error('Konfigurasi Supabase tidak tersedia.');
@@ -432,10 +512,7 @@
 
   const showDashboard = async () => {
     if (!session) throw new Error('Sesi tidak tersedia.');
-    await verifyAdmin();
-    loginPanel.hidden = true;
-    dashboardPanel.hidden = false;
-    await loadCatalog();
+    await continueAfterPassword();
   };
 
   loginForm.addEventListener('submit', async (event) => {
@@ -468,18 +545,123 @@
         user: { id: result.user.id, email: result.user.email || email },
       });
       await showDashboard();
+      loginForm.reset();
     } catch (error) {
-      clearSession();
-      dashboardPanel.hidden = true;
-      loginPanel.hidden = false;
-      setMessage(error.code === 'NOT_ADMIN'
-        ? 'Login berhasil, tetapi akun belum tercatat sebagai admin aktif. Ikuti panduan bootstrap di docs/ADMIN_DASHBOARD.md.'
-        : error.status === 400 || error.status === 401
-          ? 'Login gagal. Periksa email dan kata sandi, lalu coba lagi.'
-          : 'Akses admin gagal diverifikasi. Periksa konfigurasi Supabase Auth dan kebijakan RLS.', 'error');
+      if (session && error.code !== 'NOT_ADMIN' && error.status !== 400 && error.status !== 401) {
+        try {
+          await verifyAdmin();
+          const state = await checkOtpStatus();
+          showOtpPanel(state.linked);
+          setMessage(error.message || 'Verifikasi Telegram belum selesai.', 'error');
+        } catch (_) {
+          clearSession();
+          otpPanel.hidden = true;
+          dashboardPanel.hidden = true;
+          loginPanel.hidden = false;
+          setMessage('Login atau pemeriksaan akses gagal. Periksa akun admin dan konfigurasi layanan.', 'error');
+        }
+      } else {
+        clearSession();
+        otpPanel.hidden = true;
+        dashboardPanel.hidden = true;
+        loginPanel.hidden = false;
+        setMessage(error.code === 'NOT_ADMIN'
+          ? 'Login berhasil, tetapi akun belum tercatat sebagai admin aktif. Ikuti panduan bootstrap di docs/ADMIN_DASHBOARD.md.'
+          : error.status === 400 || error.status === 401
+            ? 'Login gagal. Periksa email dan kata sandi, lalu coba lagi.'
+            : 'Akses admin gagal diverifikasi. Periksa konfigurasi Supabase Auth dan kebijakan RLS.', 'error');
+      }
     } finally {
       setBusy(false);
     }
+  });
+
+  $('#startTelegramLinkButton').addEventListener('click', async () => {
+    const button = $('#startTelegramLinkButton');
+    button.disabled = true;
+    try {
+      const result = await otpRequest('start-link');
+      if (result.linked) {
+        showOtpPanel(true);
+        setMessage('Akun Telegram sudah tertaut. Silakan minta kode OTP.', 'success');
+      } else if (result.telegramUrl) {
+        pairingLink.href = result.telegramUrl;
+        pairingLink.hidden = false;
+        $('#refreshTelegramLinkButton').hidden = false;
+        otpExpiryNote.textContent = 'Tautan berlaku 10 menit. Buka bot dan tekan Start untuk menautkan akun.';
+        setMessage('Tautan Telegram dibuat. Selesaikan langkah di Telegram, lalu perbarui status tautan.', 'success');
+      } else {
+        throw new Error('Bot tidak mengembalikan tautan penautan.');
+      }
+    } catch (error) {
+      setMessage(error.message || 'Tautan Telegram gagal dibuat.', 'error');
+    } finally { button.disabled = false; }
+  });
+
+  $('#refreshTelegramLinkButton').addEventListener('click', async () => {
+    const button = $('#refreshTelegramLinkButton');
+    button.disabled = true;
+    try {
+      const state = await checkOtpStatus();
+      if (state.linked) {
+        showOtpPanel(true);
+        setMessage('Akun Telegram berhasil ditautkan. Lanjutkan dengan meminta OTP.', 'success');
+      } else {
+        setMessage('Tautan belum dikonfirmasi oleh bot. Pastikan kamu menekan Start pada chat pribadi bot.', 'info');
+      }
+    } catch (error) { setMessage(error.message || 'Status tautan belum dapat diperiksa.', 'error'); }
+    finally { button.disabled = false; }
+  });
+
+  $('#requestTelegramOtpButton').addEventListener('click', async () => {
+    const button = $('#requestTelegramOtpButton');
+    button.disabled = true;
+    try {
+      await otpRequest('send-otp');
+      otpForm.hidden = false;
+      otpCode.focus();
+      otpExpiryNote.textContent = 'Kode berlaku 5 menit, maksimal 5 percobaan, dan hanya dapat digunakan satu kali.';
+      setMessage('Kode OTP dikirim ke chat pribadi Telegram yang telah ditautkan.', 'success');
+    } catch (error) { setMessage(error.message || 'Kode OTP tidak dapat dikirim.', 'error'); }
+    finally { button.disabled = false; }
+  });
+
+  otpForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = $('#verifyTelegramOtpButton');
+    const code = otpCode.value.trim();
+    if (!/^[0-9]{6}$/.test(code)) {
+      setMessage('Masukkan enam digit kode OTP.', 'error');
+      return;
+    }
+    button.disabled = true;
+    try {
+      await otpRequest('verify-otp', { code });
+      otpCode.value = '';
+      otpPanel.hidden = true;
+      loginPanel.hidden = true;
+      dashboardPanel.hidden = false;
+      setMessage('Verifikasi Telegram berhasil. Dashboard admin telah dibuka.', 'success');
+      await loadCatalog();
+    } catch (error) {
+      setMessage(error.message || 'Kode OTP tidak valid atau kedaluwarsa.', 'error');
+    } finally { button.disabled = false; }
+  });
+
+  $('#resendTelegramOtpButton').addEventListener('click', async () => {
+    $('#requestTelegramOtpButton').click();
+  });
+
+  $('#cancelOtpButton').addEventListener('click', async () => {
+    try { await otpRequest('revoke-session'); } catch (_) {}
+    try { if (session && session.access_token) await request('/auth/v1/logout?scope=local', { method: 'POST' }, session.access_token); } catch (_) {}
+    clearSession();
+    clearDashboardData();
+    otpPanel.hidden = true;
+    dashboardPanel.hidden = true;
+    loginPanel.hidden = false;
+    loginForm.reset();
+    setMessage('Sesi admin telah ditutup.');
   });
 
   refreshButton.addEventListener('click', () => { void loadCatalog(); });
@@ -493,8 +675,10 @@
     } catch (_) {
       // Always clear browser-held tokens even if network revocation cannot be confirmed.
     } finally {
+      try { if (closingSession && closingSession.access_token) await fetch('/api/admin-telegram-otp', { method: 'POST', headers: { 'Authorization': 'Bearer ' + closingSession.access_token, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'revoke-session' }), cache: 'no-store', credentials: 'omit' }); } catch (_) {}
       clearSession();
       clearDashboardData();
+      otpPanel.hidden = true;
       dashboardPanel.hidden = true;
       loginPanel.hidden = false;
       loginForm.reset();
