@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.8.0",
+  "channel": "beta",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.8.0/TEST-REPORT.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.8.0/TEST-REPORT.md",
+  "architecture_note": "Sorot 0.8.0 Beta diuji pada Ubuntu 24.04.5 x86_64 di container. Suite mencatat 652 tes lulus pada Python 3.11 dan 3.13; 135 tes GUI X11 virtual lulus dan 131 tes Wayland headless lulus (4 dilewati karena compositor tanpa seat). Paket .deb ditujukan untuk Debian 13, tetapi instalasi bersih Debian 13 belum dilakukan. RPM dibangun dengan --nodeps di Ubuntu dan belum dipasang di Fedora; manifes Flatpak tervalidasi tetapi paket Flatpak belum dibangun. Arch hanya memiliki metadata build eksperimental, bukan paket .pkg.tar.zst. GNOME/KDE pada desktop fisik belum disahkan. Status tetap Beta/testing.",
+  "artifacts": [
+    {
+      "file": "sorot_0.8.0_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "minimum_os": "Debian 13",
+      "sha256": "d66f6600e7642f43936449cb74ed0cca6ac9cd4caa4b8554fe2e3c89d8176a9c"
+    },
+    {
+      "file": "sorot-0.8.0.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "8e1c37fed6c544dc5f4f15e5f0fcdb7ec9674f531ff3fb3a03451d7f3cab0279"
+    },
+    {
+      "file": "sorot-0.8.0.zip",
+      "kind": "source-archive",
+      "format": "zip",
+      "architecture": "all",
+      "sha256": "d152b9e57ae4d09a0f750691629211a84ea55307a436fbeb13302f0b30637ef8"
+    },
+    {
+      "file": "sorot-0.8.0-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "sha256": "6d77dd3e1538005d60d290aa11bb7b2a3e32331bbbc5ade5ba0934b2257f856b"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}
