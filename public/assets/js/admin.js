@@ -47,7 +47,7 @@
         && typeof parsed.authenticated_at === 'number'
         && Number.isFinite(parsed.authenticated_at)
         && parsed.authenticated_at <= now
-        && now - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS;
+        && Math.floor(Date.now() / 1000) - parsed.authenticated_at < SESSION_MAX_AGE_SECONDS;
       if (!valid) {
         discardStoredSession();
         return null;
