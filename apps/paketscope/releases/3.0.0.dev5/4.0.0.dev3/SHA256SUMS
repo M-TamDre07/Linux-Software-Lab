@@ -1,0 +1,12 @@
+cb2c7ad35d1e6ea474fa7f82322fd05a7ddc953cfc5d8a758f55424ed7e8cf02  patches/0001-PaketScope-work-on-the-140c2a9-base-integrity-admin-.patch
+defed31b89603009559cc701d32aa91570d7ba8f77b8ec9ba1f11c48a6327ed8  patches/0002-PaketScope-4.0.0.dev1-version-policy-accessibility-s.patch
+a6e60f6f3d85cf87961fd2391b0d625cafa73a88196bb6801ea50af200e8bd7c  patches/0003-PaketScope-4.0.0.dev1-version-bump-accessibility-set.patch
+2264f2909f6567decf2caf2946a149a33e65510f0669e792a0975f17cf0cf4b0  patches/0004-PaketScope-4.0.0.dev1-desktop-entry-discovery-AppIma.patch
+7330273ca4c258d3d30cb3e172365aed0103d2b7a2466e5138155a94b5100758  patches/0005-PaketScope-4.0.0.dev2-integrity-audit-of-APT-sources.patch
+2466aceab756d52e53f1ea80a89999685a86e5ca3169706e5c42983fbe56275f  patches/0006-PaketScope-4.0.0.dev3-local-assistant-with-fixed-pol.patch
+20910478204cd9db0711b84bf9f14fdf118e327e3f714b7d19e7e44f24b96af4  paketscope-v4-dev3.bundle
+a5ecf82d7cbcf028e57527d496b9eadd231acf73c85419f4f6f0d29dc828048a  apps-paketscope-4.0.0.dev3-sumber.tar.gz
+f12d522ed178faa54acdac664e28611e941b2d5ccb6553b86f8091d4137e4f74  paketscope_4.0.0~dev3-1_all.deb
+79c800d428fe54cff7d2d62a50a5017cdcb9cdb55f538753caa54b1f5e1b9109  BOT-LOKAL.md
+e1f169608df8bd40883c8f52d5c7a67413dba80d275a458a51450905ff3532dd  HASIL-DEV3.md
+f8163832ab2dce4f02eb24742e0047e6b7ca011b400b6dbfa60b3d86965ca92e  UNGGAH-KE-GITHUB.md
