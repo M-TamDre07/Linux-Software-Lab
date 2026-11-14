@@ -2,12 +2,12 @@
 <html lang="id" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark">
-<title>PaketScope 3 — Native Linux software inventory | LISO LAB</title>
-<meta name="description" content="PaketScope 3 adalah pengelola aplikasi Linux open-source yang sedang dikembangkan, dengan detail fungsi dan asal paket, penghapusan terjaga, inventaris APT/Flatpak, dan System & Code Lab.">
+<title>PaketScope 4.0.0.dev3 — Pengelola software Linux | LISO LAB</title>
+<meta name="description" content="PaketScope 4.0.0.dev3 adalah pratinjau pengembangan pengelola software Linux dengan kebijakan izin tetap, asisten lokal berbasis aturan, dan autopilot baca-saja.">
 <meta name="author" content="Muhammad Andreatama">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://linux-software-lab.vercel.app/software/paketscope.html">
-<meta property="og:type" content="website"><meta property="og:title" content="PaketScope 3 — Linux Software Lab"><meta property="og:description" content="Detail fungsi dan asal paket, tindakan APT terjaga, serta alat inspeksi lokal yang dapat dikembangkan."><meta property="og:url" content="https://linux-software-lab.vercel.app/software/paketscope.html">
+<meta property="og:type" content="website"><meta property="og:title" content="PaketScope 4.0.0.dev3 — Linux Software Lab"><meta property="og:description" content="Versi pengembangan dengan asisten lokal, kebijakan alat yang tervalidasi, dan unduhan yang disertai checksum."><meta property="og:url" content="https://linux-software-lab.vercel.app/software/paketscope.html">
 <meta property="og:site_name" content="Linux Software Lab">
 <meta property="og:image" content="https://linux-software-lab.vercel.app/assets/images/linux-software-lab-social.svg">
 <meta property="og:image:type" content="image/svg+xml">
@@ -15,8 +15,8 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Ilustrasi editorial Linux Software Lab dengan pratinjau konsep PaketScope; bukan screenshot aplikasi rilis.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="PaketScope 3 — Linux Software Lab">
-<meta name="twitter:description" content="Detail fungsi dan asal paket, tindakan APT terjaga, serta alat inspeksi lokal yang dapat dikembangkan.">
+<meta name="twitter:title" content="PaketScope 4.0.0.dev3 — Linux Software Lab">
+<meta name="twitter:description" content="Versi pengembangan dengan asisten lokal, kebijakan alat yang tervalidasi, dan unduhan yang disertai checksum.">
 <meta name="twitter:image" content="https://linux-software-lab.vercel.app/assets/images/linux-software-lab-social.svg"><meta property="og:locale" content="id_ID">
 <link rel="icon" href="/assets/images/paketscope-icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,39 +64,31 @@
 <section class="hero detail-hero"><div class="container detail-layout">
 <div class="detail-copy">
 <a class="eyebrow" href="/software/">← KEMBALI KE KATALOG</a>
-<div class="detail-title-row"><img class="detail-icon" src="/assets/images/paketscope-icon.svg" alt="" width="72" height="72"><span class="detail-category">01 / PENGELOLAAN APLIKASI · V3</span></div>
+<div class="detail-title-row"><img class="detail-icon" src="/assets/images/paketscope-icon.svg" alt="" width="72" height="72"><span class="detail-category">01 / PENGELOLAAN APLIKASI · V4</span></div>
 <h1>Inventaris <span>Linux yang lebih jelas.</span></h1>
-<p class="hero-lead">PaketScope 3 dikembangkan sebagai pengelola software Linux dengan target paket awal Debian 13 (Trixie), yang membantu pengguna memahami apa yang terpasang, fungsi dan jenis paketnya, serta asal yang dapat diketahui dari metadata lokal. Detail APT membedakan repositori yang saat ini menyediakan versi terpasang dari asal historis yang belum tentu dapat dibuktikan. Tindakan remove/purge dijaga agar tidak mencakup paket tambahan atau komponen sistem prioritas tinggi. Source inventory dapat dikembangkan dengan provider eksplisit. System &amp; Code Lab tetap read-only secara default; Flatpak belum dapat dipasang atau dihapus dari aplikasi.</p>
-<div class="hero-actions"><span class="status-badge">Testing · dev5</span><a class="btn btn-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>Unduh .deb ↗</a><a class="btn btn-secondary" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope/releases/3.0.0.dev5" target="_blank" rel="noopener noreferrer">Semua aset & checksum ↗</a><a class="btn btn-secondary" href="/software/">Katalog</a></div>
-<p class="detail-disclaimer">Status: pratinjau pengembangan. Paket dev5 berhasil dibangun, dipasang, diperiksa, dan di-purge pada container CI Debian 13. Status tetap testing; interaksi GUI/Polkit di desktop nyata, tanda tangan rilis produksi, dan audit keamanan independen belum diverifikasi.</p>
+<p class="hero-lead">PaketScope 4.0.0.dev3 adalah paket pengembangan yang memperluas fondasi inventaris dan kontrol APT dengan kebijakan izin tetap, registri alat berargumen tervalidasi, asisten lokal berbasis aturan/kata kunci, serta autopilot yang dibatasi pada pemeriksaan baca-saja. Belum ada LLM atau antarmuka chat; kontainer belum dijalankan dan sandbox Flatpak belum dibangun. Paket .deb ditargetkan untuk Debian 13, tetapi instalasi bersih dan interaksi desktop fisik belum diverifikasi.</p>
+<div class="hero-actions"><span class="status-badge">Testing · 4.0.0.dev3</span><a class="btn btn-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/paketscope_4.0.0%7Edev3-1_all.deb" download>Unduh PaketScope .deb · 4.0.0.dev3 ↗</a><a class="btn btn-secondary" href="#install-status">Semua versi &amp; checksum ↗</a><a class="btn btn-secondary" href="/software/">Katalog</a></div>
+<p class="detail-disclaimer">Status testing, bukan rilis stable. Paket 4.0.0.dev3 berasal dari artefak unggahan pengembangan; laporan 375 tes dilakukan di sandbox Ubuntu, bukan instalasi desktop Debian 13. Periksa checksum dan catatan versi sebelum mencoba.</p>
 </div>
-<div class="detail-art"><div class="detail-art-top"><span>PAKETSCOPE / V3</span><span>INTERFACE STUDY · 01</span></div><img src="/assets/images/paketscope-preview.svg" alt="Ilustrasi konsep antarmuka inventaris PaketScope, bukan tangkapan layar aplikasi yang dirilis." width="960" height="600"><div class="detail-art-caption"><span>ORIGINAL CONCEPT ART</span><span>LINUX SOFTWARE LAB</span></div></div>
+<div class="detail-art"><div class="detail-art-top"><span>PAKETSCOPE / V4 DEV PREVIEW</span><span>INTERFACE STUDY · 01</span></div><img src="/assets/images/paketscope-preview.svg" alt="Ilustrasi konsep antarmuka inventaris PaketScope, bukan tangkapan layar aplikasi yang dirilis." width="960" height="600"><div class="detail-art-caption"><span>ORIGINAL CONCEPT ART</span><span>LINUX SOFTWARE LAB</span></div></div>
 </div></section>
 
-<section class="section section-alt" id="install-status">
-  <div class="container install-panel">
-    <div class="install-copy">
-      <span class="eyebrow">PAKETSCOPE 3.0.0.dev5 · TESTING</span>
-      <h2>Paket pengujian tersedia.</h2>
-      <p>Artefak dev5 sudah disimpan di repositori. Workflow CI berhasil membangun, memasang melalui APT, memeriksa, dan me-purge paket pada container Debian 13 (Trixie). Ini menguji jalur packaging dan dependensi di image CI; uji interaksi GUI/Polkit pada sesi desktop pengguna belum dilakukan.</p>
-      <span class="install-state">Status testing · bukan rilis stable</span>
-      <p class="install-followup">Jangan menganggap kompatibilitas sudah terjamin. Periksa laporan pengujian dan checksum sebelum menggunakan artefak. Uji instalasi pada VM atau sistem cadangan yang dapat dipulihkan, bukan perangkat utama.</p>
-      <p><a class="btn btn-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>Unduh PaketScope .deb ↗</a></p>
-    </div>
-    <aside class="terminal-note" aria-label="Artefak PaketScope dev5">
-      <div class="terminal-note-head"><span>PAKETSCOPE 3.0.0.dev5</span><span>ARTIFACTS</span></div>
-      <div class="terminal-command">
-        <p><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>paketscope_3.0.0~dev5-1_all.deb</a></p>
-        <p><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope-3.0.0.dev5.tar.gz" download>Source archive (.tar.gz)</a></p>
-        <p><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope-3.0.0.dev5-py3-none-any.whl" download>Python wheel (.whl)</a></p>
-        <p><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/3.0.0.dev5/SHA256SUMS" target="_blank" rel="noopener noreferrer">SHA256SUMS</a></p>
-        <p><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/3.0.0.dev5/TEST-REPORT.md" target="_blank" rel="noopener noreferrer">Laporan pengujian</a></p>
-        <p><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/3.0.0.dev5/UPGRADING.md" target="_blank" rel="noopener noreferrer">Panduan upgrade</a></p>
-      </div>
-      <div class="terminal-state">Arch dan Fedora tidak didukung. Paket .deb belum ditandatangani dengan kunci rilis. Verifikasi checksum dengan SHA256SUMS sebelum penggunaan.</div>
-    </aside>
-  </div>
-</section>
+
+<section class="section section-alt paketscope-downloads" id="install-status"><div class="container">
+<div class="section-heading"><div><span class="eyebrow">UNDUHAN &amp; ARSIP VERSI</span><h2>Paket pengujian tersedia.</h2></div><p>Pilih paket berdasarkan versi dan format. Versi pengembangan ditampilkan dengan status serta batas pengujiannya; halaman ini tidak memasang software secara otomatis.</p></div>
+<article class="paketscope-release-card paketscope-release-latest">
+<div class="paketscope-release-heading"><div class="paketscope-release-brand"><img src="/assets/images/paketscope-icon.svg" alt="" width="56" height="56" loading="lazy"><div><span class="paketscope-release-kicker">VERSI TERBARU · DEVELOPMENT</span><h3>PaketScope 4.0.0.dev3</h3><p>Debian package · Source archive · Git bundle</p></div></div><span class="paketscope-release-status">TESTING · BUKAN STABLE</span></div>
+<p class="paketscope-release-notice">Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih. Pengujian tersebut dijalankan di sandbox Ubuntu, bukan instalasi bersih atau desktop fisik Debian 13. Asisten masih berbasis aturan/kata kunci (belum menggunakan LLM dan belum memiliki antarmuka chat); kontainer belum dijalankan dan sandbox Flatpak belum dibangun.</p>
+<div class="paketscope-artifact-grid">
+<a class="paketscope-artifact-link is-primary" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/paketscope_4.0.0%7Edev3-1_all.deb" download><span class="paketscope-artifact-format">PAKET DEBIAN · .DEB</span><strong>Unduh PaketScope 4.0.0.dev3</strong><small>paketscope_4.0.0~dev3-1_all.deb</small><span class="paketscope-artifact-arrow" aria-hidden="true">↓</span></a>
+<a class="paketscope-artifact-link" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/apps-paketscope-4.0.0.dev3-sumber.tar.gz" download><span class="paketscope-artifact-format">ARSIP SOURCE · .TAR.GZ</span><strong>Unduh source code</strong><small>apps-paketscope-4.0.0.dev3-sumber.tar.gz</small><span class="paketscope-artifact-arrow" aria-hidden="true">↓</span></a>
+<a class="paketscope-artifact-link" href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/paketscope-v4-dev3.bundle" download><span class="paketscope-artifact-format">GIT BUNDLE</span><strong>Ambil riwayat Git v4</strong><small>paketscope-v4-dev3.bundle</small><span class="paketscope-artifact-arrow" aria-hidden="true">↓</span></a>
+</div>
+<div class="paketscope-release-footer"><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/SHA256SUMS" target="_blank" rel="noopener noreferrer">Checksum SHA-256</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/HASIL-DEV3.md" target="_blank" rel="noopener noreferrer">Catatan &amp; hasil pengujian</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/BOT-LOKAL.md" target="_blank" rel="noopener noreferrer">Rancangan asisten lokal</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/UNGGAH-KE-GITHUB.md" target="_blank" rel="noopener noreferrer">Catatan integrasi GitHub</a><span>SHA-256 .deb: <code>f12d522ed178faa54acdac664e28611e941b2d5ccb6553b86f8091d4137e4f74</code></span></div>
+<div class="paketscope-release-warning">Catatan kompatibilitas: paket .deb menargetkan Debian 13, tetapi laporan yang tersedia tidak membuktikan instalasi bersih pada Debian 13. Jangan menganggap paket ini sebagai rilis produksi atau memasangnya pada sistem utama tanpa memahami risikonya.</div>
+</article>
+<details class="paketscope-archive"><summary>Arsip versi sebelumnya — PaketScope 3.0.0.dev5</summary><div class="paketscope-archive-content"><p>Versi lama tetap tersedia untuk pengujian dan perbandingan. Build dev5 berhasil dibangun, dipasang, diperiksa, dan di-purge pada container CI Debian 13. Pengujian GUI/Polkit desktop nyata tetap belum diverifikasi.</p><div class="paketscope-archive-links"><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope_3.0.0%7Edev5-1_all.deb" download>Unduh .deb dev5 <code>paketscope_3.0.0~dev5-1_all.deb</code></a><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope-3.0.0.dev5.tar.gz" download>Source archive (.tar.gz)</a><a href="https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/paketscope-3.0.0.dev5-py3-none-any.whl" download>Python wheel (.whl)</a><a href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope/releases/3.0.0.dev5" target="_blank" rel="noopener noreferrer">Checksum, laporan &amp; panduan upgrade</a></div></div></details>
+</div></section>
 <section class="section" id="fitur"><div class="container">
 <div class="section-heading"><div><span class="eyebrow">01 / TUJUAN PRODUK</span><h2>Kenali software sebelum mengubahnya.</h2></div><p>PaketScope tidak hanya menampilkan nama paket. Ia berusaha menunjukkan fungsi menurut metadata sumber, kategori, asal yang bisa diverifikasi, serta rencana perubahan sebelum meminta otorisasi sistem.</p></div>
 <div class="principle-grid">
@@ -119,22 +111,22 @@
 <p>Ekspor CSV dan JSON hasil dekripsi merupakan berkas teks biasa yang dapat mengungkap perangkat lunak yang digunakan. Simpan hanya di lokasi tepercaya dan hapus salinan sesuai kebutuhan. Pada sistem POSIX, berkas ekspor dibuat dengan izin pemilik saja (0600), dan nilai CSV yang menyerupai formula spreadsheet dinetralkan.</p>
 <p>Enkripsi dalam kode sumber bukan pengganti audit independen. Sebelum rilis publik, proyek masih memerlukan pengujian pada instalasi Debian yang bersih, peninjauan dependensi, pengemasan bertanda tangan, dan tinjauan keamanan.</p>
 </div>
-<aside class="detail-spec"><div class="detail-spec-head"><img src="/assets/images/paketscope-icon.svg" alt="" width="36" height="36"><div><strong>PaketScope 3</strong><small>Native development preview</small></div></div>
-<div class="detail-spec-row"><span>VERSI</span><strong>3.0.0.dev5</strong></div>
-<div class="detail-spec-row"><span>TARGET</span><strong>Debian 13 · build/install/purge CI lulus</strong></div>
+<aside class="detail-spec"><div class="detail-spec-head"><img src="/assets/images/paketscope-icon.svg" alt="" width="36" height="36"><div><strong>PaketScope 4</strong><small>Development preview · testing</small></div></div>
+<div class="detail-spec-row"><span>VERSI</span><strong>4.0.0.dev3</strong></div>
+<div class="detail-spec-row"><span>TARGET</span><strong>Debian 13 · clean install belum diverifikasi</strong></div>
 <div class="detail-spec-row"><span>SUMBER</span><strong>APT / dpkg · Flatpak</strong></div>
 <div class="detail-spec-row"><span>HAK AKSES</span><strong>Pengguna biasa · tidak butuh root</strong></div>
 <div class="detail-spec-row"><span>ENKRIPSI CADANGAN</span><strong>AES-256-GCM + scrypt</strong></div>
 <div class="detail-spec-row"><span>TELEMETRI</span><strong>Tidak ada</strong></div>
 <div class="detail-spec-row"><span>PAKET BINARY</span><strong>.deb · testing</strong></div>
-<a class="btn btn-primary btn-full" href="https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope" target="_blank" rel="noopener noreferrer">Buka kode PaketScope ↗</a>
-<div class="detail-spec-note">Jangan jalankan proyek dengan sudo. Kode saat ini adalah pratinjau pengembangan, bukan aplikasi yang telah diaudit atau rilis produksi.</div>
+<a class="btn btn-primary btn-full" href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3" target="_blank" rel="noopener noreferrer">Buka aset rilis 4.0.0.dev3 ↗</a>
+<div class="detail-spec-note">Unduhan terbaru pada halaman ini adalah PaketScope 4.0.0.dev3 (testing). Source aplikasi yang masih terintegrasi pada branch main adalah PaketScope 3.0.0.dev5; source v4 tersedia sebagai arsip versi dan belum menggantikan source tree utama.</div>
 </aside>
 </div></section>
-<section class="section"><div class="container"><div class="section-heading"><div><span class="eyebrow">03 / STATUS PENGEMBANGAN</span><h2>Bangun dengan teliti. Verifikasi dengan jujur.</h2></div><p>Fondasi kode v3 dipisahkan dari pekerjaan yang masih diperlukan sebelum distribusi publik.</p></div>
+<section class="section"><div class="container"><div class="section-heading"><div><span class="eyebrow">03 / STATUS PENGEMBANGAN</span><h2>Bangun dengan teliti. Verifikasi dengan jujur.</h2></div><p>Artefak 4.0.0.dev3 dipublikasikan sebagai pratinjau pengembangan; pekerjaan validasi desktop dan rilis produksi masih diperlukan.</p></div>
 <div class="principle-grid">
 <article class="principle-card"><span class="principle-number">SUDAH ADA DI SOURCE</span><h3>Inventaris yang lebih menjelaskan</h3><p>Inventaris APT/Flatpak, detail fungsi dan jenis paket dari metadata lokal, informasi asal dengan batasan yang dijelaskan, provider inventaris yang dapat dikembangkan, serta alur remove/purge dengan pengaman tambahan.</p></article>
-<article class="principle-card"><span class="principle-number">PERLU PENGUJIAN</span><h3>Validasi desktop nyata</h3><p>CI Debian 13 telah memvalidasi build, install, import modul, dan purge. Interaksi GUI, alur Polkit/pkexec, aksesibilitas, kinerja inventaris besar, dan sesi GNOME/KDE nyata masih perlu diuji.</p></article>
+<article class="principle-card"><span class="principle-number">PERLU PENGUJIAN</span><h3>Validasi desktop nyata</h3><p>Laporan dev3 mencatat 375 tes lulus tiga kali, validasi AppStream, dan Lintian bersih di sandbox Ubuntu. Instalasi bersih Debian 13, sesi desktop fisik, GUI/Polkit, dan matriks distro nyata masih perlu diuji.</p></article>
 <article class="principle-card"><span class="principle-number">TAHAP BERIKUTNYA</span><h3>Sebelum rilis stabil</h3><p>Build paket, signature/checksum, matriks dukungan, integrasi CI yang lulus, penguncian dependensi, dan tinjauan keamanan independen.</p></article>
 </div></div></section>
 </main>
