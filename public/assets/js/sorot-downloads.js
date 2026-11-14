@@ -329,7 +329,7 @@
       '<span class="sorot-artifact-arrow" aria-hidden="true">↓</span></a>';
   };
 
-  const releaseMarkup = (release, distro) => {
+  const releaseMarkup = (release, distro, isLatest = false) => {
     const links = [
       '<a href="' + escapeHTML(release.checksumsUrl) + '">SHA256SUMS ↗</a>',
       '<a href="' + escapeHTML(release.manifestUrl) + '" target="_blank" rel="noopener noreferrer">Manifest versi ↗</a>',
@@ -354,9 +354,9 @@
       ? '<div class="sorot-install-note"><strong>Instalasi via terminal</strong><code>' + escapeHTML(command) +
         '</code><span>Jalankan dari direktori tempat paket diunduh. Perintah ini tidak membuktikan kompatibilitas yang belum diuji.</span></div>'
       : '';
-    return '<article class="sorot-release-card"><div class="sorot-release-heading">' +
+    return '<article class="sorot-release-card' + (isLatest ? ' is-latest' : '') + '"><div class="sorot-release-heading">' +
       '<div class="sorot-release-brand"><img src="/assets/images/sorot-icon.svg" alt="" width="54" height="54" loading="lazy" decoding="async">' +
-      '<div><span class="sorot-release-kicker">VERSI TERARSIP</span><h3>' + escapeHTML(release.label) + '</h3>' +
+      '<div><span class="sorot-release-kicker">' + (isLatest ? 'VERSI TERBARU' : 'VERSI SEBELUMNYA') + '</span><h3>' + escapeHTML(release.label) + '</h3>' +
       '<p>Linux desktop · versi ' + escapeHTML(release.version) + '</p></div></div>' +
       '<span class="sorot-release-status">' + escapeHTML(release.status.toUpperCase()) + ' · ' + escapeHTML(release.channel.toUpperCase()) + '</span></div>' +
       '<p class="sorot-release-notice">' + escapeHTML(note || 'Format yang ditampilkan bersumber dari manifest versi yang terdaftar di GitHub.') +
@@ -395,7 +395,7 @@
     }
     const releases = registry.versions.slice().reverse();
     releaseList.innerHTML = releases.length
-      ? releases.map(release => releaseMarkup(release, distro)).join('')
+      ? releases.map((release, index) => releaseMarkup(release, distro, index === 0)).join('')
       : '<article class="sorot-release-card"><p>Belum ada versi rilis yang terdaftar untuk Sorot.</p></article>';
   };
 

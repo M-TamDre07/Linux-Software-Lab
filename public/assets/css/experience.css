@@ -683,3 +683,8 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 @media(max-width:900px){.paketscope-artifact-grid{grid-template-columns:1fr}.paketscope-artifact-link{min-height:112px}}
 @media(max-width:620px){.paketscope-release-heading{align-items:flex-start;flex-direction:column}.paketscope-release-brand{align-items:flex-start}.paketscope-release-footer{align-items:flex-start;flex-direction:column}.paketscope-release-footer span{flex-basis:auto}.paketscope-archive-links{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.paketscope-artifact-link{transition:none}.paketscope-artifact-link:hover{transform:none}}
+
+
+/* Make the newest Sorot release visually distinct from the archived versions below it. */
+.sorot-release-card.is-latest{border-color:var(--accent)}
+.sorot-release-card.is-latest .sorot-release-kicker{color:var(--accent);font-weight:700}
