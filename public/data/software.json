@@ -12,23 +12,22 @@
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "4.0.0.dev3",
-      "summary": "PaketScope 4.0.0.dev3 (testing): inventaris aplikasi Linux, audit asal paket, kontrol APT dengan kebijakan tetap, serta asisten lokal berbasis aturan dan autopilot baca-saja.",
-      "description": "PaketScope 4.0.0.dev3 adalah pratinjau pengembangan. Paket .deb tersedia untuk target Debian 13, tetapi instalasi bersih pada Debian 13 dan desktop fisik belum diverifikasi. Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih; seluruh pengujian tersebut dilakukan di sandbox Ubuntu. Versi ini menambahkan kebijakan izin tetap, registri alat dengan argumen tervalidasi, asisten lokal berbasis aturan/kata kunci, dan autopilot yang hanya menjalankan pemeriksaan baca-saja. Belum ada LLM atau antarmuka chat; kontainer belum dijalankan dan sandbox Flatpak belum dibangun. Status tetap testing, bukan stable.",
+      "version": "3.0.0.dev5",
+      "summary": "Source PaketScope 3.0.0.dev5 tetap terintegrasi; unduhan pengembangan terbaru 4.0.0.dev3 tersedia di halaman detail (testing).",
+      "description": "Source PaketScope pada branch main masih 3.0.0.dev5. Halaman detail kini menyediakan unduhan pengembangan terbaru 4.0.0.dev3: paket .deb target Debian 13, arsip source, dan Git bundle. Status tetap testing, bukan stable. Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih di sandbox Ubuntu; instalasi bersih Debian 13 serta desktop fisik belum diverifikasi. Asisten masih berbasis aturan/kata kunci, belum memakai LLM atau antarmuka chat; kontainer belum dijalankan dan sandbox Flatpak belum dibangun.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Debian 13 (paket .deb tersedia; instalasi bersih belum diverifikasi)"
+        "Debian 13 (Trixie)"
       ],
       "tags": [
         "Python",
         "PySide6",
         "APT / dpkg",
         "Flatpak",
-        "Local-first",
-        "Asisten lokal",
-        "Autopilot baca-saja"
+        "AES-GCM",
+        "Local-first"
       ],
       "keywords": [
         "inventaris paket",
@@ -37,26 +36,23 @@
         "perangkat lunak",
         "cadangan terenkripsi",
         "privasi",
-        "asisten lokal",
-        "autopilot",
         "pembaruan",
         "pemeriksaan pembaruan",
-        "update",
-        "Debian 13"
+        "asisten lokal",
+        "autopilot",
+        "4.0.0.dev3"
       ],
       "features": [
         "Inventaris aplikasi dari APT/dpkg dan Flatpak",
         "Detail jenis paket dan deskripsi fungsi dari metadata lokal",
         "Asal repositori APT yang diketahui dengan penjelasan batas historis",
         "Pencarian, pengurutan, dan filter sumber dinamis",
-        "Perubahan APT dibatasi kebijakan tetap, simulasi, konfirmasi, dan otorisasi pengguna",
+        "Pemasangan APT dengan simulasi dan konfirmasi",
+        "Remove/purge dibatasi untuk paket sistem kritis dan transaksi yang aman",
         "Pemeriksaan pembaruan sesuai permintaan",
-        "Asisten lokal berbasis aturan/kata kunci; belum menggunakan LLM atau chat",
-        "Autopilot hanya menjalankan alat baca-saja sesuai kebijakan",
-        "Registri alat memvalidasi argumen dan menolak tindakan istimewa yang tidak diizinkan",
-        "Registri model memeriksa checksum, lisensi, dan persetujuan pengguna; pengunduhan model belum tersedia",
-        "Kontainer bot dan sandbox Flatpak belum dijalankan/dibangun",
+        "Arsip pengembangan PaketScope 4.0.0.dev3 tersedia pada halaman detail; status testing",
         "System & Code Lab read-only dan Code Inspector",
+        "Provider inventaris read-only yang dapat dikembangkan",
         "Ekspor CSV dan cadangan terenkripsi"
       ],
       "detailUrl": "/software/paketscope.html",

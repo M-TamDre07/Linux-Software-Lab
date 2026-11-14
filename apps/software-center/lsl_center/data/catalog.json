@@ -5,7 +5,7 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-11-10"
+    "updatedAt": "2026-11-14"
   },
   "software": [
     {
@@ -13,8 +13,8 @@
       "slug": "paketscope",
       "name": "PaketScope",
       "version": "3.0.0.dev5",
-      "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
-      "description": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan/testing untuk Debian 13. GitHub Actions berhasil membangun, memasang melalui APT, mengimpor modul terpasang, dan me-purge paket pada container Debian 13/Trixie. Interaksi GUI/Polkit di desktop nyata, Discover, serta tanda tangan rilis produksi belum diverifikasi. Aplikasi menyediakan inventaris APT/dpkg dan Flatpak read-only, detail asal paket dengan batas bukti historis, perubahan APT yang memerlukan simulasi dan autentikasi, System & Code Lab read-only, serta ekspor dan backup terenkripsi.",
+      "summary": "Source PaketScope 3.0.0.dev5 tetap terintegrasi; unduhan pengembangan terbaru 4.0.0.dev3 tersedia di halaman detail (testing).",
+      "description": "Source PaketScope pada branch main masih 3.0.0.dev5. Halaman detail kini menyediakan unduhan pengembangan terbaru 4.0.0.dev3: paket .deb target Debian 13, arsip source, dan Git bundle. Status tetap testing, bukan stable. Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih di sandbox Ubuntu; instalasi bersih Debian 13 serta desktop fisik belum diverifikasi. Asisten masih berbasis aturan/kata kunci, belum memakai LLM atau antarmuka chat; kontainer belum dijalankan dan sandbox Flatpak belum dibangun.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
@@ -35,7 +35,12 @@
         "package manager",
         "perangkat lunak",
         "cadangan terenkripsi",
-        "privasi"
+        "privasi",
+        "pembaruan",
+        "pemeriksaan pembaruan",
+        "asisten lokal",
+        "autopilot",
+        "4.0.0.dev3"
       ],
       "features": [
         "Inventaris aplikasi dari APT/dpkg dan Flatpak",
@@ -45,6 +50,7 @@
         "Pemasangan APT dengan simulasi dan konfirmasi",
         "Remove/purge dibatasi untuk paket sistem kritis dan transaksi yang aman",
         "Pemeriksaan pembaruan sesuai permintaan",
+        "Arsip pengembangan PaketScope 4.0.0.dev3 tersedia pada halaman detail; status testing",
         "System & Code Lab read-only dan Code Inspector",
         "Provider inventaris read-only yang dapat dikembangkan",
         "Ekspor CSV dan cadangan terenkripsi"
@@ -56,7 +62,7 @@
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-11-02"
+      "updatedAt": "2026-11-14"
     },
     {
       "id": "sorot",

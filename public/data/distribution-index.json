@@ -1,7 +1,7 @@
 {
   "$schema": "./distribution-index.schema.json",
   "schema_version": 1,
-  "updated_at": "2026-11-14",
+  "updated_at": "2026-11-10",
   "detection_policy": {
     "native_launcher": "Read /etc/os-release and detect architecture locally; never infer exact distro from browser user-agent.",
     "browser": "Detect only broad operating-system hints; ask users to choose the target distro manually.",
@@ -97,10 +97,6 @@
     {
       "id": "paketscope",
       "manifests": [
-        {
-          "version": "4.0.0.dev3",
-          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/release.json"
-        },
         {
           "version": "3.0.0.dev5",
           "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/release.json"
