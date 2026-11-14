@@ -644,3 +644,42 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
   }
   .footer-main>.footer-link{justify-self:start}
 }
+
+
+/* PaketScope release area — readable density, keyboard focus, and small-screen layout. */
+.paketscope-downloads{border-top:1px solid var(--line)}
+.paketscope-release-card{min-width:0;padding:clamp(20px,3vw,32px);border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface-2)}
+.paketscope-release-heading{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.paketscope-release-brand{display:flex;align-items:center;gap:15px;min-width:0}
+.paketscope-release-brand img{display:block;width:56px;height:56px;flex:0 0 auto;border-radius:12px}
+.paketscope-release-brand>div{min-width:0}
+.paketscope-release-kicker{display:block;color:var(--muted);font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em}
+.paketscope-release-brand h3{margin:5px 0;font-size:clamp(20px,2.4vw,25px);letter-spacing:-.04em}
+.paketscope-release-brand p{margin:0;color:var(--muted);font-size:12px;line-height:1.65}
+.paketscope-release-status{flex:0 0 auto;padding:8px 11px;border:1px solid var(--line);color:var(--muted);font:10px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+.paketscope-release-notice{max-width:900px;margin:19px 0;color:var(--muted);font-size:13px;line-height:1.85}
+.paketscope-artifact-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.paketscope-artifact-link{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:154px;padding:18px;border:1px solid var(--line);background:var(--surface);color:var(--text);text-decoration:none;transition:border-color .16s ease,transform .16s ease}
+.paketscope-artifact-link:hover{border-color:var(--accent);transform:translateY(-2px);text-decoration:none}
+.paketscope-artifact-link:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.paketscope-artifact-link.is-primary{border-color:var(--accent);background:var(--accent-soft)}
+.paketscope-artifact-format{color:var(--muted);font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.paketscope-artifact-link strong{font-size:14px;line-height:1.5}
+.paketscope-artifact-link small{color:var(--muted);font:11px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.paketscope-artifact-arrow{margin-top:auto;align-self:flex-end;color:var(--accent);font-size:20px}
+.paketscope-release-footer{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:18px 0;border-bottom:1px solid var(--line);font-size:12px}
+.paketscope-release-footer a,.paketscope-archive-links a{color:var(--text);text-decoration:underline;text-decoration-color:var(--line-strong);text-underline-offset:4px}
+.paketscope-release-footer a:hover,.paketscope-archive-links a:hover{color:var(--accent)}
+.paketscope-release-footer span{flex-basis:100%;color:var(--muted);line-height:1.7;overflow-wrap:anywhere}
+.paketscope-release-footer code{font:11px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+.paketscope-release-warning{margin-top:17px;padding:14px 16px;border-left:3px solid var(--warning);background:var(--surface);color:var(--muted);font-size:12px;line-height:1.8}
+.paketscope-archive{margin-top:18px;border:1px solid var(--line);background:var(--surface-2)}
+.paketscope-archive summary{padding:17px 19px;cursor:pointer;font-size:13px;font-weight:700;line-height:1.6}
+.paketscope-archive summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.paketscope-archive-content{padding:0 19px 19px;border-top:1px solid var(--line)}
+.paketscope-archive-content p{margin:16px 0;color:var(--muted);font-size:12px;line-height:1.8}
+.paketscope-archive-links{display:flex;flex-wrap:wrap;gap:12px 20px;font-size:12px}
+.detail-copy .hero-actions .btn{min-width:0}
+@media(max-width:900px){.paketscope-artifact-grid{grid-template-columns:1fr}.paketscope-artifact-link{min-height:112px}}
+@media(max-width:620px){.paketscope-release-heading{align-items:flex-start;flex-direction:column}.paketscope-release-brand{align-items:flex-start}.paketscope-release-footer{align-items:flex-start;flex-direction:column}.paketscope-release-footer span{flex-basis:auto}.paketscope-archive-links{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.paketscope-artifact-link{transition:none}.paketscope-artifact-link:hover{transform:none}}

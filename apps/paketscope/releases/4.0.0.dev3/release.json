@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "product": "PaketScope",
+  "version": "4.0.0.dev3",
+  "channel": "development",
+  "status": "testing",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/HASIL-DEV3.md",
+  "test_report_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3/HASIL-DEV3.md",
+  "architecture_note": "PaketScope 4.0.0.dev3 adalah pratinjau pengembangan. Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih; pengujian dilakukan di sandbox Ubuntu, bukan instalasi bersih atau desktop fisik Debian 13. Paket .deb menargetkan Debian 13, tetapi kompatibilitas instalasi desktop belum disahkan. Asisten saat ini berbasis aturan/kata kunci, bukan LLM; belum ada antarmuka chat, model belum dapat diunduh, kontainer belum dijalankan, dan sandbox Flatpak belum dibangun. Bukan rilis stable.",
+  "artifacts": [
+    {
+      "file": "paketscope_4.0.0~dev3-1_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "sha256": "f12d522ed178faa54acdac664e28611e941b2d5ccb6553b86f8091d4137e4f74",
+      "minimum_os": "Debian 13 (target; instalasi bersih belum diverifikasi)"
+    },
+    {
+      "file": "apps-paketscope-4.0.0.dev3-sumber.tar.gz",
+      "kind": "source-archive",
+      "format": "tar.gz",
+      "architecture": "all",
+      "sha256": "a5ecf82d7cbcf028e57527d496b9eadd231acf73c85419f4f6f0d29dc828048a"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

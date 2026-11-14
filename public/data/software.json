@@ -5,58 +5,62 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-11-10"
+    "updatedAt": "2026-11-14"
   },
   "software": [
     {
       "id": "paketscope",
       "slug": "paketscope",
       "name": "PaketScope",
-      "version": "3.0.0.dev5",
-      "summary": "Pengelola aplikasi desktop native dengan inventaris paket, detail fungsi dan asal yang diketahui, penghapusan terjaga, serta System & Code Lab.",
-      "description": "PaketScope 3.0.0.dev5 adalah pratinjau pengembangan/testing untuk Debian 13. GitHub Actions berhasil membangun, memasang melalui APT, mengimpor modul terpasang, dan me-purge paket pada container Debian 13/Trixie. Interaksi GUI/Polkit di desktop nyata, Discover, serta tanda tangan rilis produksi belum diverifikasi. Aplikasi menyediakan inventaris APT/dpkg dan Flatpak read-only, detail asal paket dengan batas bukti historis, perubahan APT yang memerlukan simulasi dan autentikasi, System & Code Lab read-only, serta ekspor dan backup terenkripsi.",
+      "version": "4.0.0.dev3",
+      "summary": "PaketScope 4.0.0.dev3 (testing): inventaris aplikasi Linux, audit asal paket, kontrol APT dengan kebijakan tetap, serta asisten lokal berbasis aturan dan autopilot baca-saja.",
+      "description": "PaketScope 4.0.0.dev3 adalah pratinjau pengembangan. Paket .deb tersedia untuk target Debian 13, tetapi instalasi bersih pada Debian 13 dan desktop fisik belum diverifikasi. Laporan pengembang mencatat 375 tes lulus tiga kali berturut-turut, validasi AppStream, dan Lintian bersih; seluruh pengujian tersebut dilakukan di sandbox Ubuntu. Versi ini menambahkan kebijakan izin tetap, registri alat dengan argumen tervalidasi, asisten lokal berbasis aturan/kata kunci, dan autopilot yang hanya menjalankan pemeriksaan baca-saja. Belum ada LLM atau antarmuka chat; kontainer belum dijalankan dan sandbox Flatpak belum dibangun. Status tetap testing, bukan stable.",
       "category": "Pengelolaan aplikasi",
       "status": "testing",
       "type": "desktop",
       "platforms": [
-        "Debian 13 (Trixie)"
+        "Debian 13 (paket .deb tersedia; instalasi bersih belum diverifikasi)"
       ],
       "tags": [
         "Python",
         "PySide6",
         "APT / dpkg",
         "Flatpak",
-        "AES-GCM",
-        "Local-first"
+        "Local-first",
+        "Asisten lokal",
+        "Autopilot baca-saja"
       ],
       "keywords": [
         "inventaris paket",
         "aplikasi terpasang",
         "package manager",
-        "perangkat lunak",
-        "cadangan terenkripsi",
-        "privasi"
+        "asisten lokal",
+        "autopilot",
+        "privasi",
+        "Debian 13"
       ],
       "features": [
         "Inventaris aplikasi dari APT/dpkg dan Flatpak",
         "Detail jenis paket dan deskripsi fungsi dari metadata lokal",
         "Asal repositori APT yang diketahui dengan penjelasan batas historis",
         "Pencarian, pengurutan, dan filter sumber dinamis",
-        "Pemasangan APT dengan simulasi dan konfirmasi",
-        "Remove/purge dibatasi untuk paket sistem kritis dan transaksi yang aman",
-        "Pemeriksaan pembaruan sesuai permintaan",
+        "Perubahan APT dibatasi kebijakan tetap, simulasi, konfirmasi, dan otorisasi pengguna",
+        "Asisten lokal berbasis aturan/kata kunci; belum menggunakan LLM atau chat",
+        "Autopilot hanya menjalankan alat baca-saja sesuai kebijakan",
+        "Registri alat memvalidasi argumen dan menolak tindakan istimewa yang tidak diizinkan",
+        "Registri model memeriksa checksum, lisensi, dan persetujuan pengguna; pengunduhan model belum tersedia",
+        "Kontainer bot dan sandbox Flatpak belum dijalankan/dibangun",
         "System & Code Lab read-only dan Code Inspector",
-        "Provider inventaris read-only yang dapat dikembangkan",
         "Ekspor CSV dan cadangan terenkripsi"
       ],
       "detailUrl": "/software/paketscope.html",
-      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/paketscope",
-      "releaseUrl": "",
+      "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3",
+      "releaseUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/paketscope/releases/4.0.0.dev3",
       "icon": "package",
       "iconImage": "/assets/images/paketscope-icon.svg",
       "previewImage": "/assets/images/paketscope-preview.svg",
       "previewAlt": "Ilustrasi konsep antarmuka PaketScope; bukan tangkapan layar aplikasi yang sudah dirilis.",
-      "updatedAt": "2026-11-02"
+      "updatedAt": "2026-11-14"
     },
     {
       "id": "sorot",
