@@ -110,6 +110,32 @@
       <p id="sorotDetectedPlatform" class="sorot-detected-note">Pendeteksian browser hanya memberi petunjuk sistem operasi, bukan distro Linux yang tepat.</p>
     </div>
     <div id="sorotDistroStatus" class="sorot-distro-status" role="status" aria-live="polite">Pilih distro agar website menampilkan format yang sesuai.</div>
+    <section class="sorot-terminal-installer" id="terminal-install" aria-labelledby="sorot-terminal-title">
+      <span class="eyebrow">INSTALLER TERMINAL RESMI</span>
+      <h3 id="sorot-terminal-title">Periksa dulu, baru pasang.</h3>
+      <p>Installer membaca distro dan arsitektur lokal, mengambil manifest rilis, memilih paket native yang cocok, lalu memeriksa SHA-256 sebelum menjalankan package manager. Jalankan sebagai pengguna biasa; skrip hanya meminta hak administrator pada tahap pemasangan paket.</p>
+      <p class="sorot-terminal-warning"><strong>Status kompatibilitas:</strong> Sorot 1.0.23 stable saat ini menyediakan paket native <code>.deb</code> dan Python wheel. Target pengujian paket native adalah Debian 13. Arch, Fedora/RPM, dan openSUSE/SUSE belum memiliki paket 1.0.23 yang tervalidasi; installer tidak akan mengganti paket distro lain sebagai fallback.</p>
+      <div class="sorot-terminal-step">
+        <strong>1. Unduh skrip resmi dan periksa isinya</strong>
+        <pre><code>curl --fail --location --show-error --max-time 30 \
+  https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/install.sh \
+  --output /tmp/sorot-install.sh
+
+sed -n '1,260p' /tmp/sorot-install.sh</code></pre>
+      </div>
+      <div class="sorot-terminal-step">
+        <strong>2. Deteksi distro, lihat artefak, dan uji tanpa memasang</strong>
+        <pre><code>bash /tmp/sorot-install.sh --detect
+bash /tmp/sorot-install.sh --list
+bash /tmp/sorot-install.sh --version 1.0.23 --dry-run</code></pre>
+      </div>
+      <div class="sorot-terminal-step">
+        <strong>3. Pasang setelah hasil deteksi dan dry-run sesuai</strong>
+        <pre><code>bash /tmp/sorot-install.sh --version 1.0.23</code></pre>
+      </div>
+      <p class="sorot-terminal-footnote">Jangan menjalankan skrip dengan <code>sudo bash</code>. Tidak perlu menyalin perintah package manager manual. Untuk distro yang belum memiliki artefak cocok, pemasangan akan dihentikan secara aman. SHA-256 memeriksa konsistensi file, tetapi bukan tanda tangan penerbit.</p>
+      <p><a href="https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/DISTRIBUTION.md" target="_blank" rel="noopener noreferrer">Baca panduan instalasi, kompatibilitas, dan pemecahan masalah ↗</a></p>
+    </section>
     <div class="sorot-release-tools" aria-label="Filter riwayat versi Sorot">
       <label for="sorotVersionSearch"><span>Cari versi atau kanal</span><input id="sorotVersionSearch" type="search" placeholder="Contoh: 1.0.23 atau stable" autocomplete="off"></label>
       <label for="sorotStatusFilter"><span>Filter status</span><select id="sorotStatusFilter"><option value="all">Semua status</option><option value="released">Tersedia</option><option value="testing">Pengujian / Beta</option><option value="archived">Arsip</option></select></label>
