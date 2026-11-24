@@ -12,7 +12,6 @@
       "kind": "debian-package",
       "format": "deb",
       "architecture": "all",
-      "minimum_os": "",
       "sha256": "a40a952c3a58b2f03141fc331eb1905461f2d11502e7a9e2950f8211b7845f40"
     }
   ],
