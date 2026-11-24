@@ -256,13 +256,20 @@ class CatalogTests(unittest.TestCase):
             {(artifact.version, artifact.format) for artifact in sorot.artifacts},
             expected_artifacts,
         )
-        paketscope_manifest = json.loads(
-            (REPO_ROOT / "apps" / "paketscope" / "releases" / "3.0.0.dev5" / "release.json")
-            .read_text(encoding="utf-8")
+        paketscope_index = json.loads(
+            (REPO_ROOT / "apps" / "paketscope" / "releases" / "index.json").read_text(encoding="utf-8")
         )
+        expected_paketscope_artifacts = {
+            (version["version"], artifact["format"])
+            for version in paketscope_index["versions"]
+            for artifact in json.loads(
+                (REPO_ROOT / "apps" / "paketscope" / "releases" / version["version"] / "release.json")
+                .read_text(encoding="utf-8")
+            )["artifacts"]
+        }
         self.assertEqual(
             {(artifact.version, artifact.format) for artifact in paketscope.artifacts},
-            {(paketscope_manifest["version"], artifact["format"]) for artifact in paketscope_manifest["artifacts"]},
+            expected_paketscope_artifacts,
         )
         self.assertTrue(any(
             target.distribution_id == "arch" and target.version == release_index["planned_targets"][0]["version"]
@@ -491,7 +498,10 @@ class SelectionTests(unittest.TestCase):
         artifact = select_artifact(self.paketscope, debian_profile(), install_only=True)
         self.assertIsNotNone(artifact)
         assert artifact is not None
-        self.assertEqual((artifact.version, artifact.format), ("3.0.0.dev5", "deb"))
+        release_index = json.loads(
+            (REPO_ROOT / "apps" / "paketscope" / "releases" / "index.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual((artifact.version, artifact.format), (release_index["versions"][-1]["version"], "deb"))
         self.assertEqual(artifact.minimum_os, "Debian 13")
 
     def test_paketscope_deb_is_not_compatible_with_ubuntu_2404(self) -> None:
