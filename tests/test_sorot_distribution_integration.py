@@ -19,6 +19,10 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertEqual(index["schema_version"], 1)
         self.assertEqual(index["product"], "Sorot")
         self.assertTrue(index["versions"])
+        latest = index["versions"][-1]
+        self.assertEqual(latest["version"], "1.0.23")
+        self.assertEqual(latest["status"], "released")
+        self.assertEqual(latest["channel"], "stable")
 
         indexed_versions = [item["version"] for item in index["versions"]]
         self.assertEqual(len(indexed_versions), len(set(indexed_versions)))
@@ -119,6 +123,13 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
             sorot = next(item for item in data["software"] if item["id"] == "sorot")
             self.assertEqual(sorot["version"], expected, str(path))
 
+    def test_latest_stable_release_has_a_qa_report_link(self):
+        manifest = json.loads((RELEASES / "1.0.23" / "release.json").read_text(encoding="utf-8"))
+        report = RELEASES / "1.0.23" / "TEST-REPORT.md"
+        self.assertEqual(manifest["channel"], "stable")
+        self.assertTrue(report.is_file())
+        self.assertTrue(manifest["test_report_url"].endswith("/apps/sorot/releases/1.0.23/TEST-REPORT.md"))
+
     def test_sorot_page_has_distribution_selector_and_terminal_helper(self):
         page = (PUBLIC / "software" / "sorot.html").read_text(encoding="utf-8")
         script = (PUBLIC / "assets" / "js" / "sorot-downloads.js").read_text(encoding="utf-8")
@@ -134,6 +145,7 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("browser", distribution_index["detection_policy"])
         self.assertIn("distribution-index.json", script)
         self.assertIn("apps/sorot/releases/index.json", script)
+        self.assertIn("!['released', 'testing', 'archived'].includes(reference.status)", script)
         self.assertIn("python-wheel", script)
         self.assertIn("apps/sorot/releases/index.json", script)
         self.assertIn("trustedManifestURL", script)

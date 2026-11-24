@@ -215,7 +215,7 @@
     if (!product) throw new Error('Sorot is missing from the distribution index');
     const refs = releaseIndex.versions.map(reference => {
       if (!reference || !versionPattern.test(String(reference.version || '')) ||
-          !['stable', 'testing', 'archived'].includes(reference.status) ||
+          !['released', 'testing', 'archived'].includes(reference.status) ||
           !['alpha', 'beta', 'rc', 'stable', 'development'].includes(reference.channel) ||
           !Array.isArray(reference.formats) ||
           !reference.formats.every(format => formats.has(format))) {
@@ -359,11 +359,11 @@
     const note = release.status === 'archived'
       ? 'VERSI ARSIP — tidak direkomendasikan untuk instalasi baru. Unduh hanya bila Anda memahami keterbatasannya.'
       : release.status === 'testing'
-        ? 'VERSI BETA/TESTING — bukan rilis stabil. Gunakan hanya untuk pengujian.'
+        ? 'VERSI PENGUJIAN — belum menjadi rilis stabil. Gunakan untuk evaluasi, bukan sebagai rilis utama.'
         : release.status === 'planned'
           ? 'Versi ini direncanakan, tetapi belum tersedia sebagai unduhan.'
           : release.channel !== 'stable'
-            ? 'TERSEDIA UNTUK DIUNDUH · BETA — artefak sudah dipublikasikan, tetapi belum boleh dianggap sebagai rilis stable.'
+            ? 'TERSEDIA UNTUK DIUNDUH · KANAL NON-STABLE — artefak dipublikasikan untuk evaluasi atau pengujian, bukan sebagai rilis utama.'
             : '';
     const commandMarkup = command
       ? '<div class="sorot-install-note"><strong>Instalasi via terminal</strong><code>' + escapeHTML(command) +
@@ -389,11 +389,11 @@
       ? registry.versions[registry.versions.length - 1]
       : null;
     if (latestVersion) latestVersion.textContent = latest
-      ? latest.version + ' ' + latest.channel.toUpperCase()
+      ? latest.version + (latest.channel === 'stable' ? ' · Stable' : ' · ' + latest.channel.toUpperCase())
       : 'Memuat indeks versi…';
     if (latestVersionBadge) latestVersionBadge.textContent = latest
-      ? 'TERSEDIA · ' + latest.channel.toUpperCase() + ' ' + latest.version
-      : 'Rilis Beta';
+      ? (latest.channel === 'stable' ? 'STABLE · ' : 'TERSEDIA · ' + latest.channel.toUpperCase() + ' ') + latest.version
+      : 'Status rilis tidak tersedia';
     if (latestTestReport && latest) {
       const hasTestReport = /^https:\/\//.test(latest.testReportUrl);
       latestTestReport.href = hasTestReport ? latest.testReportUrl : latest.manifestUrl;
@@ -436,8 +436,8 @@
     const currentVersion = registry.versions[registry.versions.length - 1]?.version || '';
     const isOlder = version !== currentVersion;
     const isArchived = releaseStatus === 'archived';
-    const isBeta = channel !== 'stable';
-    if (!isOlder && !isArchived && !isBeta) return;
+    const isNonStable = channel !== 'stable';
+    if (!isOlder && !isArchived && !isNonStable) return;
     let message = 'Yakin ingin melanjutkan unduhan/pemasangan paket Sorot ' + version +
       ' (' + releaseStatus.toUpperCase() + ' · ' + channel.toUpperCase() + ')?';
     if (isArchived) {
@@ -445,8 +445,8 @@
     } else if (isOlder) {
       message += '\n\nIni bukan versi terbaru. Versi lama tetap tersedia untuk kebutuhan kompatibilitas, tetapi tidak direkomendasikan untuk instalasi baru.';
     }
-    if (isBeta) {
-      message += '\n\nKanal Beta bukan rilis stabil. Untuk 1.0.23, laporan QA khusus dan bukti instalasi bersih belum dipublikasikan.';
+    if (isNonStable) {
+      message += '\n\nKanal ' + channel.toUpperCase() + ' bukan rilis stabil; unduhan ini ditujukan untuk evaluasi dan pengujian.';
     }
     message += '\n\nUnduhan tidak memasang aplikasi secara otomatis. Pastikan paket cocok dengan distro Anda dan verifikasi SHA-256 melalui SHA256SUMS.';
     if (!window.confirm(message)) event.preventDefault();

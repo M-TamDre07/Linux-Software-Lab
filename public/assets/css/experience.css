@@ -150,6 +150,7 @@ html[data-theme=dark] .btn-primary{color:#07101b}
 .status-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:9px;font-weight:700}
 .status-chip:before{content:"";width:5px;height:5px;border-radius:50%;background:var(--warning)}
 .status-chip.is-testing:before{background:var(--accent)}
+.status-chip.is-stable:before{background:var(--success)}
 .status-chip.is-planned:before{background:var(--warning)}
 .tool-feature-copy .btn{align-self:flex-start;margin-top:8px}
 .tool-secondary-card{justify-content:space-between;padding:26px}

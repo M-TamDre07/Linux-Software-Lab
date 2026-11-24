@@ -112,11 +112,15 @@ class WebsiteMaintenanceTests(unittest.TestCase):
         sorot_index = json.loads((ROOT / "apps/sorot/releases/index.json").read_text(encoding="utf-8"))
         latest = sorot_index["versions"][-1]
         self.assertEqual(latest["status"], "released")
-        self.assertEqual(latest["channel"], "beta")
+        self.assertEqual(latest["channel"], "stable")
         home = (PUBLIC / "index.html").read_text(encoding="utf-8")
         sorot_page = (PUBLIC / "software/sorot.html").read_text(encoding="utf-8")
-        self.assertIn(f"Sorot {latest['version']} Beta", home)
+        self.assertIn(f"Sorot {latest['version']}", home)
+        self.assertIn("Stable · rilis rekomendasi", home)
+        self.assertNotIn("Beta · belum stable", home)
         self.assertIn(latest["version"], sorot_page)
+        self.assertIn("STABLE · 1.0.23", sorot_page)
+        self.assertNotIn("Beta (belum stable)", sorot_page)
         self.assertIn(f"Sorot {latest['version']}", readme)
 
     def test_compatibility_metadata_fails_closed(self) -> None:
