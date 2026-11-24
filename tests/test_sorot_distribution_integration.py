@@ -247,7 +247,7 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("Supabase", guide)
         self.assertIn("Vercel", guide)
         self.assertIn("bash /tmp/sorot-install.sh --version 1.0.23 --dry-run", distribution)
-        self.assertIn("Jangan jalankan skrip installer dengan", distribution)
+        self.assertIn("Do not run the installer itself with", distribution)
 
 
 if __name__ == "__main__":
