@@ -237,6 +237,46 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("PaketScope", readme)
 
 
+    def test_paketscope_release_index_matches_distribution_metadata_and_checksums(self):
+        index_path = ROOT / "apps" / "paketscope" / "releases" / "index.json"
+        index = json.loads(index_path.read_text(encoding="utf-8"))
+        self.assertEqual(index["product"], "PaketScope")
+        self.assertEqual(index["versions"][-1]["version"], "4.0.0.dev3")
+
+        distribution = json.loads((PUBLIC / "data" / "distribution-index.json").read_text(encoding="utf-8"))
+        product = next(item for item in distribution["products"] if item["id"] == "paketscope")
+        references = {item["version"]: item["url"] for item in product["manifests"]}
+        self.assertEqual(set(references), {item["version"] for item in index["versions"]})
+
+        release_root = ROOT / "apps" / "paketscope" / "releases"
+        for entry in index["versions"]:
+            version = entry["version"]
+            manifest_path = release_root / version / "release.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["version"], version)
+            self.assertEqual(manifest["product"], "PaketScope")
+            self.assertEqual(manifest["status"], entry["status"])
+            self.assertEqual(manifest["channel"], entry["channel"])
+            self.assertTrue(references[version].endswith(f"/apps/paketscope/releases/{version}/release.json"))
+            self.assertEqual(
+                {artifact["format"] for artifact in manifest["artifacts"]},
+                set(entry["formats"]),
+            )
+            sums = {}
+            for line in (release_root / version / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    digest, filename = line.split("  ", 1)
+                    sums[filename] = digest
+            for artifact in manifest["artifacts"]:
+                artifact_path = release_root / version / artifact["file"]
+                self.assertTrue(artifact_path.is_file(), str(artifact_path))
+                digest = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+                self.assertEqual(digest, artifact["sha256"])
+                self.assertEqual(digest, sums.get(artifact["file"]))
+
+        bundled = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "manifests" / "paketscope" / "4.0.0.dev3" / "release.json"
+        self.assertEqual(bundled.read_bytes(), (release_root / "4.0.0.dev3" / "release.json").read_bytes())
+
     def test_installation_and_compatibility_guide_matches_published_scope(self):
         guide = (ROOT / "docs" / "INSTALLATION_AND_COMPATIBILITY.md").read_text(encoding="utf-8")
         distribution = (SOROT_ROOT / "DISTRIBUTION.md").read_text(encoding="utf-8")
