@@ -5,7 +5,7 @@
     "description": "LISO LAB (Linux Software Lab): katalog software desktop independen untuk Debian dan keluarga Linux.",
     "searchMode": "client-side",
     "pageSize": 12,
-    "updatedAt": "2026-11-14"
+    "updatedAt": "2026-11-24"
   },
   "software": [
     {
@@ -68,62 +68,53 @@
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "0.8.0 Beta",
-      "summary": "Teleprompter desktop Linux dengan overlay, mode cermin, editor naskah, impor dokumen, seret-lepas, pemulihan data, dan pemeriksaan pembaruan opsional.",
-      "description": "Sorot 0.8.0 Beta menambahkan impor DOCX, ODT, RTF, HTML, PDF, dan teks dengan deteksi encoding; seret-lepas dokumen; serta pemeriksaan pembaruan yang hanya berjalan atas permintaan pengguna. Pengujian tercatat: 652 tes lulus pada Python 3.11 dan 3.13, 135 tes GUI X11 virtual, serta 131 tes Wayland headless (4 dilewati karena lingkungan tanpa seat). Paket .deb tersedia untuk Debian 13 sebagai testing, tetapi instalasi bersih Debian 13 belum diverifikasi. RPM dibuat dengan --nodeps di Ubuntu dan belum dipasang di Fedora; manifes Flatpak tervalidasi tetapi paket belum dibangun. Arch belum memiliki paket .pkg.tar.zst. GNOME/KDE pada desktop fisik dan layanan AI/cloud nyata belum disahkan. Status tetap Beta/testing, bukan stable.",
+      "version": "1.0.23 Beta",
+      "summary": "Sorot 1.0.23 tersedia untuk diunduh dalam kanal Beta melalui paket .deb dan Python wheel. Artefak memiliki SHA-256; laporan QA khusus 1.0.23 dan uji instalasi bersih belum dipublikasikan.",
+      "description": "Sorot adalah teleprompter desktop native untuk Linux. Versi 1.0.23 telah dipublikasikan sebagai Beta dengan paket .deb dan Python wheel yang tercantum pada manifest serta SHA256SUMS. Status released berarti berkas rilis tersedia untuk diunduh, bukan klaim bahwa build ini stabil atau telah diuji pada seluruh distribusi. Belum tersedia laporan QA khusus 1.0.23 maupun bukti instalasi bersih dan uji peluncuran pada distro/desktop sasaran. Gunakan paket .deb hanya pada keluarga Debian/Ubuntu yang sesuai; Python wheel ditujukan untuk lingkungan Python yang memenuhi dependensinya. Versi 0.9.0 tetap tersedia sebagai arsip .deb, tetapi berstatus archived dan tidak direkomendasikan untuk instalasi baru.",
       "category": "Produktivitas",
-      "status": "testing",
+      "status": "released",
       "type": "desktop",
       "platforms": [
-        "Debian 13 (paket .deb Beta/testing; instalasi bersih belum diverifikasi)",
-        "Linux desktop (GUI X11 virtual dan Wayland headless diuji; compositor desktop fisik belum diverifikasi)"
+        "Debian / Ubuntu dan turunannya (paket .deb; instalasi bersih belum diverifikasi)",
+        "Linux dengan Python yang sesuai (wheel; dependensi perlu diperiksa)"
       ],
       "tags": [
         "Python",
         "PySide6",
         "Teleprompter",
-        "Overlay",
-        "Mirror mode",
-        "DOCX / ODT / PDF",
-        "Drag & Drop",
-        "X11",
-        "Wayland",
-        "Extensions"
+        "Beta",
+        "Debian package",
+        "Python wheel",
+        "SHA-256"
       ],
       "keywords": [
         "teleprompter linux",
         "sorot",
-        "impor dokumen",
-        "DOCX",
-        "ODT",
-        "RTF",
-        "HTML",
-        "PDF",
-        "seret lepas",
-        "presentasi",
         "naskah",
-        "overlay teks"
+        "presentasi",
+        "overlay teks",
+        "Sorot 1.0.23",
+        "paket deb",
+        "python wheel",
+        "beta"
       ],
       "features": [
-        "Editor naskah dan pengelolaan dokumen teleprompter",
-        "Impor DOCX, ODT, RTF, HTML, PDF, dan teks dengan deteksi encoding",
-        "Seret-lepas dokumen yang didukung ke aplikasi",
-        "Overlay dengan kontrol pemutaran, jeda, kecepatan, dan hitung mundur",
-        "Mode cermin dengan tes regresi pada Qt",
-        "Validasi konfigurasi, profil, dan input ekstensi",
-        "Penyimpanan dan pemulihan cadangan dengan jalur rollback",
-        "Pemeriksaan pembaruan HTTPS yang bersifat opt-in; tidak mengunduh atau memasang otomatis",
-        "Paket RPM dibangun dan manifes Flatpak divalidasi, tetapi belum disahkan melalui instalasi distro sasaran",
-        "Pengujian GUI X11 virtual dan Wayland headless; compositor desktop nyata masih perlu diuji"
+        "Teleprompter desktop native untuk Linux",
+        "Paket .deb Sorot 1.0.23 tersedia untuk keluarga Debian/Ubuntu yang sesuai",
+        "Python wheel Sorot 1.0.23 tersedia untuk lingkungan Python yang memenuhi dependensi",
+        "Manifest rilis dan checksum SHA-256 tersedia untuk pemeriksaan integritas",
+        "Versi 0.9.0 dipertahankan sebagai arsip dan tidak direkomendasikan untuk instalasi baru",
+        "Status kanal Beta ditampilkan terpisah dari status ketersediaan artefak",
+        "Kompatibilitas dan pengujian instalasi per distribusi dijelaskan secara terbuka"
       ],
       "detailUrl": "/software/sorot.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",
-      "releaseUrl": "",
+      "releaseUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot/releases/1.0.23",
       "icon": "type",
       "iconImage": "/assets/images/sorot-icon.svg",
       "previewImage": "/assets/images/sorot-preview.svg",
       "previewAlt": "Identitas visual Sorot berdasarkan ikon resmi paket 0.5.0; bukan tangkapan layar UI.",
-      "updatedAt": "2026-11-10"
+      "updatedAt": "2026-11-24"
     }
   ]
 }
