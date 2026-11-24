@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "1.0.23",
+  "channel": "beta",
+  "status": "released",
+  "architecture_note": "Sorot 1.0.23 telah dipublikasikan dan artefak .deb serta Python wheel tersedia dengan SHA-256. Status katalog 'released' berarti artefak tersedia untuk diunduh; kanal tetap BETA, bukan stable. Belum tersedia laporan QA khusus 1.0.23 atau bukti uji instalasi bersih dan peluncuran pada distro/desktop sasaran. Kompatibilitas paket .deb di luar keluarga Debian/Ubuntu tidak dijanjikan. Periksa dependensi, target OS, dan SHA256SUMS sebelum pemasangan.",
+  "artifacts": [
+    {
+      "file": "sorot_1.0.23_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "minimum_os": "",
+      "sha256": "bb2c19c958ee419e676f2b29e6d7813761c54f8869706fcef9ab3051235765e3"
+    },
+    {
+      "file": "sorot-1.0.23-py3-none-any.whl",
+      "kind": "python-wheel",
+      "format": "whl",
+      "architecture": "all",
+      "minimum_os": "",
+      "sha256": "8541aff413fb494d96bd84cac3ca8a603355aafb85f2ef80ccaf446b87ea4320"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}

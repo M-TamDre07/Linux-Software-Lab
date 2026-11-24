@@ -12,6 +12,9 @@
   const latestVersion = document.querySelector('#sorotLatestVersion');
   const latestVersionBadge = document.querySelector('#sorotLatestVersionBadge');
   const latestTestReport = document.querySelector('#sorotLatestTestReport');
+  const versionSearch = $('#sorotVersionSearch');
+  const statusFilter = $('#sorotStatusFilter');
+  const releaseCount = $('#sorotReleaseCount');
   if (!distroSelect || !detected || !status || !releaseList) return;
 
   const OWNER = 'M-TamDre07';
@@ -103,9 +106,13 @@
   const detectOS = () => {
     const platform = String(navigator.userAgentData?.platform || navigator.platform || '');
     const agent = String(navigator.userAgent || '');
-    if (/linux/i.test(platform) || /linux/i.test(agent)) return { id: 'other-linux', label: 'Linux' };
+    // Android user agents frequently contain "Linux"; classify mobile systems first.
+    if (/android/i.test(platform) || /android/i.test(agent)) return { id: 'non-linux', label: 'Android' };
+    if (/iphone|ipad|ipod|ios/i.test(platform) || /iphone|ipad|ipod/i.test(agent)) return { id: 'non-linux', label: 'iOS' };
     if (/windows/i.test(platform) || /windows/i.test(agent)) return { id: 'non-linux', label: 'Windows' };
     if (/mac/i.test(platform) || /mac os|macintosh/i.test(agent)) return { id: 'non-linux', label: 'macOS' };
+    if (/chrome ?os|cros/i.test(platform) || /cros/i.test(agent)) return { id: 'non-linux', label: 'ChromeOS' };
+    if (/linux/i.test(platform) || /linux/i.test(agent)) return { id: 'other-linux', label: 'Linux' };
     return { id: 'other-linux', label: 'sistem operasi tidak diketahui' };
   };
 
@@ -314,7 +321,7 @@
     return '';
   };
 
-  const artifactMarkup = (artifact, distro) => {
+  const artifactMarkup = (artifact, distro, release) => {
     const source = artifact.kind === 'source-archive' && distro.sourceFormats.includes(artifact.format);
     const pythonWheel = artifact.kind === 'python-wheel' && distro.id !== 'non-linux';
     const native = distro.status === 'available' && artifact.format === distro.packageFormat &&
@@ -323,7 +330,9 @@
     if (!source && !native && !pythonWheel) return '';
     const primary = native ? ' is-primary' : '';
     const title = source ? 'Unduh arsip sumber' : pythonWheel ? 'Unduh Python wheel' : 'Unduh paket instalasi';
-    return '<a class="sorot-artifact-link' + primary + '" href="' + escapeHTML(artifact.url) + '">' +
+    return '<a class="sorot-artifact-link' + primary + '" href="' + escapeHTML(artifact.url) +
+      '" data-version="' + escapeHTML(release.version) + '" data-status="' + escapeHTML(release.status) +
+      '" data-channel="' + escapeHTML(release.channel) + '" data-file="' + escapeHTML(artifact.file) + '">' +
       '<span class="sorot-artifact-format">' + escapeHTML(labelForFormat(artifact.format, artifact.architecture)) + '</span>' +
       '<strong>' + title + '</strong><small>' + escapeHTML(artifact.file) + '</small>' +
       '<span class="sorot-artifact-arrow" aria-hidden="true">↓</span></a>';
@@ -338,7 +347,7 @@
       release.testReportUrl && /^https:\/\//.test(release.testReportUrl)
         ? '<a href="' + escapeHTML(release.testReportUrl) + '" target="_blank" rel="noopener noreferrer">Laporan pengujian ↗</a>' : ''
     ].filter(Boolean).join('');
-    const visibleArtifacts = release.artifacts.map(item => artifactMarkup(item, distro)).filter(Boolean).join('');
+    const visibleArtifacts = release.artifacts.map(item => artifactMarkup(item, distro, release)).filter(Boolean).join('');
     const native = distro.status === 'available'
       ? release.artifacts.find(item =>
           item.format === distro.packageFormat
@@ -347,14 +356,22 @@
         )
       : null;
     const command = native ? installCommand(distro.packageManager, native.file) : '';
-    const note = release.status === 'testing'
-      ? 'Rilis ini masih Beta/testing dan bukan rilis stabil.'
-      : release.status === 'planned' ? 'Versi ini direncanakan, tetapi bukan unduhan yang tersedia.' : '';
+    const note = release.status === 'archived'
+      ? 'VERSI ARSIP — tidak direkomendasikan untuk instalasi baru. Unduh hanya bila Anda memahami keterbatasannya.'
+      : release.status === 'testing'
+        ? 'VERSI BETA/TESTING — bukan rilis stabil. Gunakan hanya untuk pengujian.'
+        : release.status === 'planned'
+          ? 'Versi ini direncanakan, tetapi belum tersedia sebagai unduhan.'
+          : release.channel !== 'stable'
+            ? 'TERSEDIA UNTUK DIUNDUH · BETA — artefak sudah dipublikasikan, tetapi belum boleh dianggap sebagai rilis stable.'
+            : '';
     const commandMarkup = command
       ? '<div class="sorot-install-note"><strong>Instalasi via terminal</strong><code>' + escapeHTML(command) +
         '</code><span>Jalankan dari direktori tempat paket diunduh. Perintah ini tidak membuktikan kompatibilitas yang belum diuji.</span></div>'
       : '';
-    return '<article class="sorot-release-card' + (isLatest ? ' is-latest' : '') + '"><div class="sorot-release-heading">' +
+    return '<article class="sorot-release-card' + (isLatest ? ' is-latest' : '') +
+      '" data-release-card data-version="' + escapeHTML(release.version) + '" data-status="' + escapeHTML(release.status) +
+      '" data-channel="' + escapeHTML(release.channel) + '"><div class="sorot-release-heading">' +
       '<div class="sorot-release-brand"><img src="/assets/images/sorot-icon.svg" alt="" width="54" height="54" loading="lazy" decoding="async">' +
       '<div><span class="sorot-release-kicker">' + (isLatest ? 'VERSI TERBARU' : 'VERSI SEBELUMNYA') + '</span><h3>' + escapeHTML(release.label) + '</h3>' +
       '<p>Linux desktop · versi ' + escapeHTML(release.version) + '</p></div></div>' +
@@ -375,11 +392,12 @@
       ? latest.version + ' ' + latest.channel.toUpperCase()
       : 'Memuat indeks versi…';
     if (latestVersionBadge) latestVersionBadge.textContent = latest
-      ? latest.channel.toUpperCase() + ' ' + latest.version
+      ? 'TERSEDIA · ' + latest.channel.toUpperCase() + ' ' + latest.version
       : 'Rilis Beta';
     if (latestTestReport && latest) {
-      latestTestReport.href = /^https:\/\//.test(latest.testReportUrl)
-        ? latest.testReportUrl : latest.manifestUrl;
+      const hasTestReport = /^https:\/\//.test(latest.testReportUrl);
+      latestTestReport.href = hasTestReport ? latest.testReportUrl : latest.manifestUrl;
+      latestTestReport.textContent = hasTestReport ? 'Laporan pengujian versi terbaru' : 'Manifest & integritas rilis';
     }
     const distro = getDistro();
     status.textContent = distro.note;
@@ -393,13 +411,46 @@
       if (command) command.hidden = true;
       return;
     }
-    const releases = registry.versions.slice().reverse();
+    const allReleases = registry.versions.slice().reverse();
+    const filterStatus = statusFilter?.value || 'all';
+    const term = String(versionSearch?.value || '').trim().toLocaleLowerCase('id-ID');
+    const releases = allReleases.filter(release => {
+      const searchable = (release.version + ' ' + release.channel + ' ' + release.status).toLocaleLowerCase('id-ID');
+      return (filterStatus === 'all' || release.status === filterStatus) && (!term || searchable.includes(term));
+    });
+    if (releaseCount) releaseCount.textContent = releases.length + ' dari ' + allReleases.length + ' versi ditampilkan';
     releaseList.innerHTML = releases.length
-      ? releases.map((release, index) => releaseMarkup(release, distro, index === 0)).join('')
-      : '<article class="sorot-release-card"><p>Belum ada versi rilis yang terdaftar untuk Sorot.</p></article>';
+      ? releases.map(release => releaseMarkup(release, distro, release.version === latest?.version)).join('')
+      : '<article class="sorot-release-card"><p>Tidak ada versi yang cocok dengan filter ini. Ubah pencarian atau pilih status lain.</p></article>';
   };
 
   distroSelect.addEventListener('change', render);
+  versionSearch?.addEventListener('input', render);
+  statusFilter?.addEventListener('change', render);
+  releaseList.addEventListener('click', event => {
+    const link = event.target.closest('.sorot-artifact-link');
+    if (!link || !registry) return;
+    const version = link.dataset.version || 'tidak diketahui';
+    const releaseStatus = link.dataset.status || 'unknown';
+    const channel = link.dataset.channel || 'unknown';
+    const currentVersion = registry.versions[registry.versions.length - 1]?.version || '';
+    const isOlder = version !== currentVersion;
+    const isArchived = releaseStatus === 'archived';
+    const isBeta = channel !== 'stable';
+    if (!isOlder && !isArchived && !isBeta) return;
+    let message = 'Yakin ingin melanjutkan unduhan/pemasangan paket Sorot ' + version +
+      ' (' + releaseStatus.toUpperCase() + ' · ' + channel.toUpperCase() + ')?';
+    if (isArchived) {
+      message += '\n\nVersi ini berstatus ARSIP dan tidak direkomendasikan untuk instalasi baru.';
+    } else if (isOlder) {
+      message += '\n\nIni bukan versi terbaru. Versi lama tetap tersedia untuk kebutuhan kompatibilitas, tetapi tidak direkomendasikan untuk instalasi baru.';
+    }
+    if (isBeta) {
+      message += '\n\nKanal Beta bukan rilis stabil. Untuk 1.0.23, laporan QA khusus dan bukti instalasi bersih belum dipublikasikan.';
+    }
+    message += '\n\nUnduhan tidak memasang aplikasi secara otomatis. Pastikan paket cocok dengan distro Anda dan verifikasi SHA-256 melalui SHA256SUMS.';
+    if (!window.confirm(message)) event.preventDefault();
+  });
   render();
 
   const indexPath = String(root.dataset.downloadData || '');

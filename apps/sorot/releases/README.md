@@ -11,7 +11,7 @@ Setiap versi yang terdaftar di `index.json` wajib memiliki:
 - file artefak yang sungguh ada;
 - laporan pengujian yang menjelaskan lingkungan dan keterbatasannya.
 
-Format berbeda antarversi. Jangan menambahkan .deb, .rpm, AppImage, wheel, ZIP, atau paket Arch hanya karena berkas itu bisa dibuat; catat hanya format yang memang diputuskan untuk dibagikan. Status `testing` berarti beta/testing, bukan stabil.
+Format berbeda antarversi. Jangan menambahkan .deb, .rpm, AppImage, wheel, ZIP, atau paket Arch hanya karena berkas itu bisa dibuat; catat hanya format yang benar-benar ada dan checksum-nya dapat diverifikasi. Status `released` berarti artefak sudah dipublikasikan; kanal `beta` tetap bukan stable. Status `archived` berarti versi disimpan untuk transparansi/kompatibilitas lama dan tidak direkomendasikan untuk instalasi baru.
 
 ## Cara menambahkan versi
 
@@ -44,3 +44,12 @@ sha256sum -c SHA256SUMS
 ~~~
 
 Checksum mendeteksi mismatch terhadap metadata; checksum bukan tanda tangan kriptografis penerbit. Status dan klaim kompatibilitas harus mengikuti laporan tes nyata.
+
+
+## Status Sorot saat ini (2026-11-24)
+
+- **1.0.23 — released / beta:** artefak .deb dan Python wheel tersedia. Belum ada laporan QA khusus 1.0.23 atau bukti instalasi bersih; jangan menyebutnya stable.
+- **0.9.0 — archived / development:** hanya paket .deb yang masih tersedia. Entri SHA256SUMS dibatasi ke artefak yang benar-benar ada. Versi ini tidak direkomendasikan untuk instalasi baru.
+- **0.8.0 dan sebelumnya — testing / beta:** arsip pengembangan yang status dan cakupan pengujiannya mengikuti manifest masing-masing.
+
+Lihat [kebijakan dan riwayat rilis Sorot](../../../docs/SOROT_RELEASES.md) untuk arti status, petunjuk unduhan, dan release gate stable.

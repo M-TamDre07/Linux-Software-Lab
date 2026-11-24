@@ -111,9 +111,10 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## Sorot 0.8.0 Beta
+## Sorot 1.0.23 Beta
 
-Sorot adalah teleprompter desktop native untuk Linux. Ringkasan produk tersedia di [apps/sorot/](apps/sorot/README.md), sementara paket dan arsip sumber disimpan per versi di [apps/sorot/releases/](apps/sorot/releases/README.md). Rilis terbaru yang terindeks adalah [0.8.0 Beta](apps/sorot/releases/0.8.0/TEST-REPORT.md), dengan paket .deb untuk Debian 13, arsip source, Python wheel, manifest, SHA256SUMS, dan laporan pengujian. QA mencatat 652 tes lulus pada Python 3.11 dan 3.13, 135 tes GUI X11 virtual, serta 131 tes Wayland headless (empat dilewati karena tidak tersedia seat). Instalasi bersih Debian 13, desktop fisik GNOME/KDE, Fedora, Arch, dan Flatpak belum disahkan. Sorot tetap Beta/testing, bukan rilis stabil. Arsip versi lama tidak ditimpa oleh versi baru.
+Sorot adalah teleprompter desktop native untuk Linux. Versi terbaru yang terindeks adalah **1.0.23**, tersedia dalam kanal **Beta** melalui paket .deb dan Python wheel yang memiliki checksum SHA-256. Status `released` berarti artefak tersedia untuk diunduh; status ini tidak berarti kanal stable. Belum ada laporan QA khusus 1.0.23 atau bukti instalasi bersih/peluncuran pada distro sasaran. Versi 0.9.0 tetap tersedia sebagai arsip .deb, tetapi berstatus archived dan tidak direkomendasikan untuk instalasi baru. Lihat [kebijakan dan riwayat rilis Sorot](docs/SOROT_RELEASES.md), [arsip versi](apps/sorot/releases/README.md), dan [manifest 1.0.23](apps/sorot/releases/1.0.23/release.json). Jangan menganggap paket Beta sebagai rilis stabil; cocokkan checksum dan periksa dependensi sebelum pemasangan.
+
 
 ## LISO LAB — Linux Software Lab Center (pratinjau launcher)
 

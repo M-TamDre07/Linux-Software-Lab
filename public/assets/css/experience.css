@@ -688,3 +688,37 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
 /* Make the newest Sorot release visually distinct from the archived versions below it. */
 .sorot-release-card.is-latest{border-color:var(--accent)}
 .sorot-release-card.is-latest .sorot-release-kicker{color:var(--accent);font-weight:700}
+
+
+/* Storefront refinements — release history and comfortable touch targets. */
+.tool-feature-copy .btn,
+.tool-secondary-card .btn { min-height: 50px; padding-inline: 22px; }
+.tool-secondary-actions {
+  display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:10px;
+}
+.tool-secondary-actions .btn { margin-top:0; }
+.sorot-release-tools {
+  display:grid; grid-template-columns:minmax(220px,1fr) minmax(180px,220px) auto;
+  align-items:end; gap:12px; margin:20px 0 18px; padding:16px;
+  border:1px solid var(--line); border-radius:16px; background:var(--surface-2);
+}
+.sorot-release-tools label { display:grid; gap:7px; min-width:0; }
+.sorot-release-tools label span { color:var(--muted); font-size:11px; font-weight:750; }
+.sorot-release-tools input,.sorot-release-tools select {
+  width:100%; min-height:46px; padding:0 13px; color:var(--text);
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:11px;
+}
+.sorot-release-tools input:focus-visible,.sorot-release-tools select:focus-visible { outline:0; box-shadow:var(--focus); }
+.sorot-release-count {
+  display:inline-flex; align-items:center; min-height:46px; color:var(--muted);
+  font-size:11px; font-weight:650; white-space:nowrap;
+}
+.sorot-release-notice { overflow-wrap:anywhere; }
+.sorot-release-card[data-status="archived"] { border-style:dashed; }
+.sorot-release-card[data-status="archived"] .sorot-release-status { color:var(--warning); }
+@media(max-width:700px) {
+  .tool-secondary-actions { width:100%; }
+  .tool-secondary-actions .btn { width:100%; }
+  .sorot-release-tools { grid-template-columns:1fr; padding:13px; }
+  .sorot-release-count { min-height:auto; white-space:normal; }
+}
