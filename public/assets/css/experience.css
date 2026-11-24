@@ -723,3 +723,39 @@ html[data-theme=dark] .nav-home img{filter:invert(1)}
   .sorot-release-tools { grid-template-columns:1fr; padding:13px; }
   .sorot-release-count { min-height:auto; white-space:normal; }
 }
+
+
+/* 24 Nov 2026 UX refinement: clearer Sorot history, terminal instructions, and reading comfort. */
+h1,h2,h3{ text-wrap:balance; }
+p{ text-wrap:pretty; }
+button,select,input{ accent-color:var(--text); }
+.sorot-release-count{white-space:normal;line-height:1.6}
+.sorot-release-archive{border:1px solid var(--line);background:var(--surface-2)}
+.sorot-release-archive>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:58px;padding:15px 19px;cursor:pointer;list-style:none;font-size:13px;font-weight:700}
+.sorot-release-archive>summary::-webkit-details-marker{display:none}
+.sorot-release-archive>summary:after{content:"+";font:18px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted)}
+.sorot-release-archive[open]>summary:after{content:"−"}
+.sorot-release-archive>summary small{margin-left:auto;color:var(--muted);font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace}
+.sorot-release-archive>summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.sorot-release-archive-list{display:grid;gap:12px;padding:0 14px 14px}
+.sorot-release-archive-list .sorot-release-card{background:var(--surface)}
+.sorot-terminal-installer{scroll-margin-top:64px}
+.sorot-terminal-installer h3{max-width:760px;line-height:1.15;text-wrap:balance}
+.sorot-terminal-installer>p{max-width:900px}
+.sorot-terminal-step{margin-top:17px}
+.sorot-terminal-step>strong{display:block;margin-bottom:8px;font-size:12px}
+.sorot-terminal-installer pre{margin:0;line-height:1.8}
+.sorot-terminal-installer pre code{display:block;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap}
+.sorot-terminal-footnote{margin-top:16px}
+.sorot-terminal-installer a{font-size:12px}
+.sorot-terminal-installer .sorot-terminal-warning{border-left:3px solid var(--warning);background:var(--surface)}
+@media(max-width:700px){
+  .sorot-release-archive>summary{padding-inline:13px}
+  .sorot-release-archive-list{padding-inline:8px}
+  .sorot-terminal-installer{padding:18px 14px}
+  .sorot-terminal-installer pre{overflow-x:auto}
+  .sorot-terminal-installer pre code{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .sorot-release-archive,.sorot-release-archive *{scroll-behavior:auto;transition:none}
+}
