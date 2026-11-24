@@ -98,11 +98,11 @@
   ],
   "planned_targets": [
     {
-      "version": "0.8.0",
+      "version": "1.0.23",
       "distribution": "Arch Linux",
       "status": "planned",
       "expected_format": "pkg.tar.zst",
-      "note": "Sorot 0.8.0 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian pada Arch Linux. PKGBUILD/.SRCINFO hanya metadata build eksperimental, bukan paket siap pasang. Jangan tampilkan sebagai unduhan native Arch."
+      "note": "Sorot 1.0.23 belum memiliki artefak .pkg.tar.zst yang dibangun dan lolos pengujian pada Arch Linux. Metadata build eksperimental bukan paket siap pasang. Jangan tampilkan sebagai unduhan native Arch sampai paket nyata tersedia dan teruji."
     }
   ]
 }
