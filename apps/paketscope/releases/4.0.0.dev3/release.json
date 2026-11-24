@@ -14,7 +14,7 @@
       "format": "deb",
       "architecture": "all",
       "sha256": "f12d522ed178faa54acdac664e28611e941b2d5ccb6553b86f8091d4137e4f74",
-      "minimum_os": "Debian 13 (target; instalasi bersih belum diverifikasi)"
+      "minimum_os": "Debian 13"
     },
     {
       "file": "apps-paketscope-4.0.0.dev3-sumber.tar.gz",
