@@ -143,3 +143,10 @@ The generated .deb is written to the parent directory. Install it only on a test
 - Produce a stable tagged release with a checksum and documented compatibility matrix.
 
 Do not announce a stable release until all CI checks, real-system compatibility checks, package installation/uninstallation tests, and a security review have completed.
+
+
+## Separate development artifact: 4.0.0.dev3
+
+The source tree and project catalogue remain at **3.0.0.dev5**. A separate **4.0.0.dev3** testing package is published under `releases/4.0.0.dev3/`; it has its own release index and manifest. Do not update the source version label or call it stable until the corresponding source changes are reviewed and integrated.
+
+The 4.0.0.dev3 package targets Debian 13 but has not passed a clean Debian 13 desktop installation test. The reported 375 tests ran in an Ubuntu sandbox. Use the .deb only in a disposable Debian 13 VM or test device, and verify it with the release `SHA256SUMS` before manual APT installation. End-user commands and the exact verification steps are documented in [the installation guide](../../docs/INSTALLATION_AND_COMPATIBILITY.md) and on the [PaketScope product page](../../public/software/paketscope.html#terminal-testing).
