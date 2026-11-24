@@ -134,6 +134,11 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         page = (PUBLIC / "software" / "sorot.html").read_text(encoding="utf-8")
         script = (PUBLIC / "assets" / "js" / "sorot-downloads.js").read_text(encoding="utf-8")
         self.assertIn('id="sorotDistro"', page)
+        self.assertIn('id="terminal-install"', page)
+        self.assertIn("bash /tmp/sorot-install.sh --version 1.0.23 --dry-run", page)
+        self.assertIn("jangan menjalankan skrip dengan", page.lower())
+        self.assertIn('class="sorot-release-archive"', script)
+        self.assertIn("Riwayat versi sebelumnya", script)
         self.assertIn('value="debian-13"', page)
         self.assertIn('— Pilih distro Linux secara manual —', page)
         self.assertIn("artifactMatchesDistro", script)
@@ -234,3 +239,15 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_installation_and_compatibility_guide_matches_published_scope(self):
+        guide = (ROOT / "docs" / "INSTALLATION_AND_COMPATIBILITY.md").read_text(encoding="utf-8")
+        distribution = (SOROT_ROOT / "DISTRIBUTION.md").read_text(encoding="utf-8")
+        self.assertIn("Sorot 1.0.23", guide)
+        self.assertIn("Debian 13", guide)
+        self.assertIn("Arch Linux", guide)
+        self.assertIn("check_live_integrations.py", guide)
+        self.assertIn("Supabase", guide)
+        self.assertIn("Vercel", guide)
+        self.assertIn("bash /tmp/sorot-install.sh --version 1.0.23 --dry-run", distribution)
+        self.assertIn("Jangan jalankan skrip installer dengan", distribution)
