@@ -111,7 +111,8 @@ class WebsiteMaintenanceTests(unittest.TestCase):
 
         sorot_index = json.loads((ROOT / "apps/sorot/releases/index.json").read_text(encoding="utf-8"))
         latest = sorot_index["versions"][-1]
-        self.assertEqual(latest["status"], "testing")
+        self.assertEqual(latest["status"], "released")
+        self.assertEqual(latest["channel"], "beta")
         home = (PUBLIC / "index.html").read_text(encoding="utf-8")
         sorot_page = (PUBLIC / "software/sorot.html").read_text(encoding="utf-8")
         self.assertIn(f"Sorot {latest['version']} Beta", home)
