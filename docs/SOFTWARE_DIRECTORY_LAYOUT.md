@@ -41,7 +41,7 @@ repository/
 
 - **PaketScope source:** `apps/paketscope/` on `main` is version `3.0.0.dev5`.
 - **PaketScope preview artifact:** `4.0.0.dev3` is a separate versioned development package in `apps/paketscope/releases/4.0.0.dev3/`. It remains `testing`, targets Debian 13, and is not a stable release. The source-tree version and downloadable preview-artifact version must not be silently conflated.
-- **Sorot:** `1.0.23` is `released` in the `beta` channel: .deb and Python wheel artifacts are listed with SHA-256, but a version-specific QA report and clean-install evidence are not published. Version `0.9.0` is retained as `archived`; its actual .deb remains downloadable but is not recommended for new installations. Versions `0.8.0` and earlier remain testing/Beta according to their manifests.
+- **Sorot:** `1.0.23` is `released` in the `stable` channel, with .deb and Python wheel artifacts and maintainer QA sign-off. The .deb is intended for compatible Debian/Ubuntu-family systems; the wheel needs a suitable Python environment. Version `0.9.0` is retained as `archived` and is not recommended for new installations. Versions `0.8.0` and earlier remain testing/Beta according to their manifests.
 - **Catalogue:** `public/data/software.json` is the canonical product catalogue. It drives website cards and metadata synchronisation. Do not edit generated copies or the Supabase mirror as independent sources.
 - **Distribution compatibility:** `public/data/distribution-index.json` is generated from versioned release manifests and distribution metadata. A browser may suggest a broad OS family; users still choose their Linux distribution manually because a browser cannot reliably identify the exact distro.
 

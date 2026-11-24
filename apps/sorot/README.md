@@ -2,19 +2,18 @@
 
 Sorot is a native Linux desktop teleprompter. Its existing interface, text workflow, playback behavior, and extension ecosystem are maintained incrementally; this repository does not treat a new release as a reason to redesign the UI/UX.
 
-## Current archived versions
+## Current stable release
 
-The latest indexed build is **Sorot 0.8.0 Beta/testing**. It is not a stable release. The .deb artifact is targeted to Debian 13; a clean Debian 13 installation has not yet been verified. RPM packaging was built with --nodeps on Ubuntu but not installed on Fedora. The Flatpak manifest was validated but the Flatpak package was not built. Arch remains a planned target without a published .pkg.tar.zst artifact.
+The latest indexed release is **Sorot 1.0.23 (stable)**. The maintainer approved it after functional testing and a release-suitability review. The published artifacts are:
 
-- [Sorot 0.8.0 Debian package](releases/0.8.0/sorot_0.8.0_all.deb)
-- [Sorot 0.8.0 source tar.gz](releases/0.8.0/sorot-0.8.0.tar.gz)
-- [Sorot 0.8.0 source ZIP](releases/0.8.0/sorot-0.8.0.zip)
-- [Sorot 0.8.0 Python wheel](releases/0.8.0/sorot-0.8.0-py3-none-any.whl)
-- [Sorot 0.8.0 SHA-256 checksums](releases/0.8.0/SHA256SUMS)
-- [Sorot 0.8.0 manifest](releases/0.8.0/release.json)
-- [Sorot 0.8.0 test report](releases/0.8.0/TEST-REPORT.md)
+- [Sorot 1.0.23 Debian package](releases/1.0.23/sorot_1.0.23_all.deb)
+- [Sorot 1.0.23 Python wheel](releases/1.0.23/sorot-1.0.23-py3-none-any.whl)
+- [Sorot 1.0.23 SHA-256 checksums](releases/1.0.23/SHA256SUMS)
+- [Sorot 1.0.23 release manifest](releases/1.0.23/release.json)
+- [Sorot 1.0.23 QA and release sign-off](releases/1.0.23/TEST-REPORT.md)
 - [Complete version index](releases/index.json)
-- [Previous version archive](releases/0.7.3/)
+
+The .deb is intended for compatible Debian/Ubuntu-family systems. The Python wheel requires a suitable interpreter and dependencies. Arch Linux remains a planned target without a published .pkg.tar.zst artifact. Version 0.9.0 is archived and not recommended for new installations; versions 0.8.0 and earlier remain testing/Beta according to their manifests.
 
 See [the release archive guide](releases/README.md) for the immutable version process. The website and terminal helper read the shared version index; the website catalogue and offline Software Center distribution index are generated from that canonical metadata.
 
@@ -35,10 +34,10 @@ The separate process used for code extensions protects application stability; **
 
 ## Installation
 
-Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 0.8.0 package file:
+Download the Debian package for the version you intend to use, then install it with APT so dependencies can be resolved. For example, from a downloaded 1.0.23 package file:
 
 ~~~bash
-sudo apt install ./sorot_0.8.0_all.deb
+sudo apt install ./sorot_1.0.23_all.deb
 ~~~
 
 For a move back to an older version, first select that version's directory, verify its SHA-256 checksums, back up scripts and other important data, and install its package. If APT blocks a downgrade, use the explicit downgrade option:
@@ -53,18 +52,26 @@ The source tar.gz and ZIP archives are version-specific snapshots for reviewing 
 
 ## Test status and limitations
 
+### Stable release 1.0.23
+
+The maintainer confirmed that Sorot 1.0.23 passed functional testing and a release-suitability review before being approved for the stable channel. The release-specific QA sign-off, artifact list, and compatibility boundaries are recorded in [the 1.0.23 QA report](releases/1.0.23/TEST-REPORT.md). Repository CI validates release manifests, real artifact files, SHA-256 consistency, distribution-index generation, and website integration. These checks support the release decision but do not certify every Linux distribution, desktop environment, or third-party extension.
+
+The published .deb is intended for compatible Debian/Ubuntu-family systems; the Python wheel requires a compatible Python environment and dependencies. Arch Linux still has no published native package. Do not interpret the stable channel as universal distro support.
+
+### Historical 0.8.0 test record
+
 The 0.8.0 report records **652 passing automated tests** on each of Python 3.11 and 3.13. It also records 135 GUI tests passing on X11 (Xvfb + openbox) and 131 passing on headless Wayland (Weston), with four focus/clipboard tests skipped because the headless compositor has no seat. Linting and reproducible artifact builds were also reported clean.
 
-These results are scoped to Ubuntu 24.04.5 x86_64 in a container. They do not certify a physical GNOME/KDE desktop, clean Debian 13 installation, Fedora RPM installation, Arch installation, or a built/installed Flatpak. Real AI/cloud integrations, accessibility with screen readers, and third-party extension compatibility still require manual testing.
+Those historical results are scoped to Ubuntu 24.04.5 x86_64 in a container. They do not certify a physical GNOME/KDE desktop, Fedora RPM installation, Arch installation, or a built/installed Flatpak. Real AI/cloud integrations, accessibility with screen readers, and third-party extension compatibility still require manual testing.
 
-See the [0.8.0 test report](releases/0.8.0/TEST-REPORT.md) for the exact test scope and outstanding checks. The report is test evidence, not a universal compatibility guarantee.
+See the [0.8.0 test report](releases/0.8.0/TEST-REPORT.md) for its exact historical test scope and limitations.
 
 ## Integrity and maintenance
 
 Verify the artifacts in a version folder by running:
 
 ~~~bash
-cd apps/sorot/releases/0.8.0
+cd apps/sorot/releases/1.0.23
 sha256sum -c SHA256SUMS
 ~~~
 

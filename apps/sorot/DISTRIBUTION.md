@@ -4,9 +4,9 @@ This document defines how the versioned Sorot archive, the terminal installer, t
 
 ## Indexed versions and current scope
 
-Sorot 0.5.0 through **0.8.0** are indexed as Beta/testing. The current latest version, 0.8.0, publishes four artifacts: a Debian .deb package targeted to Debian 13, source tar.gz, source ZIP, and Python wheel. Older version folders remain immutable and available in the version history.
+Sorot **1.0.23** is the latest stable release, with a Debian .deb package and Python wheel. The .deb is intended for compatible Debian/Ubuntu-family distributions; the wheel requires a suitable Python environment and dependencies. Versions 0.8.0 and earlier remain Beta/testing according to their manifests, while 0.9.0 is archived. Older version folders remain immutable and available in the version history.
 
-The 0.8.0 report records 652 passing automated tests on Python 3.11 and 3.13, 135 GUI tests passing on X11 virtual (Xvfb + openbox), and 131 passing on headless Wayland (Weston), with four tests skipped because the headless compositor has no seat. The report is based on Ubuntu 24.04.5 x86_64 in a container. A clean Debian 13 installation, real GNOME/KDE compositor behavior, Fedora installation, Arch installation, and Flatpak build/install have not been verified. RPM was built with --nodeps on Ubuntu only; the Flatpak manifest was validated but the bundle was not built. Keep the public status Beta/testing.
+The maintainer has approved Sorot 1.0.23 for the stable channel after functional testing and a release-suitability review; see `apps/sorot/releases/1.0.23/TEST-REPORT.md`. This sign-off applies to the published .deb and Python wheel, and does not imply universal compatibility across all Linux distributions or desktop environments. The 0.8.0 test report is historical evidence for that older build only: it records 652 passing automated tests on Python 3.11 and 3.13, 135 GUI tests passing on X11 virtual (Xvfb + openbox), and 131 passing on headless Wayland (Weston), with four tests skipped because the headless compositor has no seat. Those results were based on Ubuntu 24.04.5 x86_64 in a container. Arch remains a planned target without a native .pkg.tar.zst artifact; no RPM or Flatpak artifact is published for 1.0.23.
 
 The terminal helper at apps/sorot/install.sh and web selector read the version manifests. The web selector reads apps/sorot/releases/index.json from GitHub at runtime for its version list. Once the selector is deployed, adding a validated version to the canonical index and its release manifest makes it available to the website without a second manual download list.
 
@@ -14,7 +14,7 @@ The terminal helper at apps/sorot/install.sh and web selector read the version m
 
 The terminal helper reads `/etc/os-release` locally. The browser cannot read that file, so the site asks visitors to select the distro manually and only displays compatible native formats found in a release manifest. It must not infer exact distro compatibility from browser user-agent or fall back to installing a Debian package on Arch.
 
-Arch Linux remains a planned target. PKGBUILD files are stored under `apps/sorot/experimental/arch/<version>/` for review only. There is no validated `.pkg.tar.zst`, no completed Arch CI result, and no clean Arch installation test. Do not present `makepkg -si`, `pacman -U`, or a repository installation command as supported for Sorot 0.8.0.
+Arch Linux remains a planned target. PKGBUILD files are stored under `apps/sorot/experimental/arch/<version>/` for review only. There is no validated `.pkg.tar.zst`, no completed Arch CI result, and no clean Arch installation test. Do not present `makepkg -si`, `pacman -U`, or a repository installation command as supported for Sorot 1.0.23.
 
 ## Release workflow for maintainers
 
@@ -31,7 +31,7 @@ The generated website index is still useful to the launcher and other consumers,
 ~~~
 bash apps/sorot/install.sh --detect
 bash apps/sorot/install.sh --list
-bash apps/sorot/install.sh --version 0.8.0
+bash apps/sorot/install.sh --version 1.0.23
 ~~~
 
 The helper verifies SHA-256 and asks before installing testing builds. The archive is not a signed package repository; checksums are not cryptographic publisher signatures. Back up user scripts/configuration before any upgrade. The installer selects only a native artifact declared in the manifest for the detected distro.

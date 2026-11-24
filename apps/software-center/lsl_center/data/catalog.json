@@ -68,21 +68,21 @@
       "id": "sorot",
       "slug": "sorot",
       "name": "Sorot",
-      "version": "1.0.23 Beta",
-      "summary": "Sorot 1.0.23 tersedia untuk diunduh dalam kanal Beta melalui paket .deb dan Python wheel. Artefak memiliki SHA-256; laporan QA khusus 1.0.23 dan uji instalasi bersih belum dipublikasikan.",
-      "description": "Sorot adalah teleprompter desktop native untuk Linux. Versi 1.0.23 telah dipublikasikan sebagai Beta dengan paket .deb dan Python wheel yang tercantum pada manifest serta SHA256SUMS. Status released berarti berkas rilis tersedia untuk diunduh, bukan klaim bahwa build ini stabil atau telah diuji pada seluruh distribusi. Belum tersedia laporan QA khusus 1.0.23 maupun bukti instalasi bersih dan uji peluncuran pada distro/desktop sasaran. Gunakan paket .deb hanya pada keluarga Debian/Ubuntu yang sesuai; Python wheel ditujukan untuk lingkungan Python yang memenuhi dependensinya. Versi 0.9.0 tetap tersedia sebagai arsip .deb, tetapi berstatus archived dan tidak direkomendasikan untuk instalasi baru.",
+      "version": "1.0.23",
+      "summary": "Sorot 1.0.23 adalah rilis stabil teleprompter desktop Linux. Tersedia paket .deb untuk keluarga Debian/Ubuntu yang kompatibel serta Python wheel; setiap artefak memiliki checksum SHA-256.",
+      "description": "Sorot adalah teleprompter desktop native untuk Linux. Versi 1.0.23 telah disetujui sebagai rilis stabil setelah pengujian fungsional dan pemeriksaan kelayakan oleh maintainer. Paket .deb dan Python wheel diterbitkan dengan manifest serta checksum SHA-256. Paket .deb ditujukan untuk keluarga Debian/Ubuntu yang kompatibel; Python wheel memerlukan interpreter dan dependensi yang sesuai. Status stable berlaku untuk versi 1.0.23 dan tidak menyiratkan kompatibilitas universal pada semua distro atau desktop environment. Arch Linux masih menjadi target rencana tanpa artefak .pkg.tar.zst. Versi 0.9.0 tetap tersedia sebagai arsip .deb dan tidak direkomendasikan untuk instalasi baru.",
       "category": "Produktivitas",
       "status": "released",
       "type": "desktop",
       "platforms": [
-        "Debian / Ubuntu dan turunannya (paket .deb; instalasi bersih belum diverifikasi)",
-        "Linux dengan Python yang sesuai (wheel; dependensi perlu diperiksa)"
+        "Debian / Ubuntu dan turunannya (paket .deb; periksa dependensi sebelum pemasangan)",
+        "Linux dengan lingkungan Python yang memenuhi dependensi (wheel)"
       ],
       "tags": [
         "Python",
         "PySide6",
         "Teleprompter",
-        "Beta",
+        "Stable",
         "Debian package",
         "Python wheel",
         "SHA-256"
@@ -96,16 +96,17 @@
         "Sorot 1.0.23",
         "paket deb",
         "python wheel",
-        "beta"
+        "stable",
+        "pembaruan"
       ],
       "features": [
         "Teleprompter desktop native untuk Linux",
-        "Paket .deb Sorot 1.0.23 tersedia untuk keluarga Debian/Ubuntu yang sesuai",
-        "Python wheel Sorot 1.0.23 tersedia untuk lingkungan Python yang memenuhi dependensi",
+        "Sorot 1.0.23 diterbitkan sebagai rilis stabil",
+        "Paket .deb tersedia untuk keluarga Debian/Ubuntu yang kompatibel",
+        "Python wheel tersedia untuk lingkungan Python yang memenuhi dependensi",
         "Manifest rilis dan checksum SHA-256 tersedia untuk pemeriksaan integritas",
         "Versi 0.9.0 dipertahankan sebagai arsip dan tidak direkomendasikan untuk instalasi baru",
-        "Status kanal Beta ditampilkan terpisah dari status ketersediaan artefak",
-        "Kompatibilitas dan pengujian instalasi per distribusi dijelaskan secara terbuka"
+        "Arch Linux belum memiliki paket native tervalidasi untuk Sorot 1.0.23"
       ],
       "detailUrl": "/software/sorot.html",
       "sourceUrl": "https://github.com/M-TamDre07/Linux-Software-Lab/tree/main/apps/sorot",

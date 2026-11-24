@@ -111,9 +111,9 @@ PaketScope adalah aplikasi desktop Python/Qt di apps/paketscope/, bukan website 
 - Jangan menampilkan rilis atau tautan unduhan palsu.
 - Simpan kredensial rahasia di luar public/; jangan commit token atau file .env.
 
-## Sorot 1.0.23 Beta
+## Sorot 1.0.23 — rilis stabil
 
-Sorot adalah teleprompter desktop native untuk Linux. Versi terbaru yang terindeks adalah **1.0.23**, tersedia dalam kanal **Beta** melalui paket .deb dan Python wheel yang memiliki checksum SHA-256. Status `released` berarti artefak tersedia untuk diunduh; status ini tidak berarti kanal stable. Belum ada laporan QA khusus 1.0.23 atau bukti instalasi bersih/peluncuran pada distro sasaran. Versi 0.9.0 tetap tersedia sebagai arsip .deb, tetapi berstatus archived dan tidak direkomendasikan untuk instalasi baru. Lihat [kebijakan dan riwayat rilis Sorot](docs/SOROT_RELEASES.md), [arsip versi](apps/sorot/releases/README.md), dan [manifest 1.0.23](apps/sorot/releases/1.0.23/release.json). Jangan menganggap paket Beta sebagai rilis stabil; cocokkan checksum dan periksa dependensi sebelum pemasangan.
+Sorot adalah teleprompter desktop native untuk Linux. Versi terbaru yang terindeks adalah **1.0.23** dan berada di kanal **stable** setelah pengujian fungsional serta pemeriksaan kelayakan disetujui maintainer. Paket .deb dan Python wheel tersedia dengan checksum SHA-256; .deb ditujukan untuk keluarga Debian/Ubuntu yang kompatibel, sedangkan wheel memerlukan lingkungan Python dan dependensi yang sesuai. Status `released` menunjukkan artefak telah dipublikasikan, sedangkan kanal `stable` menunjukkan keputusan rilis stabil untuk versi ini. Status stable bukan jaminan kompatibilitas universal pada seluruh distro Linux. Versi 0.9.0 tetap tersedia sebagai arsip .deb dan tidak direkomendasikan untuk instalasi baru. Lihat [kebijakan dan riwayat rilis Sorot](docs/SOROT_RELEASES.md), [arsip versi](apps/sorot/releases/README.md), [manifest 1.0.23](apps/sorot/releases/1.0.23/release.json), dan [laporan QA 1.0.23](apps/sorot/releases/1.0.23/TEST-REPORT.md). Periksa checksum dan dependensi sebelum pemasangan.
 
 
 ## LISO LAB — Linux Software Lab Center (pratinjau launcher)
