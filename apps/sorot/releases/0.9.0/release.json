@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "product": "Sorot",
+  "version": "0.9.0",
+  "channel": "development",
+  "status": "archived",
+  "notes_url": "https://github.com/M-TamDre07/Linux-Software-Lab/blob/main/apps/sorot/releases/0.9.0/OTOMASI.md",
+  "architecture_note": "Arsip pengembangan lama. Tidak direkomendasikan untuk instalasi baru dan bukan rilis stabil. Direktori ini hanya menyediakan paket .deb; arsip source, Python wheel, dan metadata Arch yang tercantum pada checksum lama tidak tersedia sebagai artefak versi ini. Instalasi bersih serta kompatibilitas distro tidak disahkan. Unduh hanya untuk kebutuhan pengujian/kompatibilitas lama setelah memeriksa checksum dan dependensi.",
+  "artifacts": [
+    {
+      "file": "sorot_0.9.0_all.deb",
+      "kind": "debian-package",
+      "format": "deb",
+      "architecture": "all",
+      "minimum_os": "",
+      "sha256": "a40a952c3a58b2f03141fc331eb1905461f2d11502e7a9e2950f8211b7845f40"
+    }
+  ],
+  "checksum_file": "SHA256SUMS"
+}
