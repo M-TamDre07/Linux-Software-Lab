@@ -22,40 +22,54 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
+  "@graph": [
     {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Beranda",
-      "item": "https://linux-software-lab.vercel.app/"
+      "@type": "Organization",
+      "@id": "https://linux-software-lab.vercel.app/#organization",
+      "name": "LISO LAB",
+      "alternateName": ["Linux Software Lab", "LISO"],
+      "url": "https://linux-software-lab.vercel.app/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://linux-software-lab.vercel.app/assets/images/linux-software-lab.svg"
+      },
+      "sameAs": [
+        "https://github.com/M-TamDre07/Linux-Software-Lab"
+      ]
     },
     {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Jelajahi software",
-      "item": "https://linux-software-lab.vercel.app/software/"
+      "@type": "WebSite",
+      "@id": "https://linux-software-lab.vercel.app/#website",
+      "url": "https://linux-software-lab.vercel.app/",
+      "name": "LISO LAB",
+      "alternateName": ["Linux Software Lab", "LISO"],
+      "description": "Software desktop Linux independen yang berfokus pada kebutuhan nyata, privasi, dan kejelasan status rilis.",
+      "inLanguage": "id-ID",
+      "publisher": {
+        "@id": "https://linux-software-lab.vercel.app/#organization"
+      }
     },
     {
-      "@type": "ListItem",
-      "position": 3,
+      "@type": "BreadcrumbList",
+      "@id": "https://linux-software-lab.vercel.app/software/sorot.html#breadcrumb",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Beranda","item":"https://linux-software-lab.vercel.app/"},
+        {"@type":"ListItem","position":2,"name":"Jelajahi software","item":"https://linux-software-lab.vercel.app/software/"},
+        {"@type":"ListItem","position":3,"name":"Sorot","item":"https://linux-software-lab.vercel.app/software/sorot.html"}
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://linux-software-lab.vercel.app/software/sorot.html#softwareapplication",
       "name": "Sorot",
-      "item": "https://linux-software-lab.vercel.app/software/sorot.html"
+      "applicationCategory": "ProductivityApplication",
+      "applicationSubCategory": "Teleprompter",
+      "operatingSystem": "Linux",
+      "softwareVersion": "1.0.23 Beta",
+      "description": "Teleprompter desktop untuk Linux. Sorot 1.0.23 tersedia dalam kanal Beta melalui paket .deb dan Python wheel dengan checksum SHA-256; kompatibilitas distro dan status pengujian dijelaskan pada halaman rilis.",
+      "url": "https://linux-software-lab.vercel.app/software/sorot.html"
     }
   ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Sorot",
-  "applicationCategory": "ProductivityApplication",
-  "applicationSubCategory": "Teleprompter",
-  "operatingSystem": "Linux",
-  "softwareVersion": "1.0.23 Beta",
-  "description": "Teleprompter desktop untuk Linux. Sorot 1.0.23 tersedia dalam kanal Beta melalui paket .deb dan Python wheel dengan checksum SHA-256; kompatibilitas distro dan status pengujian dijelaskan pada halaman rilis.",
-  "url": "https://linux-software-lab.vercel.app/software/sorot.html"
 }
 </script>
 </head>
