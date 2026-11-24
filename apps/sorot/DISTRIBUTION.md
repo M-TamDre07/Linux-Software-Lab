@@ -26,12 +26,53 @@ Arch Linux remains a planned target. PKGBUILD files are stored under `apps/sorot
 
 The generated website index is still useful to the launcher and other consumers, but the canonical release list lives in `apps/sorot/releases/index.json`. This avoids a recurring integration task for every version.
 
-## Terminal usage
+## Terminal usage for end users
 
-~~~
-bash apps/sorot/install.sh --detect
-bash apps/sorot/install.sh --list
-bash apps/sorot/install.sh --version 1.0.23
-~~~
+The installer can be run from an ordinary terminal account. It reads `/etc/os-release`, matches the local distro family and CPU architecture against the release manifest, downloads only a declared native package, verifies SHA-256, and asks for administrator privileges only when the selected package manager must install the package. Do not run the installer itself with `sudo`.
 
-The helper verifies SHA-256 and asks before installing testing builds. The archive is not a signed package repository; checksums are not cryptographic publisher signatures. Back up user scripts/configuration before any upgrade. The installer selects only a native artifact declared in the manifest for the detected distro.
+First download and inspect the script from the official repository:
+
+```bash
+curl --fail --location --show-error --max-time 30 \
+  https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/sorot/install.sh \
+  --output /tmp/sorot-install.sh
+
+sed -n '1,260p' /tmp/sorot-install.sh
+```
+
+Then inspect the detected platform and real published artifacts. The dry run downloads and verifies the package but does not invoke the package manager:
+
+```bash
+bash /tmp/sorot-install.sh --detect
+bash /tmp/sorot-install.sh --list
+bash /tmp/sorot-install.sh --version 1.0.23 --dry-run
+```
+
+After confirming the detected distro and successful checksum verification, install:
+
+```bash
+bash /tmp/sorot-install.sh --version 1.0.23
+```
+
+Optional operations:
+
+```bash
+bash /tmp/sorot-install.sh --help
+bash /tmp/sorot-install.sh --list
+bash /tmp/sorot-install.sh --version 1.0.23 --dry-run
+```
+
+**Current compatibility boundary (24 November 2026):**
+
+| Platform family | 1.0.23 artefact | Current state |
+| --- | --- | --- |
+| Debian / Ubuntu family | `.deb` | Published; Debian 13 is the current CI smoke-test target. Other derivatives still need individual compatibility checks. |
+| Arch Linux | `.pkg.tar.zst` | Not published; installer refuses to fall back to `.deb`. |
+| Fedora / RHEL | `.rpm` | Not published. |
+| openSUSE / SUSE | `.rpm` | Not published. |
+| Other Linux | — | No native package-manager artefact declared. |
+| Python environments | `.whl` | Published for compatible Python environments; not an OS-native package. |
+
+A `.deb` being available does not establish that every Debian/Ubuntu derivative or desktop environment was tested. Likewise, distro detection identifies a family; it does not prove hardware, Qt platform plugin, Wayland/X11, or desktop compatibility. The script stops when no matching artefact exists. Do not use `pacman -U`, `dnf install`, or `zypper install` for Sorot 1.0.23 until matching packages are actually published.
+
+The helper's checksum check protects against file mismatch against the manifest and `SHA256SUMS`; it is not a cryptographic publisher signature. Back up user scripts/configuration before upgrading. See [installation and compatibility guide](../../docs/INSTALLATION_AND_COMPATIBILITY.md) for the full user workflow and service integration checks.

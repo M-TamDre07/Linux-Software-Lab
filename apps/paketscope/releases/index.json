@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "product": "PaketScope",
+  "updated_at": "2026-11-24",
+  "versions": [
+    {
+      "version": "3.0.0.dev5",
+      "channel": "development",
+      "status": "testing",
+      "formats": [
+        "deb",
+        "tar.gz",
+        "whl",
+        "diff"
+      ]
+    },
+    {
+      "version": "4.0.0.dev3",
+      "channel": "development",
+      "status": "testing",
+      "formats": [
+        "deb",
+        "tar.gz"
+      ]
+    }
+  ]
+}
