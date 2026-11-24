@@ -26,25 +26,44 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
+  "@graph": [
     {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Beranda",
-      "item": "https://linux-software-lab.vercel.app/"
+      "@type": "Organization",
+      "@id": "https://linux-software-lab.vercel.app/#organization",
+      "name": "LISO LAB",
+      "alternateName": ["Linux Software Lab", "LISO"],
+      "url": "https://linux-software-lab.vercel.app/",
+      "logo": {"@type":"ImageObject","url":"https://linux-software-lab.vercel.app/assets/images/linux-software-lab.svg"},
+      "sameAs": ["https://github.com/M-TamDre07/Linux-Software-Lab"]
     },
     {
-      "@type": "ListItem",
-      "position": 2,
-      "name": "Jelajahi software",
-      "item": "https://linux-software-lab.vercel.app/software/"
+      "@type": "WebSite",
+      "@id": "https://linux-software-lab.vercel.app/#website",
+      "url": "https://linux-software-lab.vercel.app/",
+      "name": "LISO LAB",
+      "alternateName": ["Linux Software Lab", "LISO"],
+      "description": "Software desktop Linux independen yang berfokus pada kebutuhan nyata, privasi, dan kejelasan status rilis.",
+      "inLanguage": "id-ID",
+      "publisher": {"@id":"https://linux-software-lab.vercel.app/#organization"}
     },
     {
-      "@type": "ListItem",
-      "position": 3,
+      "@type": "BreadcrumbList",
+      "@id": "https://linux-software-lab.vercel.app/software/paketscope.html#breadcrumb",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Beranda","item":"https://linux-software-lab.vercel.app/"},
+        {"@type":"ListItem","position":2,"name":"Jelajahi software","item":"https://linux-software-lab.vercel.app/software/"},
+        {"@type":"ListItem","position":3,"name":"PaketScope","item":"https://linux-software-lab.vercel.app/software/paketscope.html"}
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://linux-software-lab.vercel.app/software/paketscope.html#softwareapplication",
       "name": "PaketScope",
-      "item": "https://linux-software-lab.vercel.app/software/paketscope.html"
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Linux (Debian 13 target)",
+      "softwareVersion": "4.0.0.dev3",
+      "description": "PaketScope 4.0.0.dev3 adalah pratinjau pengembangan pengelola software Linux. Paket .deb menargetkan Debian 13; instalasi bersih dan desktop fisik belum diverifikasi. Statusnya testing, bukan stable.",
+      "url": "https://linux-software-lab.vercel.app/software/paketscope.html"
     }
   ]
 }
