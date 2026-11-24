@@ -96,7 +96,8 @@
         "Sorot 1.0.23",
         "paket deb",
         "python wheel",
-        "stable"
+        "stable",
+        "pembaruan"
       ],
       "features": [
         "Teleprompter desktop native untuk Linux",
