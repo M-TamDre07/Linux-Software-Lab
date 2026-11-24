@@ -140,3 +140,14 @@ The connected Linux Software Lab Supabase project was inspected without changing
 - The catalogue mirror currently has two published records (`paketscope` and `sorot`), both with lifecycle `testing` and empty `release_url` values. This matches the rule that publication status must not be elevated before a verified release URL exists.
 
 These are point-in-time observations, not a permanent health guarantee. Re-run the advisors and read-only catalogue checks after relevant schema, policy, or sync changes. No migration or live data mutation was performed as part of this audit.
+
+
+## Publication update (2026-11-24)
+
+The Sorot catalogue distinguishes artifact availability from product stability:
+
+- Sorot **1.0.23** is published as `released` / `beta`. Its .deb and Python wheel are checksum-listed. There is no 1.0.23-specific QA report or clean-install evidence in the repository, so the channel remains Beta and must not be presented as stable.
+- Sorot **0.9.0** is retained as `archived` / `development`. Only its existing .deb artifact remains downloadable; unavailable files have been removed from the checksum list. It is not recommended for new installations.
+- Older Beta/testing releases remain visible. Downloading an archived, older, or non-stable artifact requires an explicit browser confirmation.
+
+The versioned manifest and `apps/sorot/releases/index.json` remain the publication source of truth. `public/data/distribution-index.json`, the Software Center bundle, and Supabase catalogue mirror are generated from their canonical sources by CI. The Supabase catalogue remains read-only to anonymous browser clients under RLS. Do not edit generated mirrors by hand or use the `released` lifecycle value as a substitute for a `stable` channel.
