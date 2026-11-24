@@ -58,6 +58,85 @@ Untuk mengetahui opsi:
 bash /tmp/sorot-install.sh --help
 ```
 
+## Uji PaketScope 4.0.0.dev3 dari terminal
+
+PaketScope **3.0.0.dev5** tetap menjadi versi source tree yang tercatat di katalog. PaketScope **4.0.0.dev3** adalah artefak pengembangan terpisah dengan manifest dan SHA256SUMS sendiri; keduanya tidak boleh disamakan atau dilabeli stable. Paket 4.0.0.dev3 menargetkan Debian 13, tetapi instalasi bersih Debian 13 belum diverifikasi. Gunakan hanya pada VM atau perangkat uji, bukan sistem utama.
+
+```bash
+mkdir -p "$HOME/Downloads/paketscope-4.0.0.dev3"
+cd "$HOME/Downloads/paketscope-4.0.0.dev3"
+
+curl --fail --location --show-error \
+  https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/SHA256SUMS \
+  --output SHA256SUMS
+
+curl --fail --location --show-error \
+  https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/paketscope_4.0.0%7Edev3-1_all.deb \
+  --output paketscope_4.0.0~dev3-1_all.deb
+
+grep '  paketscope_4.0.0~dev3-1_all.deb
+
+Prasyarat: Python 3.10+ untuk skrip pemeriksaan, dan Node.js untuk tes JavaScript. Jalankan dari root clone repositori:
+
+```bash
+python3 -m http.server 8000 --directory public
+```
+
+Buka `http://localhost:8000/`, `http://localhost:8000/software/`, dan `http://localhost:8000/software/sorot.html`.
+
+Pemeriksaan katalog, link, manifest, integrasi, JavaScript dan tes:
+
+```bash
+python scripts/validate_catalog.py
+python scripts/check_site_links.py
+python scripts/check_docs_links.py
+python scripts/validate_app_manifest.py
+python scripts/sync_distribution_index.py --check
+python apps/sorot/validate_releases.py
+node --check public/assets/js/site.js
+node --check public/assets/js/sorot-downloads.js
+node --test tests/test_catalog_contract.cjs
+python -m unittest discover -s tests -v
+```
+
+Audit layanan produksi bersifat baca-saja:
+
+```bash
+python scripts/check_live_integrations.py
+```
+
+Skrip tersebut membandingkan katalog JSON yang diterbitkan Vercel dan mirror publik Supabase dengan sumber GitHub. Ia tidak melakukan SQL write, migrasi, atau perubahan deployment.
+
+## Alur integritas GitHub → CI → Supabase dan Vercel
+
+1. **GitHub** menyimpan kode, `public/data/software.json`, skema metadata, manifest rilis dan dokumen. Perubahan diajukan melalui branch dan pull request.
+2. **GitHub Actions** memvalidasi format katalog, halaman, tautan, manifest rilis, checksum, dan tes aplikasi. Pull request hanya menjalankan validasi; sinkronisasi database produksi tidak dijalankan dari kode PR.
+3. Setelah perubahan yang ditinjau masuk ke `main`, workflow tepercaya menyinkronkan `software_catalog` di Supabase. Kunci rahasia hanya disimpan di GitHub Actions Secrets. Website browser hanya memakai publishable key dan akses SELECT yang dibatasi RLS.
+4. **Vercel** membangun deployment dari repositori yang sama. Root Directory tetap root repositori; Output Directory `public/`. Kode aplikasi, tes, dan dokumen di luar `public/` tidak diterbitkan sebagai website.
+5. Website membaca katalog Supabase bila tersedia dan fallback ke `/data/software.json` dari deployment yang sama bila mirror gagal.
+6. Pemeriksaan live integritas membandingkan katalog GitHub, Vercel dan Supabase. Perbedaan dilaporkan untuk ditinjau; jangan memperbaiki drift dengan menulis langsung dari browser.
+
+## Batas keamanan dan kompatibilitas
+
+- Jangan pernah memasukkan Supabase `sb_secret_` atau service-role key ke JavaScript publik, HTML, atau variabel `NEXT_PUBLIC_`.
+- Jangan membuat policy publik untuk tabel OTP, sesi verifikasi, atau tautan Telegram. RLS yang aktif tanpa policy mencegah akses langsung dari klien biasa.
+- Jangan menjalankan aplikasi GUI seluruhnya sebagai root. Hak administrator hanya untuk operasi package manager yang sempit dan sudah dikonfirmasi.
+- Jangan menganggap browser dapat membaca `/etc/os-release`. Website meminta pengunjung memilih distro secara manual; installer native membaca distro langsung dari sistem.
+- Jangan mengartikan SHA-256 sebagai tanda tangan penerbit. Verifikasi checksum melindungi terhadap mismatch file dengan metadata yang diperoleh, bukan identitas kriptografis pembuat.
+- Jangan menyimpulkan dukungan distro, desktop, Wayland/X11, atau arsitektur hanya dari user-agent atau dari paket `all`. Klaim kompatibilitas harus ditautkan ke artefak, manifest dan pengujian yang nyata.
+
+Rincian deployment ada di [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md), model database di [SUPABASE_INTEGRATION.md](SUPABASE_INTEGRATION.md), dan aturan UI di [WEBSITE_MAINTENANCE.md](WEBSITE_MAINTENANCE.md). SHA256SUMS | sha256sum --check
+dpkg-deb --info paketscope_4.0.0~dev3-1_all.deb
+```
+
+Hanya setelah checksum benar, dan hanya pada Debian 13 VM/perangkat uji:
+
+```bash
+sudo apt install ./paketscope_4.0.0~dev3-1_all.deb
+```
+
+Jalankan terminal sebagai pengguna biasa; `sudo` digunakan khusus oleh APT. Laporan menyebut 375 tes lulus di sandbox Ubuntu, bukan instalasi desktop Debian 13. SHA-256 bukan tanda tangan penerbit. Baca [hasil pengujian dev3](../apps/paketscope/releases/4.0.0.dev3/HASIL-DEV3.md) sebelum mencoba.
+
 ## Menjalankan website dan memeriksa proyek secara lokal
 
 Prasyarat: Python 3.10+ untuk skrip pemeriksaan, dan Node.js untuk tes JavaScript. Jalankan dari root clone repositori:
