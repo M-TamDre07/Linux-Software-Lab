@@ -47,3 +47,15 @@ This mirror is a catalogue backend, not authentication, analytics, user storage,
 ## Private admin dashboard
 
 The read-only admin workspace lives at `/admin/`. It authenticates against Supabase Auth, verifies an active server-managed membership in `public.lsl_admin_users`, then reads the catalogue under RLS. The page does not expose other Auth users, secrets, or write privileges. The initial membership is created by the maintainer in the trusted Supabase Dashboard; follow [ADMIN_DASHBOARD.md](ADMIN_DASHBOARD.md). Catalogue changes remain GitHub pull requests and are mirrored by CI.
+
+
+## Read-only security and integrity audit — 24 November 2026
+
+The connected production project was inspected without performing writes or schema changes:
+
+- `public.software_catalog` has RLS enabled. The `anon` role has SELECT only for published rows; authenticated admin reads are separately constrained by active admin membership and a verified OTP session. No browser-side INSERT, UPDATE, or DELETE privilege is intended.
+- The four OTP / Telegram challenge and link tables have RLS enabled and no client-facing policies. This is intentional: these tables are privileged authentication plumbing, not public catalogue data. Do not resolve an advisor notice by creating broad `anon` or `authenticated` policies.
+- Supabase Security Advisor still reports leaked-password protection as disabled. The maintainer should review and enable it through **Authentication → Settings → Password Security** in the Supabase Dashboard when ready; this setting was not changed during the audit.
+- Performance Advisor lists three currently unused indexes. They were left in place; usage should be assessed over a suitable observation period before any migration removes them.
+
+The public catalogue readback matched the two expected published records at the time of the audit: Sorot 1.0.23 (`released`) and PaketScope 3.0.0.dev5 (`testing`). The live parity check remains the repeatable test; this paragraph is a dated observation, not a permanent promise.
