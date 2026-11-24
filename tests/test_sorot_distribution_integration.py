@@ -237,9 +237,6 @@ class SorotDistributionIntegrationTests(unittest.TestCase):
         self.assertIn("PaketScope", readme)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
     def test_installation_and_compatibility_guide_matches_published_scope(self):
         guide = (ROOT / "docs" / "INSTALLATION_AND_COMPATIBILITY.md").read_text(encoding="utf-8")
         distribution = (SOROT_ROOT / "DISTRIBUTION.md").read_text(encoding="utf-8")
@@ -251,3 +248,7 @@ if __name__ == "__main__":
         self.assertIn("Vercel", guide)
         self.assertIn("bash /tmp/sorot-install.sh --version 1.0.23 --dry-run", distribution)
         self.assertIn("Jangan jalankan skrip installer dengan", distribution)
+
+
+if __name__ == "__main__":
+    unittest.main()
