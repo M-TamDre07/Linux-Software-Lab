@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -11,6 +12,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 RELEASE_INDEX_PATH = ROOT / "apps" / "sorot" / "releases" / "index.json"
+PAKETSCOPE_RELEASE_INDEX_PATH = ROOT / "apps" / "paketscope" / "releases" / "index.json"
 PUBLIC_INDEX_PATH = ROOT / "public" / "data" / "distribution-index.json"
 BUNDLED_INDEX_PATH = ROOT / "apps" / "software-center" / "lsl_center" / "data" / "distribution-index.json"
 PUBLIC_CATALOG_PATH = ROOT / "public" / "data" / "software.json"
@@ -66,6 +68,82 @@ def _build_catalog_with_current_sorot_version(path: Path, version_label: str) ->
     # This field is a generated display/search label, never a second source of truth.
     matches[0]["version"] = version_label
     return data
+
+
+
+def _build_paketscope_manifest_refs() -> list[dict[str, str]]:
+    """Validate indexed PaketScope artefacts and return immutable manifest URLs."""
+    source = _load(PAKETSCOPE_RELEASE_INDEX_PATH)
+    if source.get("schema_version") != 1 or source.get("product") != "PaketScope":
+        raise IndexSyncError("PaketScope releases/index.json has an unsupported schema/product")
+    entries = source.get("versions")
+    if not isinstance(entries, list) or not entries:
+        raise IndexSyncError("PaketScope release index must contain a non-empty versions list")
+
+    refs: list[dict[str, str]] = []
+    seen: set[str] = set()
+    release_root = PAKETSCOPE_RELEASE_INDEX_PATH.parent
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise IndexSyncError("Each PaketScope versions entry must be an object")
+        version = entry.get("version")
+        if (
+            not isinstance(version, str)
+            or not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:[.+-][0-9A-Za-z.-]+)?", version)
+            or version in seen
+        ):
+            raise IndexSyncError(f"Invalid or duplicate PaketScope version: {version!r}")
+        seen.add(version)
+        manifest_path = release_root / version / "release.json"
+        manifest = _load(manifest_path)
+        if manifest.get("schema_version") != 1 or manifest.get("product") != "PaketScope":
+            raise IndexSyncError(f"{version}: invalid PaketScope manifest schema/product")
+        if manifest.get("version") != version:
+            raise IndexSyncError(f"{version}: PaketScope manifest version mismatch")
+        if manifest.get("status") not in ALLOWED_STATUSES or manifest.get("channel") not in ALLOWED_CHANNELS:
+            raise IndexSyncError(f"{version}: invalid PaketScope status/channel")
+        if manifest.get("status") != entry.get("status") or manifest.get("channel") != entry.get("channel"):
+            raise IndexSyncError(f"{version}: status/channel differs between PaketScope index and manifest")
+
+        artifacts = manifest.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
+            raise IndexSyncError(f"{version}: PaketScope manifest has no artifacts")
+        formats = {item.get("format") for item in artifacts if isinstance(item, dict)}
+        if formats != set(entry.get("formats", [])):
+            raise IndexSyncError(f"{version}: formats differ between PaketScope index and manifest")
+
+        checksum_path = release_root / version / str(manifest.get("checksum_file", "SHA256SUMS"))
+        checksum_map: dict[str, str] = {}
+        try:
+            for line in checksum_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                digest, filename = line.split("  ", 1)
+                checksum_map[filename] = digest
+        except (OSError, ValueError) as exc:
+            raise IndexSyncError(f"{version}: cannot parse SHA256SUMS: {exc}") from exc
+
+        for artifact in artifacts:
+            if not isinstance(artifact, dict):
+                raise IndexSyncError(f"{version}: invalid artifact entry")
+            filename = artifact.get("file")
+            digest = artifact.get("sha256")
+            if not isinstance(filename, str) or Path(filename).name != filename:
+                raise IndexSyncError(f"{version}: unsafe artifact filename")
+            if not isinstance(digest, str) or not re.fullmatch(r"[a-f0-9]{64}", digest):
+                raise IndexSyncError(f"{version}: invalid artifact SHA-256")
+            artifact_path = release_root / version / filename
+            if not artifact_path.is_file():
+                raise IndexSyncError(f"{version}: missing artifact {filename}")
+            actual = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+            if actual != digest or checksum_map.get(filename) != digest:
+                raise IndexSyncError(f"{version}: SHA-256 mismatch for {filename}")
+
+        refs.append({
+            "version": version,
+            "url": f"{RAW_ROOT}/apps/paketscope/releases/{version}/release.json",
+        })
+    return refs
 
 
 def _build_public_index() -> dict[str, Any]:
@@ -127,6 +205,11 @@ def _build_public_index() -> dict[str, Any]:
     if sorot is None:
         raise IndexSyncError("Public distribution index has no Sorot entry")
     sorot["manifests"] = version_refs
+
+    paketscope = next((item for item in products if isinstance(item, dict) and item.get("id") == "paketscope"), None)
+    if paketscope is None:
+        raise IndexSyncError("Public distribution index has no PaketScope entry")
+    paketscope["manifests"] = _build_paketscope_manifest_refs()
 
     distro_ids_by_label = {
         str(item.get("label", "")).casefold(): item.get("id")
