@@ -34,7 +34,7 @@ Use **native packages plus optional Flatpak delivery**, rather than pretending o
 
 Each application may support a different subset of formats. The catalogue must show only artifacts that actually exist, are checksummed, and have been tested for the claim being made. A blank or planned artifact must never generate an install button or terminal install command.
 
-For Sorot, the current indexed release is 0.7.3 Beta (testing), with a Debian 13-targeted `.deb`, source archives, and a Python wheel. Arch remains a planned target until an actual `.pkg.tar.zst` artifact is built and passes Arch-specific tests. PaketScope's source-mode command is not the same thing as a public package release.
+For Sorot, the current indexed release is **1.0.23 stable**. Its published artefacts are a Debian `.deb` package and a Python wheel; Debian 13 is the current native-package CI target. The stable channel reflects the maintainer's release decision for these artefacts, not universal Linux compatibility. Arch remains planned until a real `.pkg.tar.zst` artifact passes native Arch packaging and clean-install tests; Fedora/RPM, openSUSE/RPM, Flatpak, and AppImage are not published for 1.0.23. PaketScope's source-mode command is not the same thing as a public package release.
 
 ## Meaning of “container” in the product plan
 
