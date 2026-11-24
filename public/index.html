@@ -200,11 +200,14 @@
     <div class="container install-panel">
       <div class="install-copy">
         <span class="eyebrow">INSTALASI LINUX</span>
-        <h2>Perintah terminal yang aman, saat paketnya siap.</h2>
-        <p>Target berikutnya adalah distribusi yang mudah dipahami: halaman unduhan resmi, instruksi terminal, checksum, dan paket yang ditandatangani. Kami tidak akan menyuruh pengguna menjalankan perintah instalasi yang belum tersedia atau belum diuji.</p>
-        <span class="install-state">Instruksi instalasi resmi belum tersedia</span>
-        <p class="install-followup">PaketScope masih dalam pengembangan. Jangan menambahkan repository pihak ketiga atau menjalankan perintah dengan <code>sudo</code> berdasarkan panduan yang belum diterbitkan di situs resmi ini.</p>
-        <a class="btn btn-secondary" href="/software/paketscope.html#install-status">Lihat kesiapan rilis PaketScope <span aria-hidden="true">↗</span></a>
+        <h2>Instal dari terminal dengan pemeriksaan sebelum pemasangan.</h2>
+        <p>Sorot 1.0.23 stable menyediakan installer terminal yang mendeteksi distro, memilih artefak native dari manifest, dan memverifikasi SHA-256 sebelum package manager dijalankan. Kamu tidak perlu menjalankan seluruh skrip sebagai root.</p>
+        <span class="install-state">Installer Sorot tersedia · PaketScope masih pengembangan</span>
+        <p class="install-followup">Saat ini paket native Sorot 1.0.23 yang tersedia adalah <code>.deb</code>; Debian 13 menjadi target pengujian CI. Arch, Fedora/RPM, dan openSUSE belum memiliki paket rilis yang tervalidasi. PaketScope 3 masih berstatus pratinjau pengembangan dan belum menjadi installer publik siap pakai.</p>
+        <div class="home-actions">
+          <a class="btn btn-primary" href="/software/sorot.html#terminal-install">Panduan instalasi terminal Sorot <span aria-hidden="true">↗</span></a>
+          <a class="btn btn-secondary" href="/software/paketscope.html#install-status">Status PaketScope <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
       <aside class="terminal-note" aria-label="Status kesiapan instalasi">
         <div class="terminal-note-head"><span>INSTALLATION STATUS</span><span>LISO LAB · LINUX SOFTWARE LAB</span></div>
