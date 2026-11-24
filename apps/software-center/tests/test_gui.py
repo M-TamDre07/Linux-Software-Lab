@@ -145,7 +145,8 @@ class LauncherGuiSmokeTests(unittest.TestCase):
         self.assertTrue(window.install_button.isEnabled())
         self.assertEqual(window.install_button.text(), "Pasang aplikasi")
         self.assertIn("RELEASED", window.product_status.text())
-        self.assertIn("SHA-256", window.compatibility_label.text())
+        self.assertIn("Format cocok: .deb", window.compatibility_label.text())
+        self.assertIn("belum berarti semua distro", window.compatibility_label.text())
         window.close()
 
 
