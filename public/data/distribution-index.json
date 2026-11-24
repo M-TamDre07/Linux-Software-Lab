@@ -100,6 +100,10 @@
         {
           "version": "3.0.0.dev5",
           "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/3.0.0.dev5/release.json"
+        },
+        {
+          "version": "4.0.0.dev3",
+          "url": "https://raw.githubusercontent.com/M-TamDre07/Linux-Software-Lab/main/apps/paketscope/releases/4.0.0.dev3/release.json"
         }
       ]
     },
