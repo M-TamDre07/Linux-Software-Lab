@@ -59,3 +59,5 @@ The connected production project was inspected without performing writes or sche
 - Performance Advisor lists three currently unused indexes. They were left in place; usage should be assessed over a suitable observation period before any migration removes them.
 
 The public catalogue readback matched the two expected published records at the time of the audit: Sorot 1.0.23 (`released`) and PaketScope 3.0.0.dev5 (`testing`). The live parity check remains the repeatable test; this paragraph is a dated observation, not a permanent promise.
+
+The PaketScope catalogue row currently reports source-tree version `3.0.0.dev5`. The separate testing artifact `4.0.0.dev3` is tracked in `apps/paketscope/releases/index.json` and `public/data/distribution-index.json`; it does not silently overwrite the source version in `software_catalog`. The website and launcher can read the dedicated release manifest for compatibility without mislabelling the current source checkout.
