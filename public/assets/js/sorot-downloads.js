@@ -418,10 +418,24 @@
       const searchable = (release.version + ' ' + release.channel + ' ' + release.status).toLocaleLowerCase('id-ID');
       return (filterStatus === 'all' || release.status === filterStatus) && (!term || searchable.includes(term));
     });
-    if (releaseCount) releaseCount.textContent = releases.length + ' dari ' + allReleases.length + ' versi ditampilkan';
-    releaseList.innerHTML = releases.length
-      ? releases.map(release => releaseMarkup(release, distro, release.version === latest?.version)).join('')
-      : '<article class="sorot-release-card"><p>Tidak ada versi yang cocok dengan filter ini. Ubah pencarian atau pilih status lain.</p></article>';
+    const latestRelease = releases.find(release => release.version === latest?.version);
+    const previousReleases = releases.filter(release => release.version !== latest?.version);
+    const expandArchive = Boolean(term || filterStatus !== 'all');
+    const latestMarkup = latestRelease ? releaseMarkup(latestRelease, distro, true) : '';
+    const archiveMarkup = previousReleases.length
+      ? '<details class="sorot-release-archive"' + (expandArchive ? ' open' : '') + '>' +
+        '<summary><span>Riwayat versi sebelumnya</span><small>' + previousReleases.length + ' versi</small></summary>' +
+        '<div class="sorot-release-archive-list">' +
+        previousReleases.map(release => releaseMarkup(release, distro, false)).join('') +
+        '</div></details>'
+      : '';
+    if (releaseCount) {
+      releaseCount.textContent = releases.length
+        ? (latestRelease ? 'Versi terbaru' : 'Arsip yang cocok') + ' · ' + releases.length + ' dari ' + allReleases.length + ' versi'
+        : 'Tidak ada versi yang cocok';
+    }
+    releaseList.innerHTML = latestMarkup + archiveMarkup || 
+      '<article class="sorot-release-card"><p>Tidak ada versi yang cocok dengan filter ini. Ubah pencarian atau pilih status lain.</p></article>';
   };
 
   distroSelect.addEventListener('change', render);
